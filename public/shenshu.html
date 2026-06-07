@@ -33,21 +33,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
 }
 .fq{
   position:absolute;
-  font-family:'Ma Shan Zheng',cursive;
-  white-space:nowrap;
   pointer-events:none;
   will-change:transform,opacity;
-  animation:fqLife var(--dur,12s) var(--delay,0s) infinite ease-in-out;
-  opacity:0;
   transform-origin:center center;
-}
-@keyframes fqLife{
-  0%  {opacity:0;transform:rotate(var(--r,0deg)) scale(var(--s0,.85)) translateY(0px);}
-  15% {opacity:var(--op,.22);}
-  40% {transform:rotate(calc(var(--r,0deg) + var(--rd,2deg))) scale(var(--s1,1.05)) translateY(var(--dy,-12px));}
-  75% {opacity:var(--op,.22);transform:rotate(calc(var(--r,0deg) - var(--rd,2deg))) scale(var(--s0,.85)) translateY(var(--dy2,8px));}
-  90% {opacity:0;}
-  100%{opacity:0;transform:rotate(var(--r,0deg)) scale(var(--s0,.85)) translateY(0px);}
 }
 
 /* ══ LANDING ══ */
@@ -2644,63 +2632,72 @@ function setAskLoading(on){
     '天下皆知美之為美，斯惡已','聖人不積，既以為人己愈有',
     '學而時習之，不亦說乎','三人行，必有我師焉','知之為知之，不知為不知',
     '吾日三省吾身','己所不欲，勿施於人','溫故而知新','為政以德',
-    '上古之人，其知道者，法于陰陽','陰陽者，天地之道也',
+    '上古之人，法于陰陽','陰陽者，天地之道也',
     '正氣存內，邪不可干','天人合一','春生夏長，秋收冬藏',
     '元亨利貞','天地交泰','否極泰來','一陰一陽之謂道',
     '大哉乾元，萬物資始','坤厚載物，德合無疆',
-    '苟日新，日日新，又日新','天下興亡，匹夫有責',
-    '窮則變，變則通，通則久','仁者愛人','禮之用，和為貴',
-    '北冥有魚，其名為鯤','相濡以沫，不如相忘於江湖',
-    '吾生也有涯，而知也無涯','逍遙於天地之間',
-    '縱橫捭闔，以謀天下','運籌帷幄，決勝千里',
-    '時來天地皆同力','謀定而後動','靜者生焉',
+    '苟日新，日日新，又日新','窮則變，變則通，通則久',
+    '仁者愛人','禮之用，和為貴','北冥有魚，其名為鯤',
+    '相濡以沫，不如相忘於江湖','吾生也有涯，而知也無涯',
+    '逍遙於天地之間','縱橫捭闔','運籌帷幄，決勝千里',
+    '謀定而後動','靜者生焉','時來天地皆同力',
   ];
 
   const container=document.getElementById('floatingQuotes');
   if(!container)return;
 
   const vw=window.innerWidth, vh=window.innerHeight;
-  const count=Math.min(38, Math.floor(vw*vh/18000)+12);
-  const used=[];
+  const count=Math.min(36, Math.floor(vw*vh/16000)+10);
+
+  // 為每條名言生成獨立 keyframe + 掛載元素
+  const styleEl=document.createElement('style');
+  let css='';
 
   for(let i=0;i<count;i++){
+    const q=QUOTES[i%QUOTES.length];
+    const id='fq'+i;
+
+    let x,y,att=0;
+    do{ x=4+Math.random()*88; y=4+Math.random()*88; att++; }
+    while(att<15 && x>28&&x<72&&y>25&&y<75);
+
+    const rot=((Math.random()-0.5)*28).toFixed(1);
+    const rot2=((Math.random()-0.5)*28).toFixed(1);
+    const rot3=((Math.random()-0.5)*28).toFixed(1);
+    const s0=(0.78+Math.random()*0.3).toFixed(2);
+    const s1=(parseFloat(s0)+0.15+Math.random()*0.25).toFixed(2);
+    const op=(0.18+Math.random()*0.28).toFixed(2);
+    const dur=(10+Math.random()*16).toFixed(1);
+    const delay=(Math.random()*-16).toFixed(1);
+    const dyA=(-(6+Math.random()*18)).toFixed(0);
+    const dyB=((4+Math.random()*12)).toFixed(0);
+    const fs=(0.72+Math.random()*0.72).toFixed(2);
+    const vertical=q.length<=6&&Math.random()>.5;
+
+    css+=`@keyframes ${id}{
+      0%  {opacity:0;transform:rotate(${rot}deg) scale(${s0}) translateY(0);}
+      18% {opacity:${op};}
+      45% {opacity:${op};transform:rotate(${rot2}deg) scale(${s1}) translateY(${dyA}px);}
+      78% {opacity:${op};transform:rotate(${rot3}deg) scale(${s0}) translateY(${dyB}px);}
+      92% {opacity:0;}
+      100%{opacity:0;transform:rotate(${rot}deg) scale(${s0}) translateY(0);}
+    }\n`;
+
     const el=document.createElement('span');
-    el.className='fq';
-    const q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
     el.textContent=q;
-
-    // random position — avoid dead center (logo area)
-    let x,y,attempts=0;
-    do{
-      x=5+Math.random()*90;
-      y=5+Math.random()*90;
-      attempts++;
-    }while(attempts<12 && x>30&&x<70&&y>30&&y<70);
-
-    const rot=(Math.random()-0.5)*30;       // -15 ~ +15 deg
-    const rotDelta=(Math.random()+0.5)*3;   // oscillation amplitude
-    const baseScale=0.7+Math.random()*0.7;  // 0.7 ~ 1.4
-    const op=(0.08+Math.random()*0.22).toFixed(2);  // 0.08 ~ 0.30
-    const dur=(9+Math.random()*14).toFixed(1)+'s';
-    const delay=(-Math.random()*14).toFixed(1)+'s'; // negative = already mid-cycle
-    const dy=(-8-Math.random()*16).toFixed(0)+'px';
-    const dy2=(4+Math.random()*10).toFixed(0)+'px';
-    const fs=(0.68+Math.random()*0.72).toFixed(2)+'rem';
-    const vertical=q.length<=6&&Math.random()>.55;
-
-    el.style.cssText=[
-      `left:${x}%`,`top:${y}%`,
-      `font-size:${fs}`,
-      `color:rgba(201,168,76,${op})`,
-      `--r:${rot}deg`,`--rd:${rotDelta}deg`,
-      `--s0:${(baseScale*.88).toFixed(2)}`,`--s1:${(baseScale*1.08).toFixed(2)}`,
-      `--op:${op}`,`--dur:${dur}`,`--delay:${delay}`,
-      `--dy:${dy}`,`--dy2:${dy2}`,
-      vertical?'writing-mode:vertical-rl':'',
-    ].filter(Boolean).join(';');
-
+    el.style.cssText=`
+      position:absolute;left:${x}%;top:${y}%;
+      font-family:'Ma Shan Zheng',cursive;
+      font-size:${fs}rem;
+      color:rgba(201,168,76,0.001);
+      pointer-events:none;white-space:nowrap;
+      ${vertical?'writing-mode:vertical-rl;':''}
+      animation:${id} ${dur}s ${delay}s infinite ease-in-out;
+    `;
     container.appendChild(el);
   }
+  styleEl.textContent=css;
+  document.head.appendChild(styleEl);
 })();
 
 function goBack(){
