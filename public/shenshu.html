@@ -2803,75 +2803,184 @@ function qEcho(q){
   </div>`;
 }
 
-function renderAdvisorFrame(box,meta){
-  if(!box||!meta) return;
-  const advisor=meta.advisor||{};
-  const sources=Array.isArray(meta.sources)?meta.sources:[];
-  const frame=document.createElement('section');
-  frame.className='advisor-frame';
-  frame.setAttribute('aria-label','东方 AI 顾问摘要');
-  const grid=document.createElement('div');
-  grid.className='advisor-grid';
+// 场景字段映射：折叠区展示哪些字段
+const SCENE_EXPAND_FIELDS = {
+  A: [{key:'jiedu',label:'現代解讀'},{key:'advice',label:'給你的建議'}],
+  B: [{key:'diagnosis',label:'辨證分析'},{key:'remedy',label:'調養建議'},{key:'practice',label:'日常實踐'}],
+  C: [{key:'analysis',label:'深度分析'},{key:'verdict',label:'具體建議'}],
+  D: [{key:'guaDesc',label:'卦象解讀'},{key:'yao',label:'爻辭'},{key:'advice',label:'行動指引'}],
+  E: [{key:'yangsheng',label:'節氣養生'},{key:'shichen',label:'時辰調息'},{key:'advice',label:'今日行動'}],
+  F: [{key:'interp',label:'典故深意'},{key:'analysis',label:'針對你的問題'},{key:'answer',label:'古人的答案'},{key:'practice',label:'實踐之道'}],
+  G: [{key:'interp',label:'典故深意'},{key:'cultivation',label:'修身之路'},{key:'practice',label:'實踐三階'}],
+  H: [{key:'decode',label:'兵法解碼'},{key:'situation',label:'局勢研判'},{key:'warning',label:'兵家大忌'}],
+};
 
-  function addLayer(label,value,extraClass){
-    if(!value) return null;
-    const layer=document.createElement('div');
-    layer.className='advisor-layer'+(extraClass?' '+extraClass:'');
-    const heading=document.createElement('div');
-    heading.className='advisor-label';heading.textContent=label;
-    const content=document.createElement('div');
-    content.className='advisor-text'+(label==='一句結論'?' advisor-conclusion':'');
-    content.textContent=value;
-    layer.appendChild(heading);layer.appendChild(content);grid.appendChild(layer);
-    return content;
+// 从 parsed 中取出引用和来源
+function getHeroQuoteSource(scene, d) {
+  if (!d) return {quote:'', source:''};
+  const map = {
+    A: {quote: d.chen||d.song||'', source:'推背圖 · '+(d.xiang||'')},
+    B: {quote: d.classic||'', source:'《黃帝內經》'},
+    C: {quote: d.prophecy||'', source:'推背圖 · '+(d.xiang||'')},
+    D: {quote: d.guaName||'', source:'《易經》'},
+    E: {quote: d.classic||'', source:'《黃帝內經》'},
+    F: {quote: d.quote||'', source: d.source||'《道德經》'},
+    G: {quote: d.quote||'', source: d.source||'《論語》'},
+    H: {quote: d.quote||'', source:'《孫子兵法》· '+(d.pian||'')},
+  };
+  return map[scene] || {quote:'', source:''};
+}
+
+const SCENE_LABELS_MAP = {A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·養生',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
+
+function renderHeroFrame(box, meta) {
+  if (!box || !meta) return;
+  const advisor = meta.advisor || {};
+  const sources = Array.isArray(meta.sources) ? meta.sources : [];
+  const scene = meta.scene || 'A';
+  const parsed = meta.parsed || {};
+  const {quote, source} = getHeroQuoteSource(scene, parsed);
+
+  const frame = document.createElement('section');
+  frame.className = 'hero-frame';
+
+  // 场景标签
+  const tag = document.createElement('div');
+  tag.className = 'hero-scene-tag';
+  tag.textContent = SCENE_LABELS_MAP[scene] || scene;
+  frame.appendChild(tag);
+
+  // 典籍引用
+  if (quote) {
+    const q = document.createElement('div');
+    q.className = 'hero-quote';
+    q.textContent = '「' + quote + '」';
+    frame.appendChild(q);
+    const s = document.createElement('div');
+    s.className = 'hero-source';
+    s.textContent = source;
+    frame.appendChild(s);
   }
 
-  addLayer('一句結論',advisor.conclusion||'先看清问题，再决定下一步。');
+  // 一句结论
+  const conclusion = advisor.conclusion || '';
+  if (conclusion) {
+    const c = document.createElement('div');
+    c.className = 'hero-conclusion';
+    c.textContent = conclusion;
+    frame.appendChild(c);
+  }
 
-  const evidence=document.createElement('div');
-  evidence.className='advisor-layer';
-  const evidenceLabel=document.createElement('div');
-  evidenceLabel.className='advisor-label';evidenceLabel.textContent='典籍依據';
-  const chips=document.createElement('div');chips.className='advisor-sources';
-  if(sources.length){
-    sources.forEach(function(source){
-      const chip=document.createElement('span');chip.className='source-chip';
-      chip.textContent=`${source.source} · ${source.chapter}`;
-      chip.title=source.excerpt||'';
-      chips.appendChild(chip);
+  // 行动列表
+  const actions = Array.isArray(advisor.actions) ? advisor.actions : [];
+  if (actions.length) {
+    const al = document.createElement('div');
+    al.className = 'hero-actions';
+    actions.forEach(function(item, i) {
+      const a = document.createElement('div');
+      a.className = 'hero-action';
+      a.textContent = (i+1) + '. ' + item;
+      al.appendChild(a);
     });
-  }else{
-    const chip=document.createElement('span');chip.className='source-chip';
-    chip.textContent='本次未檢索到可核驗原文';chips.appendChild(chip);
+    frame.appendChild(al);
   }
-  const confidence=document.createElement('div');confidence.className='confidence';
-  const confidenceText={high:'依據匹配度較高',medium:'依據匹配度中等',low:'依據較弱，請審慎參考',none:'缺少可核驗典籍依據'};
-  confidence.textContent=confidenceText[meta.confidence]||confidenceText.none;
-  evidence.appendChild(evidenceLabel);evidence.appendChild(chips);evidence.appendChild(confidence);
-  grid.appendChild(evidence);
 
-  addLayer('現代解釋',advisor.modernExplanation||'以下内容是基于典籍语境的现代转译。');
-
-  const actionLayer=document.createElement('div');actionLayer.className='advisor-layer action-layer';
-  const actionLabel=document.createElement('div');actionLabel.className='advisor-label';actionLabel.textContent='今日行動';
-  const actionList=document.createElement('div');actionList.className='advisor-actions';
-  const actionItems=Array.isArray(advisor.actions)?advisor.actions:[];
-  (actionItems.length?actionItems:['写下当前最需要解决的一件事，并完成最小的一步。']).forEach(function(item){
-    const action=document.createElement('div');action.className='advisor-action';action.textContent=item;
-    actionList.appendChild(action);
+  // 底部栏：来源 chips + 展开按钮
+  const bar = document.createElement('div');
+  bar.className = 'hero-bottom-bar';
+  sources.forEach(function(src) {
+    const chip = document.createElement('span');
+    chip.className = 'source-chip';
+    chip.textContent = src.source + (src.chapter ? ' · ' + src.chapter : '');
+    chip.title = src.excerpt || '';
+    bar.appendChild(chip);
   });
-  actionLayer.appendChild(actionLabel);actionLayer.appendChild(actionList);grid.appendChild(actionLayer);
-  frame.appendChild(grid);
-
-  if(meta.safetyNotice){
-    const notice=document.createElement('div');notice.className='safety-notice';
-    notice.textContent=meta.safetyNotice;frame.appendChild(notice);
+  if (!sources.length) {
+    const chip = document.createElement('span');
+    chip.className = 'source-chip';
+    chip.textContent = '本次未檢索到可核驗原文';
+    bar.appendChild(chip);
   }
 
-  const target=box.firstElementChild||box;
-  const echo=target.querySelector&&target.querySelector('.q-echo');
-  if(echo&&echo.parentNode) echo.parentNode.insertBefore(frame,echo.nextSibling);
-  else target.insertBefore(frame,target.firstChild);
+  // 展开按钮（有场景字段时才显示）
+  const expandFields = (SCENE_EXPAND_FIELDS[scene] || []).filter(function(f){
+    const v = parsed[f.key];
+    return v && String(v).trim();
+  });
+  let expandSection = null;
+  if (expandFields.length) {
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'hero-expand-btn';
+    expandBtn.textContent = '▾ 查看詳細解讀';
+    expandSection = document.createElement('div');
+    expandSection.className = 'hero-expand-section';
+    expandFields.forEach(function(f, i) {
+      if (i > 0) {
+        const hr = document.createElement('hr');
+        hr.className = 'hero-field-divider';
+        expandSection.appendChild(hr);
+      }
+      const field = document.createElement('div');
+      field.className = 'hero-field';
+      const lbl = document.createElement('div');
+      lbl.className = 'hero-field-label';
+      lbl.textContent = f.label;
+      const txt = document.createElement('div');
+      txt.className = 'hero-field-text';
+      txt.textContent = String(parsed[f.key]).trim();
+      field.appendChild(lbl);
+      field.appendChild(txt);
+      expandSection.appendChild(field);
+    });
+    expandBtn.onclick = function() {
+      const open = expandSection.classList.toggle('open');
+      expandBtn.textContent = open ? '▴ 收起' : '▾ 查看詳細解讀';
+    };
+    bar.appendChild(expandBtn);
+  }
+  frame.appendChild(bar);
+  if (expandSection) frame.appendChild(expandSection);
+
+  // 反馈行
+  const fbRow = document.createElement('div');
+  fbRow.className = 'feedback-row';
+  const fbLabel = document.createElement('span');
+  fbLabel.className = 'fb-label';
+  fbLabel.textContent = '這個回答對你有幫助嗎？';
+  const fbYes = document.createElement('button');
+  fbYes.className = 'fb-btn';
+  fbYes.textContent = '👍 有幫助';
+  const fbNo = document.createElement('button');
+  fbNo.className = 'fb-btn';
+  fbNo.textContent = '👎 沒幫助';
+  function sendFeedback(helpful) {
+    fbYes.classList.toggle('helpful', helpful);
+    fbNo.classList.toggle('unhelpful', !helpful);
+    fbYes.disabled = true; fbNo.disabled = true;
+    const sessionId = localStorage.getItem('shenshu_session') || '';
+    const token = sessionStorage.getItem('tianji_auth') || '';
+    fetch('/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-access-token':token},
+      body: JSON.stringify({scene: scene, helpful: helpful, question: lastQ||'', sessionId: sessionId}),
+    }).catch(function(){/* silent */});
+  }
+  fbYes.onclick = function(){ sendFeedback(true); };
+  fbNo.onclick = function(){ sendFeedback(false); };
+  const fbSafety = document.createElement('span');
+  fbSafety.className = 'fb-safety';
+  fbSafety.textContent = meta.safetyNotice || '內容僅供參考';
+  fbRow.appendChild(fbLabel);
+  fbRow.appendChild(fbYes);
+  fbRow.appendChild(fbNo);
+  fbRow.appendChild(fbSafety);
+  frame.appendChild(fbRow);
+
+  // 插入 box 最顶部（qEcho 之后）
+  const target = box.firstElementChild || box;
+  const echo = target.querySelector && target.querySelector('.q-echo');
+  if (echo && echo.parentNode) echo.parentNode.insertBefore(frame, echo.nextSibling);
+  else box.insertBefore(frame, box.firstChild);
 }
 
 function addCopyBtn(cardEl, getText){
