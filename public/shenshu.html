@@ -2819,14 +2819,14 @@ const SCENE_EXPAND_FIELDS = {
 function getHeroQuoteSource(scene, d) {
   if (!d) return {quote:'', source:''};
   const map = {
-    A: {quote: d.chen||d.song||'', source:'推背圖 · '+(d.xiang||'')},
+    A: {quote: d.chen||d.song||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
     B: {quote: d.classic||'', source:'《黃帝內經》'},
-    C: {quote: d.prophecy||'', source:'推背圖 · '+(d.xiang||'')},
+    C: {quote: d.prophecy||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
     D: {quote: d.guaName||'', source:'《易經》'},
     E: {quote: d.classic||'', source:'《黃帝內經》'},
     F: {quote: d.quote||'', source: d.source||'《道德經》'},
     G: {quote: d.quote||'', source: d.source||'《論語》'},
-    H: {quote: d.quote||'', source:'《孫子兵法》· '+(d.pian||'')},
+    H: {quote: d.quote||'', source: d.pian ? '《孫子兵法》· '+d.pian : '《孫子兵法》'},
   };
   return map[scene] || {quote:'', source:''};
 }
@@ -2843,6 +2843,7 @@ function renderHeroFrame(box, meta) {
 
   const frame = document.createElement('section');
   frame.className = 'hero-frame';
+  frame.setAttribute('aria-label', (SCENE_LABELS_MAP[scene] || scene) + ' · AI 摘要');
 
   // 场景标签
   const tag = document.createElement('div');
@@ -2980,7 +2981,7 @@ function renderHeroFrame(box, meta) {
   const target = box.firstElementChild || box;
   const echo = target.querySelector && target.querySelector('.q-echo');
   if (echo && echo.parentNode) echo.parentNode.insertBefore(frame, echo.nextSibling);
-  else box.insertBefore(frame, box.firstChild);
+  else target.insertBefore(frame, target.firstChild);
 }
 
 function addCopyBtn(cardEl, getText){
