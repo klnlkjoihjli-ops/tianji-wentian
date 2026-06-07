@@ -1194,10 +1194,10 @@ body.real-sky .bgla{animation:none;opacity:.55}
 <!-- ══ RESULT ══ -->
 <div id="resultPage">
   <div class="topbar">
+    <div class="tabs" id="tabs"></div>
     <button class="back-btn" onclick="goBack()">
       <span>☯</span><span>重新問天</span>
     </button>
-    <div class="tabs" id="tabs"></div>
   </div>
   <div id="rinner"></div>
 </div>
@@ -3031,7 +3031,8 @@ async function sceneA(q,box){
 
 // ── B 黃帝內經 ──
 async function sceneB(q,box){
-  box.innerHTML=qEcho(q);
+  const wxData=[{ch:'木',lb:'肝·膽',c:'#5ecf89'},{ch:'火',lb:'心·小腸',c:'#ff7060'},{ch:'土',lb:'脾·胃',c:'#c9a84c'},{ch:'金',lb:'肺·大腸',c:'#7baad4'},{ch:'水',lb:'腎·膀胱',c:'#5bc4d4'}];
+  box.innerHTML=qEcho(q)+`<div class="wuxing">${wxData.map(w=>`<div class="wx"><span class="wx-ch" style="color:${w.c}">${w.ch}</span><div class="wx-lb">${w.lb}</div><div class="wx-bar" style="background:${w.c}"></div></div>`).join('')}</div>`;
   await chainGenerate(q,'B');
 }
 
@@ -3043,7 +3044,8 @@ async function sceneC(q,box){
 
 // ── D 易經起卦 ──
 async function sceneD(q,box){
-  box.innerHTML=qEcho(q);
+  dLines=[];
+  box.innerHTML=qEcho(q)+`<div style="text-align:center;margin:.6rem 0 .9rem;padding:.7rem;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:.5rem"><div style="font-size:.7rem;color:#c9a84c;letter-spacing:.12em;margin-bottom:.55rem">易經起卦 · 點擊銅錢搖卦</div><div style="display:flex;justify-content:center;gap:1rem;margin-bottom:.6rem"><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span></div><div id="hexD" style="display:flex;flex-direction:column-reverse;align-items:center;gap:4px;min-height:60px"></div></div>`;
   await chainGenerate(q,'D');
 }
 let dLines=[];
@@ -3062,13 +3064,12 @@ const JQ=[[1,6,'小寒'],[1,20,'大寒'],[2,4,'立春'],[2,19,'雨水'],[3,6,'�
 const SC=['子時','丑時','寅時','卯時','辰時','巳時','午時','未時','申時','酉時','戌時','亥時'];
 // ── E 節氣養生 ──
 async function sceneE(q,box){
-  box.innerHTML=qEcho(q);
-  // 节气和时辰计算，用于增强 query 让后端感知当前节气
   const now=new Date();
   let curJQ='芒種';
   for(let i=JQ.length-1;i>=0;i--){const[m,d,n]=JQ[i];if(now>=new Date(now.getFullYear(),m-1,d)){curJQ=n;break;}}
   const h=now.getHours();
   const curSC=SC[Math.floor(((h+1)%24)/2)];
+  box.innerHTML=qEcho(q)+`<div style="display:flex;align-items:center;gap:.9rem;padding:.55rem .85rem;margin:.5rem 0 .85rem;background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:.5rem"><div style="text-align:center"><div style="font-size:1.4rem;color:#f3dfaa;font-family:'Ma Shan Zheng',cursive;line-height:1">${curJQ}</div><div style="font-size:.62rem;color:#888;letter-spacing:.08em;margin-top:.18rem">當前節氣</div></div><div style="width:1px;height:2rem;background:rgba(201,168,76,.25)"></div><div style="text-align:center"><div style="font-size:1.0rem;color:#c9a84c;font-family:'Noto Serif SC',serif">${curSC}</div><div style="font-size:.62rem;color:#888;letter-spacing:.08em;margin-top:.18rem">當前時辰</div></div></div>`;
   const _qE=`節氣：${curJQ}，時辰：${curSC}，用戶問：${q}`;
   await chainGenerate(_qE,'E');
 }
@@ -3081,7 +3082,7 @@ async function sceneG(q,box){
 
 // ── H 謀略·兵法 ──
 async function sceneH(q,box){
-  box.innerHTML=qEcho(q);
+  box.innerHTML=qEcho(q)+`<div style="text-align:center;padding:.5rem 0 .7rem;margin-bottom:.7rem;border-bottom:1px solid rgba(180,30,30,.2)"><div style="font-size:1.05rem;color:#e04040;font-family:'Ma Shan Zheng',cursive;letter-spacing:.2em;text-shadow:0 0 12px rgba(220,40,40,.45)">孫子兵法 · 謀略智慧</div><div style="font-size:.65rem;color:#8a4040;letter-spacing:.12em;margin-top:.25rem">三十六計 · 知己知彼 · 百戰不殆</div></div>`;
   await chainGenerate(q,'H');
 }
 
