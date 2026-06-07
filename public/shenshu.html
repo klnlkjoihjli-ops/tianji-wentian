@@ -1855,7 +1855,7 @@ function getJieqiData(name) {
 
   const scene = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
-  cam.position.set(0, 0, 8);
+  cam.position.set(0, 0, 5.5);
 
   // ── 背景星空（密集小星，模拟银河）──
   const bgGeo = new THREE.BufferGeometry();
@@ -1892,13 +1892,13 @@ function getJieqiData(name) {
   // ── 北斗七星（真实相对位置，放大居中）──
   // 基于实际星图坐标（RA/Dec转换后归一化）
   const BEIDOU = [
-    { name:'天枢', x:-2.2, y: 1.2, z:-2, mag:1.8, color:0xffd4a0 }, // α 大熊
-    { name:'天璇', x:-1.5, y: 1.0, z:-2, mag:2.4, color:0xffe0b0 }, // β
-    { name:'天玑', x:-0.8, y: 1.4, z:-2, mag:2.4, color:0xffeedd }, // γ
-    { name:'天权', x:-0.3, y: 1.1, z:-2, mag:3.3, color:0xffffff  }, // δ（较暗）
-    { name:'玉衡', x: 0.5, y: 1.5, z:-2, mag:1.8, color:0xffd4a0 }, // ε
-    { name:'开阳', x: 1.4, y: 1.8, z:-2, mag:2.1, color:0xffeedd }, // ζ
-    { name:'摇光', x: 2.2, y: 1.4, z:-2, mag:1.9, color:0xffd4a0 }, // η
+    { name:'天枢', x:-2.8, y: 3.8, z:-2, mag:1.8, color:0xffd4a0 }, // α 大熊
+    { name:'天璇', x:-1.9, y: 3.5, z:-2, mag:2.4, color:0xffe0b0 }, // β
+    { name:'天玑', x:-1.0, y: 4.0, z:-2, mag:2.4, color:0xffeedd }, // γ
+    { name:'天权', x:-0.4, y: 3.6, z:-2, mag:3.3, color:0xffffff  }, // δ（较暗）
+    { name:'玉衡', x: 0.7, y: 4.2, z:-2, mag:1.8, color:0xffd4a0 }, // ε
+    { name:'开阳', x: 1.8, y: 4.6, z:-2, mag:2.1, color:0xffeedd }, // ζ
+    { name:'摇光', x: 2.8, y: 4.1, z:-2, mag:1.9, color:0xffd4a0 }, // η
   ];
 
   const beidouGroup = new THREE.Group();
@@ -1940,21 +1940,21 @@ function getJieqiData(name) {
   const polarGeo = new THREE.SphereGeometry(.12, 12, 12);
   const polarMat = new THREE.MeshBasicMaterial({color:0xeef4ff, transparent:true, opacity:.65});
   const polarStar = new THREE.Mesh(polarGeo, polarMat);
-  polarStar.position.set(0, 3.5, -2);
+  polarStar.position.set(0, 6.5, -2);
   scene.add(polarStar);
   // 北极星光晕
   const polarGlow = new THREE.Mesh(
     new THREE.SphereGeometry(.45, 12, 12),
     new THREE.MeshBasicMaterial({color:0xaaddff, transparent:true, opacity:.07})
   );
-  polarGlow.position.copy(polarStar.position);
+  polarGlow.position.set(0, 6.5, -2);
   scene.add(polarGlow);
 
   // 北斗指向北极星的虚线
   const pointerPts = [
     new THREE.Vector3(BEIDOU[0].x, BEIDOU[0].y, BEIDOU[0].z),
     new THREE.Vector3(BEIDOU[1].x, BEIDOU[1].y, BEIDOU[1].z),
-    new THREE.Vector3(0, 3.5, -2),
+    new THREE.Vector3(0, 6.5, -2),
   ];
   const polarPointer = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pointerPts),
@@ -1976,7 +1976,7 @@ function getJieqiData(name) {
   xiuGroup.position.z = -1;
   scene.add(xiuGroup);
 
-  const XIU_RADIUS = 3.8;
+  const XIU_RADIUS = 5.5;
   SIFANG.forEach((fang, fi) => {
     const baseAngle = (fi / 4) * Math.PI * 2 - Math.PI / 2;
     fang.xius.forEach((xiu, xi) => {
@@ -2094,14 +2094,16 @@ function getJieqiData(name) {
     new THREE.CircleGeometry(.22, 32),
     new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.18})
   ));
+  // 放大八卦，包住输入框
+  baguaGroup.scale.set(2.4, 2.4, 2.4);
 
   // ── 五行星（金木水火土 对应五颗行星，轨道运行）──
   const WUXING_PLANETS = [
-    { name:'木星', element:'木', color:0x88cc66, orbit:2.8, speed:.18, phase:0    },
-    { name:'火星', element:'火', color:0xff6633, orbit:3.3, speed:.28, phase:1.2  },
-    { name:'土星', element:'土', color:0xddaa44, orbit:3.8, speed:.12, phase:2.4  },
-    { name:'金星', element:'金', color:0xffffff, orbit:2.2, speed:.35, phase:3.6  },
-    { name:'水星', element:'水', color:0x44aaff, orbit:1.7, speed:.45, phase:4.8  },
+    { name:'木星', element:'木', color:0x88cc66, orbit:6.7, speed:.18, phase:0    },
+    { name:'火星', element:'火', color:0xff6633, orbit:7.9, speed:.28, phase:1.2  },
+    { name:'土星', element:'土', color:0xddaa44, orbit:9.1, speed:.12, phase:2.4  },
+    { name:'金星', element:'金', color:0xffffff, orbit:5.3, speed:.35, phase:3.6  },
+    { name:'水星', element:'水', color:0x44aaff, orbit:4.1, speed:.45, phase:4.8  },
   ];
   const planetMeshes = WUXING_PLANETS.map(p => {
     const mesh = new THREE.Mesh(
@@ -2197,6 +2199,8 @@ function getJieqiData(name) {
   hunGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,2.5,8),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.28})));
   const kuiG=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1.6,6),new THREE.MeshBasicMaterial({color:0xffd4a0,transparent:true,opacity:.32}));
   kuiG.rotation.z=Math.PI/2;hunGroup.add(kuiG);
+  // 放大浑天仪，与八卦同幅
+  hunGroup.scale.set(2.6, 2.6, 2.6);
 
   // ── 日晷 ──
   (function(){
