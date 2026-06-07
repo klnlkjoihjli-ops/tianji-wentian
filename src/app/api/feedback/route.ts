@@ -29,14 +29,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = createServiceClient()
-    await supabase.from('feedback').insert({
+    const { error } = await supabase.from('feedback').insert({
       scene,
       helpful,
       question_hash: hashQuestion(question),
       session_id: sessionId,
     })
+    if (error) console.error('feedback insert error', error)
   } catch (err) {
-    console.error('feedback insert error', err)
+    console.error('feedback insert network error', err)
     // 不向用户暴露存储错误
   }
 
