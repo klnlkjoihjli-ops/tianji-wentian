@@ -75,6 +75,24 @@ as $$
 $$;
 
 -- ══════════════════════════════════════════════
+--  用户反馈表
+-- ══════════════════════════════════════════════
+create table if not exists feedback (
+  id            bigint generated always as identity primary key,
+  created_at    timestamptz default now(),
+  scene         text not null,
+  helpful       boolean not null,
+  question_hash text,
+  session_id    text
+);
+
+alter table feedback enable row level security;
+
+-- 任何人都可以插入反馈（匿名写入）
+create policy "feedback_insert" on feedback
+  for insert with check (true);
+
+-- ══════════════════════════════════════════════
 --  RLS 策略（允许匿名读取典籍，写入需要service key）
 -- ══════════════════════════════════════════════
 alter table classics enable row level security;
