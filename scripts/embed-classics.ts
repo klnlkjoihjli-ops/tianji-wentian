@@ -23,6 +23,20 @@ const sunziJson: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/sunzi.json'), 'utf8'))
 const daxueZhongyongJson: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/daxue-zhongyong.json'), 'utf8'))
+const sansliuJson: Array<{ji:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/sanshiliu.json'), 'utf8'))
+const guiguziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/guiguzi.json'), 'utf8'))
+const zhanguoceJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/zhanguoce.json'), 'utf8'))
+const jinkuiJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/jinkui.json'), 'utf8'))
+const seasonalExtraJson: Array<{jie:string, source:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/seasonal-extra.json'), 'utf8'))
+const lieziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/liezi.json'), 'utf8'))
+const meihuaJson: Array<{zhang:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/meihua.json'), 'utf8'))
 
 const envPath = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envPath)) {
@@ -701,6 +715,83 @@ daxueZhongyongJson.forEach((x) => {
     chapter: x.pian,
     content: x.text,
     scene: 'G',
+    keywords: x.key || [],
+  })
+})
+
+// 三十六计（场景 H 谋略·兵法）
+sansliuJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '三十六计',
+    chapter: x.ji,
+    content: x.text,
+    scene: 'H',
+    keywords: x.key || [],
+  })
+})
+
+// 鬼谷子（场景 H 谋略·兵法）
+guiguziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '鬼谷子',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'H',
+    keywords: x.key || [],
+  })
+})
+
+// 战国策（场景 C 时事·天机）
+zhanguoceJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '战国策',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'C',
+    keywords: x.key || [],
+  })
+})
+
+// 金匮要略（场景 B 内经·养生）
+jinkuiJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '金匮要略',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'B',
+    keywords: x.key || [],
+  })
+})
+
+// 遵生八笺·节气养生补充（场景 E 节气·养生）
+seasonalExtraJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: x.source || '遵生八笺',
+    chapter: x.jie,
+    content: x.text,
+    scene: 'E',
+    keywords: x.key || [],
+  })
+})
+
+// 列子（场景 F 道家·智慧）
+lieziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '列子',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'F',
+    keywords: x.key || [],
+  })
+})
+
+// 梅花易数（场景 D 易经·起卦）
+meihuaJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '梅花易数',
+    chapter: x.zhang,
+    content: x.text,
+    scene: 'D',
     keywords: x.key || [],
   })
 })
