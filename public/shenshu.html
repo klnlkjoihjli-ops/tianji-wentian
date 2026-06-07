@@ -1037,6 +1037,8 @@ body.real-sky .bgla{animation:none;opacity:.55}
       <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="sq('用易經起一卦，問今年事業運勢')">易經 · 起卦</div>
       <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="sq('現在是什麼節氣，如何養生調息？')">節氣 · 養生</div>
       <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="sq('我面臨重要抉擇，道德經有什麼智慧？')">道家 · 智慧</div>
+      <div class="pill" onmouseenter="renderSceneExamples('G')" onclick="sq('如何做一個君子，論語有什麼修身之道？')">儒家 · 修身</div>
+      <div class="pill" onmouseenter="renderSceneExamples('H')" onclick="sq('面對職場競爭，孫子兵法有何謀略？')">謀略 · 兵法</div>
     </div>
     <div id="sceneExamples" class="hidden fu"></div>
   </div>
@@ -1916,7 +1918,7 @@ function getJieqiData(name) {
       });
     }
     // 对应五行星高亮
-    const planetMap = {'B':'木星','C':'火星','E':'水星','A':'土星','D':'木星','F':'金星'};
+    const planetMap = {'B':'木星','C':'火星','E':'水星','A':'土星','D':'木星','F':'金星','G':'木星','H':'火星'};
     const targetPlanet = planetMap[scene];
     planetMeshes.forEach(p => {
       p.mesh.material.opacity = p.name === targetPlanet ? 1 : .9;
@@ -2706,7 +2708,9 @@ const SCENE_EXAMPLES={
   C:['今年全球經濟形勢如何','如何看待當前地緣政治','AI發展對人類意味著什麼'],
   D:['近期創業是否合適','這段感情該繼續嗎','面臨重要決策需要指引'],
   E:['當前節氣該如何養生','冬至前後飲食注意什麼','夏季祛濕最有效的方法'],
-  F:['如何做到內心平靜','面對壓力如何看開','人生的意義是什麼']
+  F:['如何做到內心平靜','面對壓力如何看開','人生的意義是什麼'],
+  G:['如何修煉君子之道','論語中如何對待挫折','如何在職場中保持仁義'],
+  H:['如何在競爭中知己知彼','職場談判有何兵法謀略','如何以弱勝強扭轉局面']
 };
 
 function renderSceneExamples(scene){
@@ -2735,7 +2739,7 @@ function hideExamples(){
   if(el) el.classList.add('hidden');
 }
 
-const SCENE_LABELS={A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·羅盤',F:'道家·智慧'};
+const SCENE_LABELS={A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·羅盤',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
 let lastQ=''; let lastScene='A';
 
 function buildTabs(active){

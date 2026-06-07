@@ -6,7 +6,7 @@ import { SCENE_PROMPTS, detectScene } from '@/lib/prompts'
 export const runtime = 'nodejs'
 export const maxDuration = 90
 
-const VALID_SCENES = new Set(['A', 'B', 'C', 'D', 'E', 'F'])
+const VALID_SCENES = new Set(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])
 const VALID_RESPONSE_MODES = new Set(['brief', 'deep'])
 const QUESTION_MAX_LENGTH = 1200
 const RATE_LIMIT_WINDOW_MS = 60_000

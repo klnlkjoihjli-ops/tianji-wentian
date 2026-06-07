@@ -9,6 +9,14 @@ const shanghan: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/shanghan.json'), 'utf8'))
 const bencao: Array<{ming:string, lei:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/bencao.json'), 'utf8'))
+const lunyuJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/lunyu.json'), 'utf8'))
+const zhuangziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/zhuangzi.json'), 'utf8'))
+const sunziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/sunzi.json'), 'utf8'))
+const daxueZhongyongJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/daxue-zhongyong.json'), 'utf8'))
 
 const envPath = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envPath)) {
@@ -610,6 +618,50 @@ bencao.forEach((x) => {
     chapter: `${x.lei}·${x.ming}`,
     content: `${x.ming}：${x.text}`,
     scene: 'B',
+    keywords: x.key || [],
+  })
+})
+
+// 论语（JSON 完整版，场景 G 儒家·修身）
+lunyuJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '论语',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'G',
+    keywords: x.key || [],
+  })
+})
+
+// 庄子（JSON 完整版，场景 F 道家·智慧）
+zhuangziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '庄子',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'F',
+    keywords: x.key || [],
+  })
+})
+
+// 孙子兵法（JSON 完整版，场景 H 谋略·兵法）
+sunziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '孙子兵法',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'H',
+    keywords: x.key || [],
+  })
+})
+
+// 大学·中庸（JSON 完整版，场景 G 儒家·修身）
+daxueZhongyongJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: x.pian === '大学' ? '大学' : '中庸',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'G',
     keywords: x.key || [],
   })
 })
