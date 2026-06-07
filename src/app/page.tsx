@@ -1,8 +1,10 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function HomePage() {
-  const token = process.env.ACCESS_TOKEN || ''
   return (
     <iframe
-      src={`/shenshu.html?v=20260607&t=${token}`}
+      src="/shenshu.html"
       title="天機 · 問天"
       style={{
         position: 'fixed',

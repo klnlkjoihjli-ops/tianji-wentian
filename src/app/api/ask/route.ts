@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server'
 import { analyzeQuestion, searchClassics, formatClassicsContext, saveConversation, getRecentHistory } from '@/lib/rag/retrieval'
 import { streamChat } from '@/lib/deepseek'
 import { SCENE_PROMPTS, detectScene } from '@/lib/prompts'
+import { verifyAccessToken } from '@/lib/auth'
+import type { AnalysisResult, ClassicResult } from '@/lib/rag/retrieval'
 
 export const runtime = 'nodejs'
 export const maxDuration = 90
@@ -11,6 +13,13 @@ const VALID_RESPONSE_MODES = new Set(['brief', 'deep'])
 const QUESTION_MAX_LENGTH = 1200
 const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_MAX_REQUESTS = 6
+const EMPTY_ANALYSIS: AnalysisResult = {
+  topic: '',
+  domains: [],
+  mood: '求知',
+  concepts: [],
+  classics: [],
+}
 
 type RateLimitEntry = { count: number; resetAt: number }
 
@@ -65,14 +74,92 @@ function getCurrentDateContext(): string {
   ].join('\n')
 }
 
+function getSafetyNotice(scene: string): string {
+  if (scene === 'B' || scene === 'E') {
+    return '内容仅供传统养生与文化参考，不能替代专业医疗诊断；如有急症或持续不适，请及时就医。'
+  }
+  if (scene === 'C') {
+    return '时势判断存在不确定性，请结合最新可靠信息独立判断，不应作为投资或重大决策的唯一依据。'
+  }
+  if (scene === 'A' || scene === 'D') {
+    return '命理与卦象属于传统文化解释，不代表确定预测；重要决定仍应依据现实信息与个人判断。'
+  }
+  return '内容基于传统典籍的现代解释，仅供思考与自我整理。'
+}
+
+function uniqueSources(results: ClassicResult[]) {
+  const seen = new Set<string>()
+  return results.flatMap(result => {
+    const key = `${result.source}\u0000${result.chapter}`
+    if (seen.has(key)) return []
+    seen.add(key)
+    return [{
+      source: result.source,
+      chapter: result.chapter,
+      similarity: Number(Number(result.similarity).toFixed(3)),
+      excerpt: result.content.slice(0, 180),
+    }]
+  }).slice(0, 5)
+}
+
+function getConfidence(results: ClassicResult[]): 'high' | 'medium' | 'low' | 'none' {
+  if (!results.length) return 'none'
+  const top = Math.max(...results.map(result => Number(result.similarity) || 0))
+  if (top >= 0.65) return 'high'
+  if (top >= 0.5) return 'medium'
+  return 'low'
+}
+
+function text(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function actions(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter(item => typeof item === 'string').map(String).slice(0, 3)
+  }
+  const valueText = text(value)
+  if (!valueText) return []
+  return valueText
+    .split(/\n+|(?=[二三四五六]、)|(?=\d+[.、])/)
+    .map(item => item.replace(/^[一二三四五六\d]+[.、]\s*/, '').trim())
+    .filter(Boolean)
+    .slice(0, 3)
+}
+
+function buildAdvisor(parsed: Record<string, unknown> | null) {
+  if (!parsed) return null
+  const actionList = actions(parsed.actions)
+  const fallbackActions = actions(
+    parsed.remedy ?? parsed.advice ?? parsed.verdict ?? parsed.practice ?? parsed.strategy
+  )
+  return {
+    conclusion: (
+      text(parsed.conclusion)
+      || text(parsed.motto)
+      || text(parsed.title)
+      || text(parsed.answer)
+      || text(parsed.diagnosis)
+      || text(parsed.analysis)
+    ).slice(0, 160),
+    modernExplanation: (
+      text(parsed.modernExplanation)
+      || text(parsed.interp)
+      || text(parsed.jiedu)
+      || text(parsed.analysis)
+      || text(parsed.guaDesc)
+      || text(parsed.diagnosis)
+      || text(parsed.decode)
+      || text(parsed.yangsheng)
+    ).slice(0, 360),
+    actions: actionList.length ? actionList : fallbackActions,
+  }
+}
+
 export async function POST(req: NextRequest) {
-  // 访问令牌校验
   const accessToken = process.env.ACCESS_TOKEN
-  if (accessToken) {
-    const clientToken = req.headers.get('x-access-token')
-    if (clientToken !== accessToken) {
-      return Response.json({ error: '无访问权限' }, { status: 401 })
-    }
+  if (accessToken && !verifyAccessToken(req.headers.get('x-access-token'))) {
+    return Response.json({ error: '登录已失效，请重新进入' }, { status: 401 })
   }
 
   if (isRateLimited(getClientId(req))) {
@@ -90,7 +177,7 @@ export async function POST(req: NextRequest) {
   const forceScene = typeof body.scene === 'string' ? body.scene : ''
   const responseMode = typeof body.responseMode === 'string' && VALID_RESPONSE_MODES.has(body.responseMode)
     ? body.responseMode
-    : 'deep'
+    : 'brief'
   const sessionId = typeof body.sessionId === 'string'
     ? body.sessionId.slice(0, 128)
     : ''
@@ -118,25 +205,26 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        // ── Step 1：意图分析 ──
-        send('progress', { step: 1, text: '解析问题意图……' })
-        const analysis = await analyzeQuestion(question)
+        send('progress', { step: 1, text: '理解问题并查阅典籍……' })
+        const [analysis, results, historyContext] = await Promise.all([
+          analyzeQuestion(question),
+          searchClassics(question, EMPTY_ANALYSIS, scene, 8),
+          sessionId ? getRecentHistory(sessionId) : Promise.resolve(''),
+        ])
         send('analysis', analysis)
 
-        // ── Step 2：向量语义检索 ──
         send('progress', { step: 2, text: '参阅典籍原文……' })
-        const results = await searchClassics(question, analysis, scene, 10)
         const ctx = formatClassicsContext(results)
+        const sources = uniqueSources(results)
+        const confidence = getConfidence(results)
+        const safetyNotice = getSafetyNotice(scene)
         send('classics', {
           count: results.length,
-          sources: results.map(r => `${r.source}·${r.chapter}`),
+          sources,
+          confidence,
         })
 
-        // ── Step 3：流式生成最终回答 ──
-        send('progress', { step: 3, text: '推演天机，整合回答……' })
-
-        // ── 对话历史（追问上下文）──
-        const historyContext = sessionId ? await getRecentHistory(sessionId) : ''
+        send('progress', { step: 3, text: '整合依据，生成建议……' })
 
         const analysisText = `
 核心议题：${analysis.topic}
@@ -147,9 +235,12 @@ export async function POST(req: NextRequest) {
 
         const scenePrompt = SCENE_PROMPTS[scene]?.(ctx, analysisText)
           ?? SCENE_PROMPTS.A(ctx, analysisText)
+        const trustInstruction = results.length
+          ? '只能引用【典籍原文】中出现的文字和篇章；不得补造、拼接或把现代解释写成原文。'
+          : '本次没有检索到足够典籍依据。不得生成直接引文；引用字段填写“本次未检索到可核验原文”，并明确降低判断强度。'
         const responseInstruction = responseMode === 'brief'
-          ? '【回答模式：简要】保持既定 JSON 字段不变；每个解释字段控制在80-140字，建议保留3条且每条30-60字。直接、清晰、避免重复。'
-          : '【回答模式：深度】按场景要求充分展开，保留完整分析与3-5条可执行建议。'
+          ? `【回答模式：简要，优先级最高】忽略前文所有“至少多少字”和长篇展开要求。保留场景既定字段，但每个旧字段压缩到30-90字；额外返回 conclusion（25-50字）、modernExplanation（80-140字）、actions（严格3条数组，每条30-60字）。整个JSON控制在900个中文字以内，确保JSON完整闭合。直接、清晰、避免重复。${trustInstruction}`
+          : `【回答模式：深度】保留场景既定字段，并额外返回 conclusion（30-70字）、modernExplanation（150-260字）、actions（3-5条数组）。充分展开但避免重复。${trustInstruction}`
         const historySection = historyContext
           ? `\n\n【本次会话历史，供追问参考】\n${historyContext}`
           : ''
@@ -157,7 +248,7 @@ export async function POST(req: NextRequest) {
 
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
-        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1600 : 3000)
+        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1300 : 3000)
 
         let fullText = ''
         for await (const chunk of chatStream) {
@@ -178,7 +269,15 @@ export async function POST(req: NextRequest) {
           // 解析失败也把原文发出去
         }
 
-        send('done', { scene, raw: fullText, parsed })
+        send('done', {
+          scene,
+          raw: fullText,
+          parsed,
+          advisor: buildAdvisor(parsed),
+          sources,
+          confidence,
+          safetyNotice,
+        })
 
         // 后台保存对话（不阻塞响应）
         if (sessionId) {
@@ -194,7 +293,7 @@ export async function POST(req: NextRequest) {
 
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : '未知错误'
-        send('error', { message: msg })
+        send('error', { error: msg, message: msg })
       } finally {
         controller.close()
       }
