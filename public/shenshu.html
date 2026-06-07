@@ -1561,6 +1561,22 @@ function retrieveClassics(query, scene) {
     addTop(CLASSICS.daxue_zhongyong, x => x.dian, x => x.text, 1);
   }
 
+  if (scene === 'G') {
+    CLASSICS.lunyu.forEach(x => x._type = '论语');
+    addTop(CLASSICS.lunyu, x => `论语·${x.pian}`, x => x.text, 4);
+    CLASSICS.mengzi.forEach(x => x._type = '孟子');
+    addTop(CLASSICS.mengzi, x => `孟子·${x.pian}`, x => x.text, 2);
+    CLASSICS.daxue_zhongyong.forEach(x => x._type = x.dian);
+    addTop(CLASSICS.daxue_zhongyong, x => x.dian, x => x.text, 2);
+  }
+
+  if (scene === 'H') {
+    CLASSICS.sunzi.forEach(x => x._type = '孙子兵法');
+    addTop(CLASSICS.sunzi, x => `孙子·${x.pian}`, x => x.text, 5);
+    CLASSICS.daodejing.forEach(x => x._type = '道德经');
+    addTop(CLASSICS.daodejing, x => `第${x.zhang}章`, x => x.text, 2);
+  }
+
   // ALL：跨典籍全量语义检索（Step2 概念增强用）
   if (scene === 'ALL') {
     CLASSICS.daodejing.forEach(x => x._type = '道德经');
@@ -2790,6 +2806,8 @@ async function renderScene(scene,q){
     else if(scene==='C')await sceneC(q,box);
     else if(scene==='D')await sceneD(q,box);
     else if(scene==='E')await sceneE(q,box);
+    else if(scene==='G')await sceneG(q,box);
+    else if(scene==='H')await sceneH(q,box);
     else await sceneF(q,box);
     // 复制按钮 + 建议卡片编号（只渲染JSON数组，不拆分）
     box.querySelectorAll('.card').forEach(card=>{
@@ -3049,6 +3067,98 @@ JSON字段：yangsheng、shichen、classic、advice(換行分隔的字符串)。
   const d=parseJSON(_rawE);
   if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
   await Promise.all([stream(document.getElementById('eYS'),d.yangsheng||''),stream(document.getElementById('eSC'),d.shichen||''),stream(document.getElementById('eCL'),d.classic||''),streamOrCards(document.getElementById('eAD'),d.advice||'')]);
+}
+
+// ── G 儒家·修身 ──
+async function sceneG(q,box){
+  const ctx=formatContext(retrieveClassics(q,'G'));
+  box.innerHTML=`<div class="thF" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div class="sc-title"><h2 style="color:#f0c87a;text-shadow:0 0 15px rgba(240,200,122,.5)">儒家智慧 · 修身之道</h2><div class="sub" style="color:rgba(240,200,122,.5)">論語 · 大學 · 中庸 · 孟子</div></div>
+    <div class="quote-big">
+      <div class="qmark">"</div>
+      <div class="q-src" id="gSrc">《論語》</div>
+      <div class="q-text" id="gQuote"></div>
+      <div class="q-interp" id="gInterp"></div>
+    </div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.1s"><div class="clbl">修身之路</div><div class="cbody" id="gCultivation"></div></div>
+      <div class="card s1" style="animation-delay:.15s;text-align:center;display:flex;align-items:center;justify-content:center"><div class="cbody" id="gMotto" style="font-family:'Ma Shan Zheng',cursive;color:#f0c87a;font-size:1.2rem;line-height:2;text-shadow:0 0 20px rgba(240,200,122,.5)"></div></div>
+      <div class="card s2" style="animation-delay:.2s"><div class="clbl">實踐三階</div><div class="cbody" id="gPractice" style="font-size:.88rem"></div></div>
+    </div>
+  </div>`;
+  const sys=`你是精通《論語》《大學》《中庸》《孟子》的儒家學者，同時重視修身踐行。引用經典後落地於當代，語言庄重但不迂腐。
+
+以下是儒家典籍真實原文，請嚴格基於此引用，不可編造：
+
+${ctx}
+
+【回答要求】
+- source：典籍出處，精確到篇章，如「《論語·里仁》」
+- quote：從原文選取最契合的一句，必須逐字準確，15-50字
+- interp：先解字面含義，再說孔孟寫此話的語境與深意，至少100字
+- cultivation：從「修心」「修言」「修行」三維度展開修身指引，至少150字
+- practice：分「今日即做」「本週踐行」「終身修煉」三層次，各1-2條具體建議，至少120字
+- motto：用古文語氣提煉一句針對用戶處境的警句，10-20字
+
+JSON字段：source、quote、interp、cultivation、practice、motto。只輸出JSON。`;
+  const { raw: _rawG } = await chainGenerate(q, 'G', sys);
+  const d=parseJSON(_rawG);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  document.getElementById('gSrc').textContent=d.source||'《論語》';
+  await Promise.all([
+    stream(document.getElementById('gQuote'),d.quote||''),
+    stream(document.getElementById('gInterp'),d.interp||''),
+    stream(document.getElementById('gCultivation'),d.cultivation||''),
+    stream(document.getElementById('gMotto'),d.motto||''),
+    streamOrCards(document.getElementById('gPractice'),d.practice||'')
+  ]);
+}
+
+// ── H 謀略·兵法 ──
+async function sceneH(q,box){
+  const ctx=formatContext(retrieveClassics(q,'H'));
+  box.innerHTML=`<div class="thF" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div class="sc-title"><h2 style="color:#e07060;text-shadow:0 0 15px rgba(224,112,96,.5)">孫子兵法 · 謀略智慧</h2><div class="sub" style="color:rgba(224,112,96,.5)">知彼知己 · 奇正虛實 · 上兵伐謀</div></div>
+    <div class="quote-big">
+      <div class="qmark">"</div>
+      <div class="q-src" id="hPian">《孫子兵法》</div>
+      <div class="q-text" id="hQuote"></div>
+      <div class="q-interp" id="hDecode"></div>
+    </div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.1s"><div class="clbl">局勢研判</div><div class="cbody" id="hSituation"></div></div>
+      <div class="card" style="animation-delay:.15s"><div class="clbl">謀略建議</div><div class="cbody" id="hStrategy"></div></div>
+      <div class="card s2" style="animation-delay:.2s;border-color:rgba(224,112,96,.3)"><div class="clbl" style="color:rgba(224,112,96,.7)">兵家大忌</div><div class="cbody" id="hWarning" style="color:rgba(224,112,96,.85)"></div></div>
+    </div>
+  </div>`;
+  const sys=`你是精通《孫子兵法》及歷代兵家思想的謀略學者，善將兵法轉化為現代商業、職場、人生的決策工具。分析透徹有力，建議犀利可行。
+
+以下是兵法典籍真實原文，請嚴格基於此引用，不可編造：
+
+${ctx}
+
+【回答要求】
+- pian：最契合問題的篇章，如「虛實篇」
+- quote：從原文選取最契合的一句兵法，必須逐字準確，15-50字
+- decode：解析兵法本義，再說明如何映射到用戶的具體處境，至少100字
+- situation：分析用戶當前局勢——優勢在哪、劣勢在哪、變數在哪，至少100字，要有具體判斷
+- strategy：3-4條具體謀略建議，每條包含：①策略名稱 ②具體做法 ③為何有效，共至少150字
+- warning：此局勢中最易犯的1-2個兵家大忌，各30字以上
+
+JSON字段：pian、quote、decode、situation、strategy、warning。只輸出JSON。`;
+  const { raw: _rawH } = await chainGenerate(q, 'H', sys);
+  const d=parseJSON(_rawH);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  document.getElementById('hPian').textContent=`《孫子兵法》· ${d.pian||''}`;
+  await Promise.all([
+    stream(document.getElementById('hQuote'),d.quote||''),
+    stream(document.getElementById('hDecode'),d.decode||''),
+    stream(document.getElementById('hSituation'),d.situation||''),
+    streamOrCards(document.getElementById('hStrategy'),d.strategy||''),
+    stream(document.getElementById('hWarning'),d.warning||'')
+  ]);
 }
 
 // ── F 道家智慧 ──
