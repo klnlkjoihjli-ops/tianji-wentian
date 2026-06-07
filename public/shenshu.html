@@ -1205,6 +1205,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
 </style>
 </head>
 <body>
+<div id="floatingQuotesBg" style="position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;"></div>
 <div id="loginGate">
   <div class="lg-title">天機</div>
   <div class="lg-sub">叩問蒼天 · 典籍應答</div>
@@ -2643,8 +2644,12 @@ function setAskLoading(on){
     '謀定而後動','靜者生焉','時來天地皆同力',
   ];
 
-  const container=document.getElementById('floatingQuotes');
-  if(!container)return;
+  // 向兩個容器都填充：登入前（floatingQuotesBg）和登入後（floatingQuotes）
+  const containers=[
+    document.getElementById('floatingQuotesBg'),
+    document.getElementById('floatingQuotes')
+  ].filter(Boolean);
+  if(!containers.length)return;
 
   const vw=window.innerWidth, vh=window.innerHeight;
   const count=Math.min(36, Math.floor(vw*vh/16000)+10);
@@ -2689,12 +2694,16 @@ function setAskLoading(on){
       position:absolute;left:${x}%;top:${y}%;
       font-family:'Ma Shan Zheng',cursive;
       font-size:${fs}rem;
-      color:rgba(201,168,76,0.001);
+      color:rgba(201,168,76,1);
       pointer-events:none;white-space:nowrap;
       ${vertical?'writing-mode:vertical-rl;':''}
       animation:${id} ${dur}s ${delay}s infinite ease-in-out;
     `;
-    container.appendChild(el);
+    // 每個容器都克隆一份相同的元素
+    containers.forEach((c,ci)=>{
+      const node=ci===0?el:el.cloneNode(true);
+      c.appendChild(node);
+    });
   }
   styleEl.textContent=css;
   document.head.appendChild(styleEl);
