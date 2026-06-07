@@ -3018,34 +3018,6 @@ async function renderScene(scene,q){
     else if(scene==='H')await sceneH(q,box);
     else await sceneF(q,box);
     renderHeroFrame(box,lastAnswerMeta);
-    // 复制按钮 + 建议卡片编号（只渲染JSON数组，不拆分）
-    box.querySelectorAll('.card').forEach(card=>{
-      const body=card.querySelector('.cbody, .rlist, .q-text');
-      if(body) addCopyBtn(card,function(){return body.innerText.trim();});
-      const lbl=card.querySelector('.clbl');
-      if(!lbl||!/建議|啟示|實踐|研判/i.test(lbl.textContent)) return;
-      card.classList.add('action-card');
-      const cb=card.querySelector('.cbody');
-      if(!cb) return;
-      const raw=cb.textContent.trim();
-      if(!raw) return;
-      // 只解析JSON数组，失败就原样展示
-      try{
-        const a=raw.indexOf('['),b=raw.lastIndexOf(']');
-        if(a>-1&&b>a){
-          const arr=JSON.parse(raw.slice(a,b+1));
-          if(Array.isArray(arr)&&arr.length>0){
-            cb.innerHTML=arr.map(function(p,i){
-              return '<div class="action-item">'
-                +'<div class="action-num">'+(i+1)+'</div>'
-                +'<div class="action-text">'+escapeHTML(String(p).trim())+'</div>'
-                +'</div>';
-            }).join('');
-          }
-        }
-      }catch(e){}
-      // 解析失败原样显示，不再尝试任何拆分
-    });
   }catch(e){
     showErrorState(lastQ, function(){ renderScene(scene, lastQ); }, e);
   }
@@ -3053,158 +3025,26 @@ async function renderScene(scene,q){
 
 // ── A 推背圖 ──
 async function sceneA(q,box){
-  const ctx=formatContext(retrieveClassics(q,'A'));
-  box.innerHTML=`<div class="thA" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div style="text-align:center;margin-bottom:.4rem">
-      <div style="font-size:.58rem;letter-spacing:.5em;color:rgba(201,168,76,.75);margin-bottom:.15rem" id="aXiang">推背圖 · 天機推演</div>
-      <div style="font-family:'Ma Shan Zheng',cursive;font-size:1.25rem;color:#e8cc7a;letter-spacing:.2em;text-shadow:0 0 20px rgba(201,168,76,.55)" id="aTitle">觀天象，察人事</div>
-      ${hexSVG(q.length*13+7,'#c9a84c')}
-    </div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.05s"><div class="clbl">讖 曰</div><div class="cbody" id="aC1"></div></div>
-      <div class="card" style="animation-delay:.1s"><div class="clbl">頌 曰</div><div class="cbody" id="aC2"></div></div>
-      <div class="card" style="animation-delay:.15s"><div class="clbl">現代解讀</div><div class="cbody" id="aC3"></div></div>
-      <div class="card" style="animation-delay:.2s"><div class="clbl">給你的建議</div><div class="cbody" id="aC4"></div></div>
-    </div>
-  </div>`;
-  // ── 多步生成：Step1分析 + Step2增強檢索 + Step3生成 ──
-  const sys=`你是精通推背圖、奇門遁甲、六壬神課的命理學者，同時熟悉中國歷史與當代時事。你的解讀風格：引用原文後用古今對照的方式展開，語言既有古典韻味又通俗易懂，有溫度，有洞察，不說廢話套話。
-
-以下是推背圖原文（民間流傳版，非學術認定原本），請嚴格基於此原文引用，不可憑空捏造象號或謶語：
-
-
-【回答要求】
-- chen：直接引用上述原文中最契合的謶語，不可改動原文
-- song：直接引用對應頌語原文
-- jiedu：先解釋謶語的字面意思，再結合當前時代背景做深度解讀，至少150字，要有具體的時代分析，不能只說「否極泰來」這種空話
-- advice：針對用戶的具體問題給出有操作性的建議，分3-4個層次展開，每個建議要說清楚「為什麼」，至少120字
-- 禁止使用：「吉祥如意」「萬事順遂」「順應天時」這類空洞套語
-
-JSON字段：xiang(象號)、title(4-8字標題，要有意境)、chen、song、jiedu、advice。只輸出JSON。`;
-  const { raw: _rawA } = await chainGenerate(q, 'A', sys);
-  const d=parseJSON(_rawA);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  document.getElementById('aXiang').textContent='推背圖 · '+(d.xiang||'');
-  document.getElementById('aTitle').textContent=d.title||'天機隱現';
-  await Promise.all([stream(document.getElementById('aC1'),d.chen||''),stream(document.getElementById('aC2'),d.song||''),stream(document.getElementById('aC3'),d.jiedu||''),streamOrCards(document.getElementById('aC4'),d.advice||'')]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'A');
 }
 
 // ── B 黃帝內經 ──
 async function sceneB(q,box){
-  const wxData=[{ch:'木',lb:'肝·膽',c:'#5ecf89'},{ch:'火',lb:'心·小腸',c:'#ff7060'},{ch:'土',lb:'脾·胃',c:'#c9a84c'},{ch:'金',lb:'肺·大腸',c:'#7baad4'},{ch:'水',lb:'腎·膀胱',c:'#5bc4d4'}];
-  box.innerHTML=`<div class="thB" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div class="sc-title"><h2 style="color:#7de8a8;text-shadow:0 0 15px rgba(94,207,137,.5)">黃帝內經 · 問診</h2><div class="sub">五行辨證 · 脏腑調和 · 天人合一</div></div>
-    <div class="wuxing">${wxData.map(w=>`<div class="wx" id="wx${w.ch}"><span class="wx-ch" style="color:${w.c}">${w.ch}</span><div class="wx-lb">${w.lb}</div><div class="wx-bar" style="background:${w.c}"></div></div>`).join('')}</div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.05s"><div class="clbl">辨證分析</div><div class="cbody" id="bDiag"></div></div>
-      <div class="card" style="animation-delay:.1s"><div class="clbl">經典原文</div><div class="cbody" id="bClassic" style="font-family:'Ma Shan Zheng',cursive;color:#7de8a8;line-height:2.1"></div></div>
-      <div class="card" style="animation-delay:.15s"><div class="clbl">調養建議</div><ul class="rlist" id="bRemedy"></ul></div>
-      <div class="card" style="animation-delay:.2s"><div class="clbl">日常實踐</div><div class="cbody" id="bPractice"></div></div>
-    </div>
-  </div>`;
-  const sys=`你是精通《黃帝內經》《傷寒論》《本草綱目》的中醫學者，同時懂得將古典醫學理論轉化為現代人可實踐的養生方法。你的風格：引經據典但不賣弄，分析透徹，建議具體可操作，像一個既有學識又有人情味的老中醫在和患者談話。
-
-以下是黃帝內經真實原文，請嚴格基於此回答，引用原文必須準確：
-
-
-【回答要求】
-- dominant：分析用戶問題涉及哪些臟腑和五行，給出1-2個最核心的
-- diagnosis：從陰陽五行、臟腑氣血角度做辨證分析，要說清楚病機（為什麼會這樣），至少120字，引用內經理論支撐你的判斷，不能只說「肝氣鬱結」這四個字就完了
-- classic：從上述原文中選取最貼切的一句，格式「《篇名》云：『原文』」，必須是原文中出現的，逐字準確
-- remedy：5條具體調養建議，每條要包含：①做什麼 ②為什麼這樣做（中醫原理）③怎麼做（具體操作），每條40字以上
-- practice：給出一套完整的日常作息方案，結合時辰養生，有早中晚的具體安排，至少150字
-
-JSON字段：dominant、diagnosis、classic、remedy(數組)、practice。只輸出JSON。`;
-  const { raw: _rawB } = await chainGenerate(q, 'B', sys);
-  const d=parseJSON(_rawB);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  (d.dominant||[]).forEach(w=>{const el=document.getElementById('wx'+w);if(el)el.classList.add('hi');});
-  const ul=document.getElementById('bRemedy');
-  (d.remedy||[]).forEach(r=>{const li=document.createElement('li');li.textContent=r;ul.appendChild(li);});
-  await Promise.all([stream(document.getElementById('bDiag'),d.diagnosis||''),stream(document.getElementById('bClassic'),d.classic||''),stream(document.getElementById('bPractice'),d.practice||'')]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'B');
 }
 
 // ── C 時事天機 ──
 async function sceneC(q,box){
-  const ts=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'})+`·${getCurrentGanzhi().year}年（${getCurrentGanzhi().sx}年）`;
-  box.innerHTML=`<div class="thC" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div class="sc-title"><h2 style="color:#9dc4e8;text-shadow:0 0 15px rgba(123,170,212,.5)">時勢推演 · 大勢研判</h2><div class="sub" style="color:rgba(123,170,212,.6)">${ts}</div></div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.05s">
-        <div class="clbl">典籍印證</div>
-        ${hexSVG(q.length*7+19,'#7baad4')}
-        <div id="cXiang" style="font-family:'Ma Shan Zheng',cursive;font-size:.88rem;color:#9dc4e8;letter-spacing:.1em;margin:.25rem 0"></div>
-        <div class="cbody" id="cProphecy" style="font-family:'Ma Shan Zheng',cursive;color:#b8d8f0;line-height:2.1"></div>
-      </div>
-      <div class="card" style="animation-delay:.1s"><div class="clbl">時勢解讀</div><div class="cbody" id="cAnalysis"></div></div>
-      <div class="card s2" style="animation-delay:.15s">
-        <div class="clbl" style="text-align:center">綜合研判 · 給你的建議</div>
-        <div class="cbody" id="cVerdict" style="text-align:center;font-family:'Ma Shan Zheng',cursive;font-size:.98rem;color:#9dc4e8;line-height:2"></div>
-      </div>
-    </div>
-  </div>`;
-  const sys=`你是結合中國古典預言學與現代地緣政治、經濟、科技趨勢的跨學科分析師。你的分析方式：用推背圖的象辭作為視角切入，但分析內容是實實在在的當代研判，有數據感，有邏輯，有見地，不是神秘主義的空話。
-
-以下是推背圖原文（民間流傳版），請基於此選取最契合當前時勢的象：
-
-
-【回答要求】
-- xiang：選取與用戶問題最契合的一象，給出象號和名稱
-- prophecy：直接引用該象的謶語或頌語原文，30-50字，不可改動
-- analysis：這是核心，至少200字。分三個層次：
-  ①古今對照：說明為何這一象契合當前時勢，哪些具體事件與象辭呼應
-  ②深度分析：從地緣、經濟、科技、文化等維度展開當前大勢研判，要有具體的判斷而非泛泛而談
-  ③趨勢預判：基於當前格局，未來1-3年的關鍵變量和可能走向
-- verdict：針對用戶問題，給出3-4條有操作性的具體建議，不是「順勢而為」這種廢話，要說清楚具體怎麼做
-
-JSON字段：xiang、prophecy、analysis、verdict。只輸出JSON。`;
-  const { raw: _rawC } = await chainGenerate(q, 'C', sys);
-  const d=parseJSON(_rawC);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  document.getElementById('cXiang').textContent=d.xiang||'';
-  await Promise.all([stream(document.getElementById('cProphecy'),d.prophecy||''),stream(document.getElementById('cAnalysis'),d.analysis||''),streamOrCards(document.getElementById('cVerdict'),d.verdict||'')]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'C');
 }
 
-// ── D 易經 ──
-const dLines=[];
+// ── D 易經起卦 ──
 async function sceneD(q,box){
-  dLines.length=0;
-  box.innerHTML=`<div class="thD" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div class="sc-title"><h2 style="color:#c0b8ff;text-shadow:0 0 15px rgba(168,159,232,.55)">易經 · 起卦問道</h2><div class="sub" style="color:rgba(168,159,232,.5);animation:fade 2.5s ease infinite">點擊銅錢搖卦 · 或等待自動起卦</div></div>
-    <div class="coins">
-      <div class="coin" style="--fd:2.1s" onclick="flipCoin(this)">🪙</div>
-      <div class="coin" style="--fd:2.5s" onclick="flipCoin(this)">🪙</div>
-      <div class="coin" style="--fd:2.9s" onclick="flipCoin(this)">🪙</div>
-    </div>
-    <div class="hexd" id="hexD"></div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.05s"><div class="clbl">卦名</div><div class="cbody" id="dName" style="color:#c0b8ff;font-size:1rem;letter-spacing:.15em"></div></div>
-      <div class="card" style="animation-delay:.1s"><div class="clbl">卦辭解讀</div><div class="cbody" id="dDesc"></div></div>
-      <div class="card" style="animation-delay:.15s"><div class="clbl">爻辭解讀</div><div class="cbody" id="dYao"></div></div>
-      <div class="card" style="animation-delay:.2s"><div class="clbl">對你的啟示</div><div class="cbody" id="dAdv"></div></div>
-    </div>
-  </div>`;
-  for(let i=0;i<6;i++){await new Promise(r=>setTimeout(r,250));addHexLine(Math.random()>.5);}
-  const sys=`你是精研易經六十四卦、深諳象數義理的易學學者，同時擅長將卦象智慧轉化為現代人的處世指引。你的解讀風格：先還原古人的本意，再貫通到當代語境，有哲學深度，有人生溫度，讓人讀完有所觸動。
-
-以下是易經真實原文（卦辭、象辭、爻辭），請嚴格基於此回答：
-
-
-【回答要求】
-- guaName：選取最契合用戶問題的卦，格式「XX卦·象辭核心句」，必須引自原文象辭
-- guaDesc：先完整引用卦辭原文，再從「卦象」「卦義」「當代意義」三個角度展開解讀，至少150字。要說清楚這個卦為什麼契合用戶的處境
-- yao：選取最相關的一條爻辭，先引用原文，再解釋這條爻辭在用戶當前處境下的具體含義，至少80字
-- advice：分四個維度給出建議：①時機（現在是什麼時機，該進還是該退）②行動（具體該做什麼）③心態（應持何種心態）④禁忌（要避免什麼），每個維度2-3句，共計至少150字
-
-JSON字段：guaName、guaDesc、yao、advice。只輸出JSON。`;
-  const { raw: _rawD } = await chainGenerate(q, 'D', sys);
-  const d=parseJSON(_rawD);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  await Promise.all([stream(document.getElementById('dName'),d.guaName||'卦象'),stream(document.getElementById('dDesc'),d.guaDesc||''),stream(document.getElementById('dYao'),d.yao||''),streamOrCards(document.getElementById('dAdv'),d.advice||'')]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'D');
 }
 function addHexLine(yang){
   dLines.push(yang);
@@ -3216,193 +3056,35 @@ function addHexLine(yang){
 }
 function flipCoin(el){el.classList.add('flip');setTimeout(()=>el.classList.remove('flip'),600);if(dLines.length<6)addHexLine(Math.random()>.5);}
 
-// ── E 節氣 ──
+// ── E 節氣養生 ──
 async function sceneE(q,box){
-  const JQ=[[1,6,'小寒'],[1,20,'大寒'],[2,4,'立春'],[2,19,'雨水'],[3,6,'驚蟄'],[3,21,'春分'],[4,5,'清明'],[4,20,'穀雨'],[5,6,'立夏'],[5,21,'小滿'],[6,6,'芒種'],[6,21,'夏至'],[7,7,'小暑'],[7,23,'大暑'],[8,7,'立秋'],[8,23,'處暑'],[9,8,'白露'],[9,23,'秋分'],[10,8,'寒露'],[10,23,'霜降'],[11,7,'立冬'],[11,22,'小雪'],[12,7,'大雪'],[12,22,'冬至']];
-  const now=new Date();let curJQ='芒種';
+  box.innerHTML=qEcho(q);
+  // 节气和时辰计算，用于增强 query 让后端感知当前节气
+  const now=new Date();
+  let curJQ='芒種';
   for(let i=JQ.length-1;i>=0;i--){const[m,d,n]=JQ[i];if(now>=new Date(now.getFullYear(),m-1,d)){curJQ=n;break;}}
   const h=now.getHours();
-  const SC=['子時','丑時','寅時','卯時','辰時','巳時','午時','未時','申時','酉時','戌時','亥時'];
   const curSC=SC[Math.floor(((h+1)%24)/2)];
-  const jqData=getJieqiData(curJQ);
-  const ctx=formatContext(retrieveClassics(q,'E'));
-  const jqCtx=jqData?`【${curJQ}節氣原文】\n${jqData.yangsheng}\n內經：${jqData.neijing}\n時辰：${jqData.shichen}`:'';
-  const dots=JQ.map(([m,d,n],i)=>{const a=(i/24)*Math.PI*2-Math.PI/2,r=50,x=60+r*Math.cos(a),y=60+r*Math.sin(a);return`<circle cx="${x}" cy="${y}" r="${n===curJQ?3.5:1.8}" fill="${n===curJQ?'#6dcba0':'rgba(109,203,160,.38)'}"/>${n===curJQ?`<circle cx="${x}" cy="${y}" r="6.5" fill="none" stroke="#6dcba0" stroke-width="1" opacity=".45"/>`:''}`}).join('');
-  box.innerHTML=`<div class="thE" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:.4rem;flex:0 0 auto">
-      <div class="cmp-wrap" style="margin:0;flex-shrink:0">
-        <svg class="cmp-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="60" cy="60" r="57" stroke="rgba(109,203,160,.18)" stroke-width="1" fill="none"/>
-          <circle cx="60" cy="60" r="40" stroke="rgba(109,203,160,.08)" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
-          <circle cx="60" cy="60" r="18" stroke="rgba(109,203,160,.2)" stroke-width="1" fill="none"/>
-          ${dots}
-        </svg>
-        <div class="cmp-center"><div class="cmp-name">${curJQ}</div><div class="cmp-date">${now.toLocaleDateString('zh-TW',{month:'long',day:'numeric'})}</div></div>
-      </div>
-      <div>
-        <div style="font-family:'Ma Shan Zheng',cursive;font-size:1.2rem;color:#8de8b8;letter-spacing:.18em;text-shadow:0 0 15px rgba(109,203,160,.5)">節氣羅盤 · 天時養生</div>
-        <div style="font-size:.6rem;color:rgba(109,203,160,.6);letter-spacing:.18em;margin-top:.2rem">當前時辰：${curSC}</div>
-      </div>
-    </div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.05s"><div class="clbl">當前節氣養生</div><div class="cbody" id="eYS"></div></div>
-      <div class="card" style="animation-delay:.1s"><div class="clbl">時辰建議</div><div class="cbody" id="eSC"></div></div>
-      <div class="card" style="animation-delay:.15s"><div class="clbl">內經原文</div><div class="cbody" id="eCL" style="font-family:'Ma Shan Zheng',cursive;color:#8de8b8;line-height:2.1"></div></div>
-      <div class="card" style="animation-delay:.2s"><div class="clbl">具體建議</div><div class="cbody" id="eAD"></div></div>
-    </div>
-  </div>`;
-  const sys=`你是精通二十四節氣養生學、熟悉《黃帝內經》時辰醫學的中醫養生顧問。你的風格：把古老的節氣智慧轉化成現代人今天就能做的具體行動，語言溫暖親切，像朋友在聊天，不是教科書在說教。
-
-以下是當前節氣的真實養生原文和相關內經原文，請嚴格基於此回答：
-
-${jqCtx}
-
-
-【回答要求】
-- yangsheng：圍繞當前節氣的核心養生原則，從「天地之氣」「臟腑對應」「情志調攝」三個角度展開，至少150字。要說清楚為什麼這個節氣要這樣養生，不只是列舉建議
-- shichen：結合當前時辰，說明這個時辰對應哪條經絡、臟腑狀態如何、最適合做什麼、要避免什麼，至少80字，有中醫理論依據
-- classic：從上述原文中選取最貼切的一句，必須逐字準確，格式「《篇名》：『原文』」
-- advice：5條今天就能做的具體養生行動，每條格式：「【行動名稱】具體做法+為什麼這樣做」，每條50字以上，涵蓋飲食、起居、運動、情志、經絡五個維度
-
-JSON字段：yangsheng、shichen、classic、advice(換行分隔的字符串)。只輸出JSON。`;
-  // sceneE 用增强query做链式生成
-  const _qE = `節氣：${curJQ}，時辰：${curSC}，用戶問：${q}`;
-  const { raw: _rawE } = await chainGenerate(_qE, 'E', sys);
-  const d=parseJSON(_rawE);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  await Promise.all([stream(document.getElementById('eYS'),d.yangsheng||''),stream(document.getElementById('eSC'),d.shichen||''),stream(document.getElementById('eCL'),d.classic||''),streamOrCards(document.getElementById('eAD'),d.advice||'')]);
+  const _qE=`節氣：${curJQ}，時辰：${curSC}，用戶問：${q}`;
+  await chainGenerate(_qE,'E');
 }
 
 // ── G 儒家·修身 ──
 async function sceneG(q,box){
-  const ctx=formatContext(retrieveClassics(q,'G'));
-  box.innerHTML=`<div class="thF" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div class="sc-title"><h2 style="color:#f0c87a;text-shadow:0 0 15px rgba(240,200,122,.5)">儒家智慧 · 修身之道</h2><div class="sub" style="color:rgba(240,200,122,.5)">論語 · 大學 · 中庸 · 孟子</div></div>
-    <div class="quote-big">
-      <div class="qmark">"</div>
-      <div class="q-src" id="gSrc">《論語》</div>
-      <div class="q-text" id="gQuote"></div>
-      <div class="q-interp" id="gInterp"></div>
-    </div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.1s"><div class="clbl">修身之路</div><div class="cbody" id="gCultivation"></div></div>
-      <div class="card s1" style="animation-delay:.15s;text-align:center;display:flex;align-items:center;justify-content:center"><div class="cbody" id="gMotto" style="font-family:'Ma Shan Zheng',cursive;color:#f0c87a;font-size:1.2rem;line-height:2;text-shadow:0 0 20px rgba(240,200,122,.5)"></div></div>
-      <div class="card s2" style="animation-delay:.2s"><div class="clbl">實踐三階</div><div class="cbody" id="gPractice" style="font-size:.88rem"></div></div>
-    </div>
-  </div>`;
-  const sys=`你是精通《論語》《大學》《中庸》《孟子》的儒家學者，同時重視修身踐行。引用經典後落地於當代，語言庄重但不迂腐。
-
-以下是儒家典籍真實原文，請嚴格基於此引用，不可編造：
-
-${ctx}
-
-【回答要求】
-- source：典籍出處，精確到篇章，如「《論語·里仁》」
-- quote：從原文選取最契合的一句，必須逐字準確，15-50字
-- interp：先解字面含義，再說孔孟寫此話的語境與深意，至少100字
-- cultivation：從「修心」「修言」「修行」三維度展開修身指引，至少150字
-- practice：分「今日即做」「本週踐行」「終身修煉」三層次，各1-2條具體建議，至少120字
-- motto：用古文語氣提煉一句針對用戶處境的警句，10-20字
-
-JSON字段：source、quote、interp、cultivation、practice、motto。只輸出JSON。`;
-  const { raw: _rawG } = await chainGenerate(q, 'G', sys);
-  const d=parseJSON(_rawG);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  document.getElementById('gSrc').textContent=d.source||'《論語》';
-  await Promise.all([
-    stream(document.getElementById('gQuote'),d.quote||''),
-    stream(document.getElementById('gInterp'),d.interp||''),
-    stream(document.getElementById('gCultivation'),d.cultivation||''),
-    stream(document.getElementById('gMotto'),d.motto||''),
-    streamOrCards(document.getElementById('gPractice'),d.practice||'')
-  ]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'G');
 }
 
 // ── H 謀略·兵法 ──
 async function sceneH(q,box){
-  const ctx=formatContext(retrieveClassics(q,'H'));
-  box.innerHTML=`<div class="thF" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div class="sc-title"><h2 style="color:#e07060;text-shadow:0 0 15px rgba(224,112,96,.5)">孫子兵法 · 謀略智慧</h2><div class="sub" style="color:rgba(224,112,96,.5)">知彼知己 · 奇正虛實 · 上兵伐謀</div></div>
-    <div class="quote-big">
-      <div class="qmark">"</div>
-      <div class="q-src" id="hPian">《孫子兵法》</div>
-      <div class="q-text" id="hQuote"></div>
-      <div class="q-interp" id="hDecode"></div>
-    </div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.1s"><div class="clbl">局勢研判</div><div class="cbody" id="hSituation"></div></div>
-      <div class="card" style="animation-delay:.15s"><div class="clbl">謀略建議</div><div class="cbody" id="hStrategy"></div></div>
-      <div class="card s2" style="animation-delay:.2s;border-color:rgba(224,112,96,.3)"><div class="clbl" style="color:rgba(224,112,96,.7)">兵家大忌</div><div class="cbody" id="hWarning" style="color:rgba(224,112,96,.85)"></div></div>
-    </div>
-  </div>`;
-  const sys=`你是精通《孫子兵法》及歷代兵家思想的謀略學者，善將兵法轉化為現代商業、職場、人生的決策工具。分析透徹有力，建議犀利可行。
-
-以下是兵法典籍真實原文，請嚴格基於此引用，不可編造：
-
-${ctx}
-
-【回答要求】
-- pian：最契合問題的篇章，如「虛實篇」
-- quote：從原文選取最契合的一句兵法，必須逐字準確，15-50字
-- decode：解析兵法本義，再說明如何映射到用戶的具體處境，至少100字
-- situation：分析用戶當前局勢——優勢在哪、劣勢在哪、變數在哪，至少100字，要有具體判斷
-- strategy：3-4條具體謀略建議，每條包含：①策略名稱 ②具體做法 ③為何有效，共至少150字
-- warning：此局勢中最易犯的1-2個兵家大忌，各30字以上
-
-JSON字段：pian、quote、decode、situation、strategy、warning。只輸出JSON。`;
-  const { raw: _rawH } = await chainGenerate(q, 'H', sys);
-  const d=parseJSON(_rawH);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  document.getElementById('hPian').textContent=`《孫子兵法》· ${d.pian||''}`;
-  await Promise.all([
-    stream(document.getElementById('hQuote'),d.quote||''),
-    stream(document.getElementById('hDecode'),d.decode||''),
-    stream(document.getElementById('hSituation'),d.situation||''),
-    streamOrCards(document.getElementById('hStrategy'),d.strategy||''),
-    stream(document.getElementById('hWarning'),d.warning||'')
-  ]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'H');
 }
 
 // ── F 道家智慧 ──
 async function sceneF(q,box){
-  const ctx=formatContext(retrieveClassics(q,'F'));
-  box.innerHTML=`<div class="thF" style="display:flex;flex-direction:column;height:100%">
-    ${qEcho(q)}
-    <div class="sc-title"><h2 style="color:#e8c060;text-shadow:0 0 15px rgba(212,168,67,.55)">道家智慧</h2><div class="sub" style="color:rgba(212,168,67,.55)">道德經 · 莊子 · 論語 · 孟子 · 孫子</div></div>
-    <div class="quote-big">
-      <div class="qmark">"</div>
-      <div class="q-src" id="fSrc">《道德經》</div>
-      <div class="q-text" id="fQuote"></div>
-      <div class="q-interp" id="fInterp"></div>
-    </div>
-    <div class="cgrid c2" style="flex:1;min-height:0">
-      <div class="card" style="animation-delay:.1s"><div class="clbl">針對你的問題</div><div class="cbody" id="fAna"></div></div>
-      <div class="card" style="animation-delay:.15s"><div class="clbl">古人的答案</div><div class="cbody" id="fAns" style="font-family:'Ma Shan Zheng',cursive;color:#ffd96a;font-size:.98rem"></div></div>
-      <div class="card s2" style="animation-delay:.2s"><div class="clbl">實踐之道</div><div class="cbody" id="fPra" style="font-size:.88rem"></div></div>
-    </div>
-  </div>`;
-  const sys=`你是精通道德經、莊子、論語、孟子、孫子兵法的中國哲學學者，同時是一位有生命智慧的人生導師。你的風格：引用原文後做深度闡發，既有哲學的縱深，又有現實的溫度，能幫人看清問題的本質，給出真正觸動人心的答案。不說「順其自然」「放下執念」這種廉價的心靈雞湯。
-
-以下是各典籍真實原文，請嚴格基於此引用，不可編造：
-
-
-【回答要求】
-- source：典籍出處，精確到篇章，如「《道德經》第十六章」或「《論語·顏淵》」
-- quote：從上述原文中選取最契合用戶問題的一句，必須逐字準確，20-50字
-- interp：先解釋這句話的字面含義，再說明古人寫這句話時的語境和深意，至少100字，要讓讀者真正理解這句話不是在說什麼表面道理
-- analysis：針對用戶的具體問題做深度分析，至少150字。要用典籍的智慧作為視角，但分析的是用戶的實際處境：問題的本質是什麼？古人是怎麼看待這類問題的？現代人容易在哪裡走偏？
-- answer：以「古人會怎麼說」的方式給出回答，語言可以帶一點文言韻味但必須易懂，至少80字，要有真正的洞見，不是套話
-- practice：從「立即可做」「本週可做」「長期堅持」三個時間維度各給1-2條具體建議，共至少120字
-
-JSON字段：source、quote、interp、analysis、answer、practice。只輸出JSON。`;
-  const { raw: _rawF } = await chainGenerate(q, 'F', sys);
-  const d=parseJSON(_rawF);
-  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
-  document.getElementById('fSrc').textContent=d.source||'《道德經》';
-  await Promise.all([stream(document.getElementById('fQuote'),d.quote||''),stream(document.getElementById('fInterp'),d.interp||''),stream(document.getElementById('fAna'),d.analysis||''),stream(document.getElementById('fAns'),d.answer||''),streamOrCards(document.getElementById('fPra'),d.practice||'')]);
+  box.innerHTML=qEcho(q);
+  await chainGenerate(q,'F');
 }
 </script>
 <script>
