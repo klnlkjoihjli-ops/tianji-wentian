@@ -53,8 +53,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
   filter:blur(2px);
 }
 @keyframes eyePulse{
-  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7}
-  50%{transform:translate(-50%,-50%) scale(1.12);opacity:1}
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.45}
+  50%{transform:translate(-50%,-50%) scale(1.08);opacity:.72}
 }
 
 .logo-zh{
@@ -1886,7 +1886,7 @@ function getJieqiData(name) {
   }
   nearGeo.setAttribute('position', new THREE.BufferAttribute(nearPos, 3));
   scene.add(new THREE.Points(nearGeo, new THREE.PointsMaterial({
-    size:.15, color:0xffffff, transparent:true, opacity:.9, depthWrite:false
+    size:.09, color:0xfff8ee, transparent:true, opacity:.45, depthWrite:false
   })));
 
   // ── 北斗七星（真实相对位置，放大居中）──
@@ -1909,7 +1909,7 @@ function getJieqiData(name) {
     const size = (4 - star.mag) * 0.06 + 0.08;
     const geo = new THREE.SphereGeometry(size, 8, 8);
     const mat = new THREE.MeshBasicMaterial({
-      color: star.color, transparent:true, opacity:.95
+      color: star.color, transparent:true, opacity:.75
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(star.x, star.y, star.z);
@@ -1917,9 +1917,9 @@ function getJieqiData(name) {
     beidouGroup.add(mesh);
 
     // 星名标签（用发光点代替文字）
-    const glowGeo = new THREE.SphereGeometry(size * 2.5, 8, 8);
+    const glowGeo = new THREE.SphereGeometry(size * 3.5, 8, 8);
     const glowMat = new THREE.MeshBasicMaterial({
-      color: star.color, transparent:true, opacity:.15
+      color: star.color, transparent:true, opacity:.08
     });
     const glow = new THREE.Mesh(glowGeo, glowMat);
     glow.position.copy(mesh.position);
@@ -1929,7 +1929,7 @@ function getJieqiData(name) {
   // 北斗连线
   const beidouLinePoints = BEIDOU.map(s => new THREE.Vector3(s.x, s.y, s.z));
   const beidouLineMat = new THREE.LineBasicMaterial({
-    color: 0xc9a84c, transparent:true, opacity:.5
+    color: 0xc9a84c, transparent:true, opacity:.28
   });
   beidouGroup.add(new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(beidouLinePoints),
@@ -1938,14 +1938,14 @@ function getJieqiData(name) {
 
   // 北极星
   const polarGeo = new THREE.SphereGeometry(.12, 12, 12);
-  const polarMat = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.95});
+  const polarMat = new THREE.MeshBasicMaterial({color:0xeef4ff, transparent:true, opacity:.65});
   const polarStar = new THREE.Mesh(polarGeo, polarMat);
   polarStar.position.set(0, 3.5, -2);
   scene.add(polarStar);
   // 北极星光晕
   const polarGlow = new THREE.Mesh(
-    new THREE.SphereGeometry(.35, 12, 12),
-    new THREE.MeshBasicMaterial({color:0xaaddff, transparent:true, opacity:.12})
+    new THREE.SphereGeometry(.45, 12, 12),
+    new THREE.MeshBasicMaterial({color:0xaaddff, transparent:true, opacity:.07})
   );
   polarGlow.position.copy(polarStar.position);
   scene.add(polarGlow);
@@ -1958,7 +1958,7 @@ function getJieqiData(name) {
   ];
   const polarPointer = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pointerPts),
-    new THREE.LineDashedMaterial({color:0x7baad4, transparent:true, opacity:.25, dashSize:.1, gapSize:.1})
+    new THREE.LineDashedMaterial({color:0x7baad4, transparent:true, opacity:.12, dashSize:.12, gapSize:.14})
   );
   polarPointer.computeLineDistances();
   beidouGroup.add(polarPointer);
@@ -1987,7 +1987,7 @@ function getJieqiData(name) {
 
       const starGeo = new THREE.SphereGeometry(.06, 6, 6);
       const starMat = new THREE.MeshBasicMaterial({
-        color: fang.color, transparent:true, opacity:.8
+        color: fang.color, transparent:true, opacity:.45
       });
       const star = new THREE.Mesh(starGeo, starMat);
       star.position.set(x, y, 0);
@@ -1996,8 +1996,8 @@ function getJieqiData(name) {
 
       // 小光晕
       const haloMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(.18, 6, 6),
-        new THREE.MeshBasicMaterial({color: fang.color, transparent:true, opacity:.08})
+        new THREE.SphereGeometry(.16, 6, 6),
+        new THREE.MeshBasicMaterial({color: fang.color, transparent:true, opacity:.05})
       );
       haloMesh.position.copy(star.position);
       xiuGroup.add(haloMesh);
@@ -2014,7 +2014,7 @@ function getJieqiData(name) {
     }
     xiuGroup.add(new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(arcPts),
-      new THREE.LineBasicMaterial({color: fang.color, transparent:true, opacity:.2})
+      new THREE.LineBasicMaterial({color: fang.color, transparent:true, opacity:.10})
     ));
   });
 
@@ -2027,7 +2027,7 @@ function getJieqiData(name) {
   YUAN.forEach(yuan => {
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(yuan.r, .015, 6, 80),
-      new THREE.MeshBasicMaterial({color: yuan.color, transparent:true, opacity: yuan.opacity * 3})
+      new THREE.MeshBasicMaterial({color: yuan.color, transparent:true, opacity: yuan.opacity * 1.2})
     );
     ring.position.z = -1.5;
     scene.add(ring);
@@ -2040,13 +2040,13 @@ function getJieqiData(name) {
 
   // 外环
   baguaGroup.add(new THREE.Mesh(
-    new THREE.TorusGeometry(1.8, .007, 8, 100),
-    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.4})
+    new THREE.TorusGeometry(1.8, .006, 8, 100),
+    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.22})
   ));
   // 内环
   baguaGroup.add(new THREE.Mesh(
-    new THREE.TorusGeometry(1.2, .005, 8, 80),
-    new THREE.MeshBasicMaterial({color:0x9966ff, transparent:true, opacity:.25})
+    new THREE.TorusGeometry(1.2, .004, 8, 80),
+    new THREE.MeshBasicMaterial({color:0x9966ff, transparent:true, opacity:.14})
   ));
   // 八条辐射线
   for(let i = 0; i < 8; i++){
@@ -2057,7 +2057,7 @@ function getJieqiData(name) {
     ];
     baguaGroup.add(new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({color:0xc9a84c, transparent:true, opacity:.18})
+      new THREE.LineBasicMaterial({color:0xc9a84c, transparent:true, opacity:.09})
     ));
   }
   // 八卦爻（八个方位）
@@ -2074,7 +2074,7 @@ function getJieqiData(name) {
             new THREE.Vector3(cx-.16, ly, 0),
             new THREE.Vector3(cx+.16, ly, 0),
           ]),
-          new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.6})
+          new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.35})
         ));
       } else {
         [-.07, .07].forEach(ox => {
@@ -2083,7 +2083,7 @@ function getJieqiData(name) {
               new THREE.Vector3(cx+ox-.08, ly, 0),
               new THREE.Vector3(cx+ox+.02, ly, 0),
             ]),
-            new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.4})
+            new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.22})
           ));
         });
       }
@@ -2092,7 +2092,7 @@ function getJieqiData(name) {
   // 太极圆心
   baguaGroup.add(new THREE.Mesh(
     new THREE.CircleGeometry(.22, 32),
-    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.35})
+    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.18})
   ));
 
   // ── 五行星（金木水火土 对应五颗行星，轨道运行）──
@@ -2109,8 +2109,8 @@ function getJieqiData(name) {
       new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.9})
     );
     const glow = new THREE.Mesh(
-      new THREE.SphereGeometry(.2, 8, 8),
-      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.1})
+      new THREE.SphereGeometry(.16, 8, 8),
+      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.06})
     );
     mesh.userData = p;
     scene.add(mesh);
@@ -2187,15 +2187,15 @@ function getJieqiData(name) {
   const hunGroup = new THREE.Group();
   hunGroup.position.set(0,-.3,-.5);
   scene.add(hunGroup);
-  hunGroup.add(new THREE.Mesh(new THREE.TorusGeometry(1.15,.018,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.55})));
-  const huangHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,80),new THREE.MeshBasicMaterial({color:0xe8cc7a,transparent:true,opacity:.45}));
+  hunGroup.add(new THREE.Mesh(new THREE.TorusGeometry(1.15,.014,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.32})));
+  const huangHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.010,8,80),new THREE.MeshBasicMaterial({color:0xe8cc7a,transparent:true,opacity:.25}));
   huangHuan.rotation.x=0.41;hunGroup.add(huangHuan);
-  const zwHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.010,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.35}));
+  const zwHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.008,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.20}));
   zwHuan.rotation.y=Math.PI/2;hunGroup.add(zwHuan);
-  const dpHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.010,8,80),new THREE.MeshBasicMaterial({color:0x9966ff,transparent:true,opacity:.28}));
+  const dpHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.008,8,80),new THREE.MeshBasicMaterial({color:0x9966ff,transparent:true,opacity:.16}));
   dpHuan.rotation.x=Math.PI/2;hunGroup.add(dpHuan);
-  hunGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,2.5,8),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.5})));
-  const kuiG=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,1.6,6),new THREE.MeshBasicMaterial({color:0xffd4a0,transparent:true,opacity:.6}));
+  hunGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,2.5,8),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.28})));
+  const kuiG=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1.6,6),new THREE.MeshBasicMaterial({color:0xffd4a0,transparent:true,opacity:.32}));
   kuiG.rotation.z=Math.PI/2;hunGroup.add(kuiG);
 
   // ── 日晷 ──
