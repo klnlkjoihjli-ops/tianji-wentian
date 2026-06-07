@@ -8,3 +8,4 @@ node_modules/
 out/
 *.log
 .DS_Store
+.vercel

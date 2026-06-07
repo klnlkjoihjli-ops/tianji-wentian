@@ -944,9 +944,59 @@ body.real-sky .bgla{animation:none;opacity:.55}
   padding:.32rem .75rem;border-radius:20px;font-size:.72rem;cursor:pointer;font-family:'Noto Serif SC',serif;
   letter-spacing:.04em;transition:all .2s;white-space:nowrap}
 .ex-btn:hover{background:rgba(201,168,76,.18);border-color:rgba(201,168,76,.6);color:rgba(201,168,76,1)}
+/* ══ 登录页 ══ */
+#loginGate{
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at center,#0d0808 0%,#000 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1.8rem;transition:opacity .5s;
+}
+#loginGate.hide{opacity:0;pointer-events:none;}
+#loginGate .lg-title{
+  font-family:'STXingkai','华文行楷','Ma Shan Zheng',cursive;
+  font-size:3.8rem;color:#fff;letter-spacing:.3em;
+  text-shadow:0 0 8px #fff,0 0 30px rgba(201,168,76,1),0 0 80px rgba(201,168,76,.7);
+}
+#loginGate .lg-sub{
+  font-family:'Noto Serif SC',serif;font-size:.78rem;
+  color:rgba(201,168,76,.6);letter-spacing:.4em;margin-top:-.8rem;
+}
+#loginGate .lg-box{
+  display:flex;flex-direction:column;align-items:center;gap:.9rem;
+  background:rgba(15,10,5,.8);border:1px solid rgba(201,168,76,.3);
+  border-radius:12px;padding:2rem 2.4rem;backdrop-filter:blur(20px);
+  box-shadow:0 0 40px rgba(201,168,76,.1);width:320px;
+}
+#loginGate .lg-label{font-size:.7rem;letter-spacing:.3em;color:rgba(201,168,76,.5);}
+#loginGate input{
+  width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.35);
+  border-radius:6px;padding:.65rem 1rem;color:#f0e4cc;
+  font-family:'Noto Serif SC',serif;font-size:.9rem;letter-spacing:.15em;
+  text-align:center;outline:none;transition:border-color .2s;
+}
+#loginGate input:focus{border-color:rgba(201,168,76,.8);}
+#loginGate button{
+  width:100%;background:linear-gradient(135deg,rgba(201,168,76,.55),rgba(201,168,76,.35));
+  border:1px solid rgba(201,168,76,.8);border-radius:6px;
+  color:#f0e4cc;font-family:'Noto Serif SC',serif;font-size:.82rem;
+  letter-spacing:.25em;padding:.65rem;cursor:pointer;transition:all .2s;
+}
+#loginGate button:hover{background:linear-gradient(135deg,rgba(201,168,76,.85),rgba(201,168,76,.65));color:#fff;}
+#loginGate button:disabled{opacity:.5;cursor:not-allowed;}
+#loginGate .lg-err{font-size:.72rem;color:#e07070;letter-spacing:.1em;min-height:1em;}
 </style>
 </head>
 <body>
+<div id="loginGate">
+  <div class="lg-title">天機</div>
+  <div class="lg-sub">叩問蒼天 · 典籍應答</div>
+  <div class="lg-box">
+    <div class="lg-label">請輸入訪問密碼</div>
+    <input type="password" id="lgInput" placeholder="••••••••" autocomplete="current-password"/>
+    <button id="lgBtn" onclick="doLogin()">入 門</button>
+    <div class="lg-err" id="lgErr"></div>
+  </div>
+</div>
 <canvas id="c"></canvas>
 <div class="experience-controls">
   <div class="mode-group" aria-label="天象模式">
@@ -2406,7 +2456,7 @@ async function chainGenerate(q, scene, systemPrompt){
   localStorage.setItem('shenshu_session', sessionId);
 
   return new Promise((resolve, reject) => {
-    const accessToken = new URLSearchParams(window.location.search).get('t') || '';
+    const accessToken = sessionStorage.getItem('tianji_auth') || '';
     fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'x-access-token': accessToken},
@@ -3035,6 +3085,51 @@ JSON字段：source、quote、interp、analysis、answer、practice。只輸出J
   document.getElementById('fSrc').textContent=d.source||'《道德經》';
   await Promise.all([stream(document.getElementById('fQuote'),d.quote||''),stream(document.getElementById('fInterp'),d.interp||''),stream(document.getElementById('fAna'),d.analysis||''),stream(document.getElementById('fAns'),d.answer||''),streamOrCards(document.getElementById('fPra'),d.practice||'')]);
 }
+</script>
+<script>
+// ══ 登录逻辑 ══
+(function(){
+  const gate = document.getElementById('loginGate');
+  const input = document.getElementById('lgInput');
+  const btn = document.getElementById('lgBtn');
+  const err = document.getElementById('lgErr');
+
+  // 已登录则直接隐藏
+  if(sessionStorage.getItem('tianji_auth')){
+    gate.style.display='none';
+    return;
+  }
+
+  // 回车触发登录
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  input.focus();
+
+  window.doLogin = async function(){
+    const pwd = input.value.trim();
+    if(!pwd){ err.textContent='請輸入密碼'; return; }
+    btn.disabled=true; btn.textContent='驗證中…'; err.textContent='';
+    try{
+      const res = await fetch('/api/auth',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:pwd})
+      });
+      const data = await res.json();
+      if(res.ok && data.token){
+        sessionStorage.setItem('tianji_auth', data.token);
+        gate.classList.add('hide');
+        setTimeout(()=>{ gate.style.display='none'; }, 500);
+      } else {
+        err.textContent = data.error || '密碼不正確';
+        input.value=''; input.focus();
+        btn.disabled=false; btn.textContent='入 門';
+      }
+    }catch(e){
+      err.textContent='網絡異常，請重試';
+      btn.disabled=false; btn.textContent='入 門';
+    }
+  };
+})();
 </script>
 </body>
 </html>
