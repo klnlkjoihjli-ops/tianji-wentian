@@ -27,6 +27,29 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
 #resultPage.show{display:flex}
 .gone{opacity:0!important;pointer-events:none!important;transform:scale(1.05)!important}
 
+/* ══ FLOATING QUOTES ══ */
+#floatingQuotes{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;
+}
+.fq{
+  position:absolute;
+  font-family:'Ma Shan Zheng',cursive;
+  white-space:nowrap;
+  pointer-events:none;
+  will-change:transform,opacity;
+  animation:fqLife var(--dur,12s) var(--delay,0s) infinite ease-in-out;
+  opacity:0;
+  transform-origin:center center;
+}
+@keyframes fqLife{
+  0%  {opacity:0;transform:rotate(var(--r,0deg)) scale(var(--s0,.85)) translateY(0px);}
+  15% {opacity:var(--op,.22);}
+  40% {transform:rotate(calc(var(--r,0deg) + var(--rd,2deg))) scale(var(--s1,1.05)) translateY(var(--dy,-12px));}
+  75% {opacity:var(--op,.22);transform:rotate(calc(var(--r,0deg) - var(--rd,2deg))) scale(var(--s0,.85)) translateY(var(--dy2,8px));}
+  90% {opacity:0;}
+  100%{opacity:0;transform:rotate(var(--r,0deg)) scale(var(--s0,.85)) translateY(0px);}
+}
+
 /* ══ LANDING ══ */
 /* 中心神眼光晕 */
 .god-eye{
@@ -1222,6 +1245,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
 <!-- ══ LANDING ══ -->
 <div id="landing">
+  <div id="floatingQuotes"></div>
   <div class="god-eye"></div>
   <div class="bagua-labels" id="baguaLabels"></div>
 
@@ -2607,6 +2631,77 @@ function setAskLoading(on){
   btn.style.opacity=on?'.5':'1';
   btn.style.cursor=on?'not-allowed':'pointer';
 }
+
+// ── 浮動名言 ──
+(function initFloatingQuotes(){
+  const QUOTES=[
+    '道可道，非常道','上善若水','知人者智，自知者明','天行健，君子以自強不息',
+    '無為而無不為','曲則全，枉則直','知足者富','為學日益，為道日損',
+    '信言不美，美言不信','勝人者有力，自勝者強','損之又損，以至於無為',
+    '大道至簡','萬物並作，吾以觀復','致虛極，守靜篤','功成而弗居',
+    '兵者，詭道也','知彼知己，百戰不殆','上兵伐謀，其次伐交',
+    '攻心為上，攻城為下','不戰而屈人之兵','三十六計，走為上計',
+    '天下皆知美之為美，斯惡已','聖人不積，既以為人己愈有',
+    '學而時習之，不亦說乎','三人行，必有我師焉','知之為知之，不知為不知',
+    '吾日三省吾身','己所不欲，勿施於人','溫故而知新','為政以德',
+    '上古之人，其知道者，法于陰陽','陰陽者，天地之道也',
+    '正氣存內，邪不可干','天人合一','春生夏長，秋收冬藏',
+    '元亨利貞','天地交泰','否極泰來','一陰一陽之謂道',
+    '大哉乾元，萬物資始','坤厚載物，德合無疆',
+    '苟日新，日日新，又日新','天下興亡，匹夫有責',
+    '窮則變，變則通，通則久','仁者愛人','禮之用，和為貴',
+    '北冥有魚，其名為鯤','相濡以沫，不如相忘於江湖',
+    '吾生也有涯，而知也無涯','逍遙於天地之間',
+    '縱橫捭闔，以謀天下','運籌帷幄，決勝千里',
+    '時來天地皆同力','謀定而後動','靜者生焉',
+  ];
+
+  const container=document.getElementById('floatingQuotes');
+  if(!container)return;
+
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const count=Math.min(38, Math.floor(vw*vh/18000)+12);
+  const used=[];
+
+  for(let i=0;i<count;i++){
+    const el=document.createElement('span');
+    el.className='fq';
+    const q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+    el.textContent=q;
+
+    // random position — avoid dead center (logo area)
+    let x,y,attempts=0;
+    do{
+      x=5+Math.random()*90;
+      y=5+Math.random()*90;
+      attempts++;
+    }while(attempts<12 && x>30&&x<70&&y>30&&y<70);
+
+    const rot=(Math.random()-0.5)*30;       // -15 ~ +15 deg
+    const rotDelta=(Math.random()+0.5)*3;   // oscillation amplitude
+    const baseScale=0.7+Math.random()*0.7;  // 0.7 ~ 1.4
+    const op=(0.08+Math.random()*0.22).toFixed(2);  // 0.08 ~ 0.30
+    const dur=(9+Math.random()*14).toFixed(1)+'s';
+    const delay=(-Math.random()*14).toFixed(1)+'s'; // negative = already mid-cycle
+    const dy=(-8-Math.random()*16).toFixed(0)+'px';
+    const dy2=(4+Math.random()*10).toFixed(0)+'px';
+    const fs=(0.68+Math.random()*0.72).toFixed(2)+'rem';
+    const vertical=q.length<=6&&Math.random()>.55;
+
+    el.style.cssText=[
+      `left:${x}%`,`top:${y}%`,
+      `font-size:${fs}`,
+      `color:rgba(201,168,76,${op})`,
+      `--r:${rot}deg`,`--rd:${rotDelta}deg`,
+      `--s0:${(baseScale*.88).toFixed(2)}`,`--s1:${(baseScale*1.08).toFixed(2)}`,
+      `--op:${op}`,`--dur:${dur}`,`--delay:${delay}`,
+      `--dy:${dy}`,`--dy2:${dy2}`,
+      vertical?'writing-mode:vertical-rl':'',
+    ].filter(Boolean).join(';');
+
+    container.appendChild(el);
+  }
+})();
 
 function goBack(){
   document.body.classList.remove('answer-view');
