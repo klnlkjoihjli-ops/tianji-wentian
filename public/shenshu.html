@@ -194,6 +194,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
   position:fixed;top:1rem;left:1rem;z-index:210;
   display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;
 }
+body.answer-view .experience-controls{display:none!important}
 .sky-mode-group{display:none!important}
 .mode-group{
   display:flex;align-items:center;padding:.2rem;
@@ -501,6 +502,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
 @media(max-width:400px){
   .logo-zh{font-size:2.6rem}
   .tabs{display:none}
+  .back-btn{margin-left:auto}
 }
 
 /* ── 复制按钮 ── */
@@ -977,10 +979,86 @@ body.real-sky .bgla{animation:none;opacity:.55}
 }
 /* ══ 英雄结果层 ══ */
 .hero-frame{
-  margin:.25rem 0 .85rem;padding:1.1rem 1.2rem;
-  border:1px solid rgba(201,168,76,.25);border-radius:10px;
-  background:linear-gradient(135deg,rgba(22,15,7,.92),rgba(4,3,2,.9));
-  box-shadow:0 12px 40px rgba(0,0,0,.28);
+  --hero-accent:#c9a84c;--hero-rgb:201,168,76;
+  position:relative;isolation:isolate;
+  width:min(100%,900px);margin:.35rem auto 1rem;padding:1.4rem 1.6rem 1.1rem;
+  border:1px solid rgba(var(--hero-rgb),.28);border-radius:8px;
+  background:
+    linear-gradient(115deg,rgba(var(--hero-rgb),.065),transparent 34%),
+    radial-gradient(circle at 82% 0%,rgba(var(--hero-rgb),.08),transparent 35%),
+    linear-gradient(180deg,rgba(17,12,6,.94),rgba(4,3,2,.96));
+  box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px rgba(255,238,190,.035);
+}
+.hero-frame::before,.hero-frame::after{
+  content:'';position:absolute;pointer-events:none;
+}
+.hero-frame::before{
+  inset:8px;border:1px solid rgba(var(--hero-rgb),.07);border-radius:4px;
+}
+.hero-frame::after{
+  top:-1px;left:14%;right:14%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--hero-accent),transparent);
+  box-shadow:0 0 18px rgba(var(--hero-rgb),.45);
+}
+.hero-frame[data-scene="B"]{--hero-accent:#67d99b;--hero-rgb:94,207,137}
+.hero-frame[data-scene="C"]{--hero-accent:#86b8e1;--hero-rgb:123,170,212}
+.hero-frame[data-scene="D"]{--hero-accent:#b9b0ff;--hero-rgb:168,159,232}
+.hero-frame[data-scene="E"]{--hero-accent:#78d8aa;--hero-rgb:109,203,160}
+.hero-frame[data-scene="H"]{--hero-accent:#d64d45;--hero-rgb:190,48,42}
+.hero-frame[data-scene="G"]{--hero-accent:#d5b66d;--hero-rgb:201,168,76}
+.hero-frame[data-scene="F"]{--hero-accent:#e0b957;--hero-rgb:212,168,67}
+.hero-frame>*{position:relative;z-index:1}
+.scene-ornament{
+  width:min(100%,900px);margin:.15rem auto .75rem;
+  animation:ornamentIn .55s ease both;
+}
+@keyframes ornamentIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.scene-d{
+  text-align:center;padding:.85rem 1rem .75rem;
+  background:radial-gradient(circle at 50% 0%,rgba(168,159,232,.1),transparent 55%);
+  border-top:1px solid rgba(168,159,232,.18);
+  border-bottom:1px solid rgba(168,159,232,.1);
+}
+.scene-e{
+  display:flex;align-items:center;justify-content:center;gap:1.5rem;
+  padding:.35rem 1rem .65rem;color:#78d8aa;
+  background:radial-gradient(circle at 35% 50%,rgba(109,203,160,.09),transparent 42%);
+}
+.season-wheel{position:relative;width:112px;height:112px;flex:0 0 auto}
+.season-wheel svg{width:100%;height:100%;animation:cspin 55s linear infinite}
+.season-wheel-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+}
+.season-name{font-family:'Ma Shan Zheng',cursive;font-size:1.25rem;text-shadow:0 0 14px rgba(109,203,160,.55)}
+.season-caption{font-size:.55rem;letter-spacing:.16em;color:rgba(109,203,160,.55);margin-top:.18rem}
+.season-copy{min-width:190px}
+.season-title{font-family:'Ma Shan Zheng',cursive;font-size:1.18rem;letter-spacing:.18em;text-shadow:0 0 14px rgba(109,203,160,.35)}
+.season-hour{font-size:.66rem;letter-spacing:.18em;color:rgba(109,203,160,.62);margin-top:.45rem}
+.scene-h{
+  position:relative;text-align:center;padding:.75rem 1rem .8rem;
+  border-top:1px solid rgba(190,48,42,.16);border-bottom:1px solid rgba(190,48,42,.22);
+  background:linear-gradient(90deg,transparent,rgba(120,12,8,.08),transparent);
+}
+.scene-h::before,.scene-h::after{
+  content:'◆';position:absolute;top:50%;transform:translateY(-50%);
+  color:rgba(210,55,48,.38);font-size:.5rem;
+}
+.scene-h::before{left:18%}.scene-h::after{right:18%}
+.scene-h-title{
+  color:#df554d;font-family:'Ma Shan Zheng',cursive;font-size:1.22rem;
+  letter-spacing:.24em;text-shadow:0 0 18px rgba(220,40,40,.48);
+}
+.scene-h-sub{font-size:.62rem;color:rgba(200,70,65,.56);letter-spacing:.2em;margin-top:.28rem}
+.wuxing.scene-ornament{gap:.5rem;margin-bottom:.8rem}
+.wuxing.scene-ornament .wx{
+  padding:.6rem .3rem;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.34));
+  border-color:rgba(255,255,255,.08);
+}
+.wuxing.scene-ornament .wx-bar{transform:scaleX(.62);opacity:.72}
+.hero-scene-tag{
+  border-color:rgba(var(--hero-rgb),.34)!important;
+  background:rgba(var(--hero-rgb),.1)!important;color:var(--hero-accent)!important;
 }
 .hero-scene-tag{
   display:inline-block;background:rgba(201,168,76,.12);
@@ -989,8 +1067,8 @@ body.real-sky .bgla{animation:none;opacity:.55}
   font-size:.7rem;letter-spacing:.1em;margin-bottom:.6rem;
 }
 .hero-quote{
-  font-size:1.08rem;color:#f3dfaa;line-height:1.8;
-  border-left:2px solid #c9a84c;padding-left:.85rem;
+  font-size:1.14rem;color:#f3e6c4;line-height:1.9;
+  border-left:2px solid var(--hero-accent);padding-left:1rem;
   margin-bottom:.35rem;font-family:'Ma Shan Zheng',cursive;
 }
 .hero-source{font-size:.72rem;color:#777;margin-bottom:.9rem;padding-left:.9rem}
@@ -1001,9 +1079,9 @@ body.real-sky .bgla{animation:none;opacity:.55}
 }
 .hero-actions{display:flex;flex-direction:column;gap:.38rem;margin-bottom:.85rem}
 .hero-action{
-  background:rgba(255,255,255,.035);
-  border-left:2px solid rgba(201,168,76,.45);
-  padding:.45rem .7rem;font-size:.83rem;
+  background:linear-gradient(90deg,rgba(var(--hero-rgb),.055),rgba(255,255,255,.018));
+  border-left:2px solid rgba(var(--hero-rgb),.52);
+  padding:.5rem .8rem;font-size:.84rem;
   line-height:1.7;color:rgba(255,255,255,.78);
   font-family:'Noto Serif SC',serif;
 }
@@ -1060,6 +1138,12 @@ body.real-sky .bgla{animation:none;opacity:.55}
   .hero-quote{font-size:1rem}
   .hero-conclusion{font-size:.92rem}
   .hero-action{font-size:.82rem}
+  .hero-frame{padding:1.15rem 1rem .95rem}
+  .scene-e{gap:.8rem;justify-content:flex-start;padding-left:.4rem}
+  .season-wheel{width:88px;height:88px}
+  .season-copy{min-width:0}
+  .season-title{font-size:1rem}
+  .scene-h::before{left:5%}.scene-h::after{right:5%}
   .hero-expand-btn{margin-left:0}
   .cbody,.rlist li{font-size:1rem!important;line-height:1.95!important}
   .copy-btn{opacity:1!important}
@@ -2498,6 +2582,7 @@ async function handleAsk(){
   const sc=pinnedScene||detect(q);
   pinnedScene='';
   saveHist(q);
+  document.body.classList.add('answer-view');
   document.getElementById('landing').classList.add('gone');
   showLoader();
   try{
@@ -2510,6 +2595,7 @@ async function handleAsk(){
     hideLoader();
     setAskLoading(false);
     // 网络/超时错误：回到首页显示提示
+    document.body.classList.remove('answer-view');
     document.getElementById('landing').classList.remove('gone');
     setMsg('連接異常，請稍後重試','err');
   }
@@ -2523,6 +2609,7 @@ function setAskLoading(on){
 }
 
 function goBack(){
+  document.body.classList.remove('answer-view');
   document.getElementById('resultPage').classList.remove('show','error-mode');
   document.getElementById('landing').classList.remove('gone');
   renderHist();
@@ -2839,10 +2926,17 @@ function renderHeroFrame(box, meta) {
   const sources = Array.isArray(meta.sources) ? meta.sources : [];
   const scene = meta.scene || 'A';
   const parsed = meta.parsed || {};
-  const {quote, source} = getHeroQuoteSource(scene, parsed);
+  let {quote, source} = getHeroQuoteSource(scene, parsed);
+  const actions = Array.isArray(advisor.actions) ? advisor.actions : [];
+  const hasSummary = Boolean(quote || advisor.conclusion || actions.length);
+  if (!hasSummary && sources.length) {
+    quote = sources[0].excerpt || '';
+    source = sources[0].source + (sources[0].chapter ? ' · ' + sources[0].chapter : '');
+  }
 
   const frame = document.createElement('section');
   frame.className = 'hero-frame';
+  frame.dataset.scene = scene;
   frame.setAttribute('aria-label', (SCENE_LABELS_MAP[scene] || scene) + ' · AI 摘要');
 
   // 场景标签
@@ -2870,10 +2964,14 @@ function renderHeroFrame(box, meta) {
     c.className = 'hero-conclusion';
     c.textContent = conclusion;
     frame.appendChild(c);
+  } else if (!hasSummary) {
+    const c = document.createElement('div');
+    c.className = 'hero-conclusion';
+    c.textContent = '已找到相关典籍，但本次解读未完整生成。你可以重新问天获取完整回答。';
+    frame.appendChild(c);
   }
 
   // 行动列表
-  const actions = Array.isArray(advisor.actions) ? advisor.actions : [];
   if (actions.length) {
     const al = document.createElement('div');
     al.className = 'hero-actions';
@@ -2977,11 +3075,8 @@ function renderHeroFrame(box, meta) {
   fbRow.appendChild(fbSafety);
   frame.appendChild(fbRow);
 
-  // 插入 box 最顶部（qEcho 之后）
-  const target = box.firstElementChild || box;
-  const echo = target.querySelector && target.querySelector('.q-echo');
-  if (echo && echo.parentNode) echo.parentNode.insertBefore(frame, echo.nextSibling);
-  else target.insertBefore(frame, target.firstChild);
+  // 先展示场景视觉，再进入统一摘要。
+  box.appendChild(frame);
 }
 
 function addCopyBtn(cardEl, getText){
@@ -3032,7 +3127,7 @@ async function sceneA(q,box){
 // ── B 黃帝內經 ──
 async function sceneB(q,box){
   const wxData=[{ch:'木',lb:'肝·膽',c:'#5ecf89'},{ch:'火',lb:'心·小腸',c:'#ff7060'},{ch:'土',lb:'脾·胃',c:'#c9a84c'},{ch:'金',lb:'肺·大腸',c:'#7baad4'},{ch:'水',lb:'腎·膀胱',c:'#5bc4d4'}];
-  box.innerHTML=qEcho(q)+`<div class="wuxing">${wxData.map(w=>`<div class="wx"><span class="wx-ch" style="color:${w.c}">${w.ch}</span><div class="wx-lb">${w.lb}</div><div class="wx-bar" style="background:${w.c}"></div></div>`).join('')}</div>`;
+  box.innerHTML=qEcho(q)+`<div class="wuxing scene-ornament">${wxData.map(w=>`<div class="wx"><span class="wx-ch" style="color:${w.c}">${w.ch}</span><div class="wx-lb">${w.lb}</div><div class="wx-bar" style="background:${w.c}"></div></div>`).join('')}</div>`;
   await chainGenerate(q,'B');
 }
 
@@ -3045,7 +3140,7 @@ async function sceneC(q,box){
 // ── D 易經起卦 ──
 async function sceneD(q,box){
   dLines=[];
-  box.innerHTML=qEcho(q)+`<div style="text-align:center;margin:.6rem 0 .9rem;padding:.7rem;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:.5rem"><div style="font-size:.7rem;color:#c9a84c;letter-spacing:.12em;margin-bottom:.55rem">易經起卦 · 點擊銅錢搖卦</div><div style="display:flex;justify-content:center;gap:1rem;margin-bottom:.6rem"><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span></div><div id="hexD" style="display:flex;flex-direction:column-reverse;align-items:center;gap:4px;min-height:60px"></div></div>`;
+  box.innerHTML=qEcho(q)+`<div class="scene-ornament scene-d"><div style="font-size:.68rem;color:#b9b0ff;letter-spacing:.18em;margin-bottom:.55rem">易經起卦 · 點擊銅錢搖卦</div><div style="display:flex;justify-content:center;gap:1rem;margin-bottom:.55rem"><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span><span class="coin" onclick="flipCoin(this)" style="cursor:pointer;font-size:1.8rem;user-select:none">🪙</span></div><div id="hexD" style="display:flex;flex-direction:column-reverse;align-items:center;gap:4px;min-height:48px"></div></div>`;
   await chainGenerate(q,'D');
 }
 let dLines=[];
@@ -3069,7 +3164,13 @@ async function sceneE(q,box){
   for(let i=JQ.length-1;i>=0;i--){const[m,d,n]=JQ[i];if(now>=new Date(now.getFullYear(),m-1,d)){curJQ=n;break;}}
   const h=now.getHours();
   const curSC=SC[Math.floor(((h+1)%24)/2)];
-  box.innerHTML=qEcho(q)+`<div style="display:flex;align-items:center;gap:.9rem;padding:.55rem .85rem;margin:.5rem 0 .85rem;background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:.5rem"><div style="text-align:center"><div style="font-size:1.4rem;color:#f3dfaa;font-family:'Ma Shan Zheng',cursive;line-height:1">${curJQ}</div><div style="font-size:.62rem;color:#888;letter-spacing:.08em;margin-top:.18rem">當前節氣</div></div><div style="width:1px;height:2rem;background:rgba(201,168,76,.25)"></div><div style="text-align:center"><div style="font-size:1.0rem;color:#c9a84c;font-family:'Noto Serif SC',serif">${curSC}</div><div style="font-size:.62rem;color:#888;letter-spacing:.08em;margin-top:.18rem">當前時辰</div></div></div>`;
+  const dots=JQ.map(function(item,i){
+    const angle=(i/24)*Math.PI*2-Math.PI/2;
+    const x=60+49*Math.cos(angle),y=60+49*Math.sin(angle);
+    const active=item[2]===curJQ;
+    return `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${active?3.4:1.6}" fill="${active?'#78d8aa':'rgba(109,203,160,.34)'}"/>${active?`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="6.5" fill="none" stroke="#78d8aa" stroke-width="1" opacity=".4"/>`:''}`;
+  }).join('');
+  box.innerHTML=qEcho(q)+`<div class="scene-ornament scene-e"><div class="season-wheel"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" fill="none" stroke="rgba(109,203,160,.18)"/><circle cx="60" cy="60" r="39" fill="none" stroke="rgba(109,203,160,.1)" stroke-dasharray="3 5"/>${dots}</svg><div class="season-wheel-center"><div class="season-name">${curJQ}</div><div class="season-caption">當前節氣</div></div></div><div class="season-copy"><div class="season-title">節氣羅盤 · 天時養生</div><div class="season-hour">當前時辰 · ${curSC}</div></div></div>`;
   const _qE=`節氣：${curJQ}，時辰：${curSC}，用戶問：${q}`;
   await chainGenerate(_qE,'E');
 }
@@ -3082,7 +3183,7 @@ async function sceneG(q,box){
 
 // ── H 謀略·兵法 ──
 async function sceneH(q,box){
-  box.innerHTML=qEcho(q)+`<div style="text-align:center;padding:.5rem 0 .7rem;margin-bottom:.7rem;border-bottom:1px solid rgba(180,30,30,.2)"><div style="font-size:1.05rem;color:#e04040;font-family:'Ma Shan Zheng',cursive;letter-spacing:.2em;text-shadow:0 0 12px rgba(220,40,40,.45)">孫子兵法 · 謀略智慧</div><div style="font-size:.65rem;color:#8a4040;letter-spacing:.12em;margin-top:.25rem">三十六計 · 知己知彼 · 百戰不殆</div></div>`;
+  box.innerHTML=qEcho(q)+`<div class="scene-ornament scene-h"><div class="scene-h-title">孫子兵法 · 謀略智慧</div><div class="scene-h-sub">三十六計 · 知己知彼 · 百戰不殆</div></div>`;
   await chainGenerate(q,'H');
 }
 
