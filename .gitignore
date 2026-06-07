@@ -8,4 +8,7 @@ node_modules/
 out/
 *.log
 .DS_Store
+**/.DS_Store
+tsconfig.tsbuildinfo
+.vercel
 .vercel
