@@ -1563,7 +1563,7 @@ function retrieveClassics(query, scene) {
 
   if (scene === 'G') {
     CLASSICS.lunyu.forEach(x => x._type = '论语');
-    addTop(CLASSICS.lunyu, x => `论语·${x.pian}`, x => x.text, 4);
+    addTop(CLASSICS.lunyu, x => `论语·${x.pian}`, x => x.text, 3);
     CLASSICS.mengzi.forEach(x => x._type = '孟子');
     addTop(CLASSICS.mengzi, x => `孟子·${x.pian}`, x => x.text, 2);
     CLASSICS.daxue_zhongyong.forEach(x => x._type = x.dian);
@@ -1572,9 +1572,9 @@ function retrieveClassics(query, scene) {
 
   if (scene === 'H') {
     CLASSICS.sunzi.forEach(x => x._type = '孙子兵法');
-    addTop(CLASSICS.sunzi, x => `孙子·${x.pian}`, x => x.text, 5);
+    addTop(CLASSICS.sunzi, x => `孙子·${x.pian}`, x => x.text, 4);
     CLASSICS.daodejing.forEach(x => x._type = '道德经');
-    addTop(CLASSICS.daodejing, x => `第${x.zhang}章`, x => x.text, 2);
+    addTop(CLASSICS.daodejing, x => `第${x.zhang}章`, x => x.text, 1);
   }
 
   // ALL：跨典籍全量语义检索（Step2 概念增强用）

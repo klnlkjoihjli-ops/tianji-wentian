@@ -9,6 +9,12 @@ const shanghan: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/shanghan.json'), 'utf8'))
 const bencao: Array<{ming:string, lei:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/bencao.json'), 'utf8'))
+const lijiJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/liji.json'), 'utf8'))
+const xunziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/xunzi.json'), 'utf8'))
+const liutaoSanluJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/liutao-sanlue.json'), 'utf8'))
 const lunyuJson: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/lunyu.json'), 'utf8'))
 const zhuangziJson: Array<{pian:string, text:string, key:string[]}> =
@@ -648,6 +654,39 @@ zhuangziJson.forEach((x) => {
 sunziJson.forEach((x) => {
   ALL_CLASSICS.push({
     source: '孙子兵法',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'H',
+    keywords: x.key || [],
+  })
+})
+
+// 礼记（场景 G 儒家·修身）
+lijiJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '礼记',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'G',
+    keywords: x.key || [],
+  })
+})
+
+// 荀子（场景 G 儒家·修身）
+xunziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '荀子',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'G',
+    keywords: x.key || [],
+  })
+})
+
+// 六韬·三略（场景 H 谋略·兵法）
+liutaoSanluJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: x.pian.includes('略') ? '三略' : '六韬',
     chapter: x.pian,
     content: x.text,
     scene: 'H',
