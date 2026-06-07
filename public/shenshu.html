@@ -3016,7 +3016,7 @@ async function renderScene(scene,q){
     else if(scene==='G')await sceneG(q,box);
     else if(scene==='H')await sceneH(q,box);
     else await sceneF(q,box);
-    renderAdvisorFrame(box,lastAnswerMeta);
+    renderHeroFrame(box,lastAnswerMeta);
     // 复制按钮 + 建议卡片编号（只渲染JSON数组，不拆分）
     box.querySelectorAll('.card').forEach(card=>{
       const body=card.querySelector('.cbody, .rlist, .q-text');
