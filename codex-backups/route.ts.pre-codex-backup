@@ -1,0 +1,108 @@
+import { NextRequest } from 'next/server'
+import { analyzeQuestion, searchClassics, formatClassicsContext, saveConversation } from '@/lib/rag/retrieval'
+import { streamChat } from '@/lib/deepseek'
+import { SCENE_PROMPTS, detectScene } from '@/lib/prompts'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60 // Vercel: 最长60秒
+
+export async function POST(req: NextRequest) {
+  const { question, scene: forceScene, sessionId } = await req.json()
+
+  if (!question?.trim()) {
+    return Response.json({ error: '请输入问题' }, { status: 400 })
+  }
+
+  const scene = forceScene || detectScene(question)
+  const encoder = new TextEncoder()
+
+  // SSE 流式响应
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: string, data: unknown) => {
+        const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+        controller.enqueue(encoder.encode(msg))
+      }
+
+      try {
+        // ── Step 1：意图分析 ──
+        send('progress', { step: 1, text: '解析问题意图……' })
+        const analysis = await analyzeQuestion(question)
+        send('analysis', analysis)
+
+        // ── Step 2：向量语义检索 ──
+        send('progress', { step: 2, text: '参阅典籍原文……' })
+        const results = await searchClassics(question, analysis, scene, 10)
+        const ctx = formatClassicsContext(results)
+        send('classics', {
+          count: results.length,
+          sources: results.map(r => `${r.source}·${r.chapter}`),
+        })
+
+        // ── Step 3：流式生成最终回答 ──
+        send('progress', { step: 3, text: '推演天机，整合回答……' })
+
+        const analysisText = `
+核心议题：${analysis.topic}
+用户状态：${analysis.mood}
+关键概念：${(analysis.concepts || []).join('、')}
+应参考典籍：${(analysis.classics || []).join('、')}
+`.trim()
+
+        const systemPrompt = SCENE_PROMPTS[scene]?.(ctx, analysisText)
+          ?? SCENE_PROMPTS.A(ctx, analysisText)
+
+        const userMsg = `用户问：${question}\n\n请基于以上分析和典籍原文，给出有深度、有温度、有具体见解的回答。`
+
+        const chatStream = await streamChat(systemPrompt, userMsg, 3000)
+
+        let fullText = ''
+        for await (const chunk of chatStream) {
+          const delta = chunk.choices[0]?.delta?.content ?? ''
+          if (delta) {
+            fullText += delta
+            send('delta', { text: delta })
+          }
+        }
+
+        // 解析 JSON 结果
+        let parsed: Record<string, unknown> | null = null
+        try {
+          const s = fullText.replace(/```json|```/g, '').trim()
+          const a = s.indexOf('{'), b = s.lastIndexOf('}')
+          parsed = JSON.parse(s.slice(a, b + 1))
+        } catch {
+          // 解析失败也把原文发出去
+        }
+
+        send('done', { scene, raw: fullText, parsed })
+
+        // 后台保存对话（不阻塞响应）
+        if (sessionId) {
+          saveConversation({
+            sessionId,
+            question,
+            scene,
+            analysis,
+            answer: parsed ?? { raw: fullText },
+            classicsUsed: results.map(r => `${r.source}·${r.chapter}`),
+          }).catch(console.error)
+        }
+
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '未知错误'
+        send('error', { message: msg })
+      } finally {
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
+}

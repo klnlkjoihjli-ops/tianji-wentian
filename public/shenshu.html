@@ -1,0 +1,3039 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天機 · 問天</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=ZCOOL+QingKe+HuangYou&family=Noto+Serif+SC:wght@300;400;600;700&family=Ma+Shan+Zheng&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=ZCOOL+QingKe+HuangYou&family=Noto+Serif+SC:wght@300;400;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;
+  font-family:'Noto Serif SC',serif;color:#fff}
+
+#c{position:fixed;inset:0;z-index:0}
+
+/* ══ PAGE LAYERS ══ */
+#landing,#resultPage{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;
+  transition:opacity .7s ease,transform .7s ease;
+}
+#landing{align-items:center;justify-content:center;padding:2rem}
+#resultPage{display:none}
+#resultPage.show{display:flex}
+.gone{opacity:0!important;pointer-events:none!important;transform:scale(1.05)!important}
+
+/* ══ LANDING ══ */
+/* 中心神眼光晕 */
+.god-eye{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:420px;height:420px;pointer-events:none;
+  background:radial-gradient(ellipse at center,
+    rgba(201,168,76,.18) 0%,
+    rgba(120,80,200,.1) 35%,
+    rgba(40,60,160,.06) 60%,
+    transparent 72%);
+  border-radius:50%;
+  animation:eyePulse 5s ease infinite;
+  filter:blur(2px);
+}
+@keyframes eyePulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7}
+  50%{transform:translate(-50%,-50%) scale(1.12);opacity:1}
+}
+
+.logo-zh{
+  font-family:'STXingkai','华文行楷','Ma Shan Zheng',cursive;
+  font-size:5.2rem;color:#fff;
+  letter-spacing:.3em;display:block;text-align:center;
+  text-shadow:
+    0 0 8px #fff,
+    0 0 30px rgba(201,168,76,1),
+    0 0 80px rgba(201,168,76,.7),
+    0 0 160px rgba(120,80,200,.5);
+  margin-bottom:.3rem;position:relative;z-index:1;
+  animation:titleFloat 6s ease infinite;
+}
+@keyframes titleFloat{
+  0%,100%{transform:translateY(0);
+    text-shadow:0 0 8px #fff,0 0 30px rgba(201,168,76,1),0 0 80px rgba(201,168,76,.7),0 0 160px rgba(120,80,200,.5)}
+  50%{transform:translateY(-6px);
+    text-shadow:0 0 12px #fff,0 0 50px rgba(201,168,76,1),0 0 120px rgba(201,168,76,.9),0 0 200px rgba(120,80,200,.6)}
+}
+
+.logo-en{
+  display:block;text-align:center;font-size:.68rem;letter-spacing:.6em;
+  color:rgba(255,255,255,.5);margin-bottom:.4rem;position:relative;z-index:1;
+  text-shadow:0 0 12px rgba(201,168,76,.5);
+}
+.logo-tagline{
+  display:block;text-align:center;font-family:'Ma Shan Zheng',cursive;
+  font-size:.8rem;letter-spacing:.3em;
+  color:rgba(201,168,76,.7);margin-bottom:2rem;position:relative;z-index:1;
+  animation:fadeFlicker 4s ease infinite;
+}
+@keyframes fadeFlicker{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* 八卦方位标签 */
+.bagua-labels{
+  position:absolute;inset:0;pointer-events:none;z-index:1;
+}
+.bgla{
+  position:absolute;
+  font-family:'Ma Shan Zheng',cursive;font-size:.75rem;
+  color:rgba(201,168,76,.5);letter-spacing:.1em;
+  text-shadow:0 0 8px rgba(201,168,76,.4);
+  animation:labelPulse 4s ease infinite;
+}
+@keyframes labelPulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* 分隔线 */
+.divider{
+  display:flex;align-items:center;gap:.8rem;
+  width:100%;max-width:560px;margin-bottom:1.5rem;position:relative;z-index:1;
+}
+.divider::before,.divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.5),transparent);
+}
+.divider span{color:rgba(201,168,76,.75);font-size:.62rem;letter-spacing:.25em;white-space:nowrap}
+
+/* API chip */
+#apiChip{
+  display:none;align-items:center;gap:.6rem;
+  margin-bottom:.8rem;cursor:pointer;position:relative;z-index:1;
+  background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.3);
+  border-radius:20px;padding:.35rem 1rem;
+  backdrop-filter:blur(12px);transition:all .25s;
+}
+#apiChip:hover{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.6)}
+#apiChip .dot{width:7px;height:7px;border-radius:50%;background:#6dffb0;box-shadow:0 0 8px rgba(109,255,176,.8);flex-shrink:0}
+#apiChip .ct{color:rgba(255,255,255,.65);font-size:.72rem;letter-spacing:.08em}
+#apiChip .ce{color:rgba(201,168,76,.65);font-size:.63rem;letter-spacing:.1em}
+
+/* API 输入区 */
+.api-wrap{
+  width:100%;max-width:560px;margin-bottom:.9rem;
+  position:relative;z-index:1;
+  transition:opacity .5s,transform .5s,max-height .5s,margin .5s;
+  overflow:hidden;max-height:100px;
+}
+.api-wrap.hidden{opacity:0;max-height:0;margin-bottom:0;pointer-events:none;transform:translateY(-8px)}
+.api-row{display:flex;gap:.5rem}
+.api-in{
+  flex:1;background:rgba(0,0,0,.6);
+  border:1px solid rgba(201,168,76,.4);border-radius:5px;
+  color:#fff;font-family:'Noto Serif SC',serif;font-size:.88rem;
+  padding:.72rem 1rem;outline:none;backdrop-filter:blur(20px);
+  transition:border-color .25s,box-shadow .25s;
+}
+.api-in:focus{border-color:#c9a84c;box-shadow:0 0 0 3px rgba(201,168,76,.15),0 0 20px rgba(201,168,76,.2)}
+.api-in::placeholder{color:rgba(255,255,255,.28)}
+.api-btn{
+  background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.5);
+  border-radius:5px;color:#e8cc7a;
+  font-family:'Noto Serif SC',serif;font-size:.82rem;
+  padding:.72rem 1.2rem;cursor:pointer;letter-spacing:.12em;
+  backdrop-filter:blur(20px);transition:all .2s;white-space:nowrap;
+}
+.api-btn:hover{background:rgba(201,168,76,.3);color:#fff;box-shadow:0 0 15px rgba(201,168,76,.35)}
+#apiMsg{margin-top:.4rem;font-size:.76rem;letter-spacing:.08em;min-height:1rem;padding-left:.2rem}
+#apiMsg.ok{color:#6dffb0;text-shadow:0 0 8px rgba(109,255,176,.5)}
+#apiMsg.err{color:#ff7070;text-shadow:0 0 8px rgba(255,112,112,.5)}
+
+/* 问题输入框 */
+.q-wrap{width:100%;max-width:620px;position:relative;z-index:1}
+.q-box{
+  position:relative;background:rgba(0,0,0,.6);
+  border:1px solid rgba(201,168,76,.4);border-radius:8px;
+  backdrop-filter:blur(24px);overflow:hidden;
+  transition:border-color .25s,box-shadow .25s;
+}
+.q-box::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(135deg,rgba(201,168,76,.04) 0%,rgba(120,80,200,.04) 100%);
+}
+.q-box:focus-within{
+  border-color:rgba(201,168,76,.8);
+  box-shadow:0 0 0 3px rgba(201,168,76,.12),0 0 40px rgba(201,168,76,.18),0 0 80px rgba(120,80,200,.1);
+}
+#question{
+  width:100%;background:transparent;border:none;outline:none;
+  color:#fff;font-family:'Noto Serif SC',serif;font-size:1rem;line-height:1.9;
+  padding:1.1rem 5.8rem 1.1rem 1.4rem;resize:none;min-height:76px;
+}
+#question::placeholder{color:rgba(255,255,255,.25)}
+#askBtn{
+  position:absolute;right:.75rem;bottom:.75rem;
+  background:linear-gradient(135deg,#b8941e,#e8cc7a,#c9a84c);
+  background-size:200% 200%;animation:goldShimmer 3s ease infinite;
+  color:#1a1000;border:none;cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-size:.82rem;font-weight:700;
+  padding:.6rem 1.2rem;border-radius:5px;letter-spacing:.18em;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 0 20px rgba(201,168,76,.45),0 2px 8px rgba(0,0,0,.4);
+}
+@keyframes goldShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+#askBtn:hover{transform:scale(1.06);box-shadow:0 0 40px rgba(201,168,76,.8),0 4px 16px rgba(0,0,0,.5)}
+
+.pills{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.85rem;justify-content:center}
+.pill{
+  background:rgba(0,0,0,.45);border:1px solid rgba(201,168,76,.25);
+  color:rgba(255,255,255,.68);font-family:'Noto Serif SC',serif;font-size:.74rem;
+  padding:.3rem .85rem;border-radius:20px;cursor:pointer;
+  backdrop-filter:blur(10px);transition:all .2s;
+}
+.pill:hover{background:rgba(201,168,76,.2);border-color:rgba(201,168,76,.65);color:#fff;box-shadow:0 0 12px rgba(201,168,76,.3)}
+
+/* 天象与回答模式控制 */
+.experience-controls{
+  position:fixed;top:1rem;left:1rem;z-index:210;
+  display:none;gap:.5rem;align-items:center;flex-wrap:wrap;
+}
+.mode-group{
+  display:flex;align-items:center;padding:.2rem;
+  border:1px solid rgba(201,168,76,.24);border-radius:8px;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(14px);
+}
+.mode-label{
+  font-size:.55rem;color:rgba(201,168,76,.42);
+  letter-spacing:.12em;padding:0 .45rem;white-space:nowrap;
+}
+.mode-btn{
+  border:none;background:transparent;color:rgba(255,255,255,.42);
+  font-family:'Noto Serif SC',serif;font-size:.62rem;
+  padding:.3rem .55rem;border-radius:5px;cursor:pointer;
+  transition:all .2s;letter-spacing:.08em;
+}
+.mode-btn:hover{color:rgba(255,255,255,.82)}
+.mode-btn.on{
+  color:#f5e4ad;background:rgba(201,168,76,.18);
+  box-shadow:inset 0 0 0 1px rgba(201,168,76,.28);
+}
+#celestialTip{
+  position:fixed;z-index:240;display:none;pointer-events:none;
+  padding:.45rem .65rem;border:1px solid rgba(201,168,76,.35);
+  border-radius:6px;background:rgba(3,2,1,.88);backdrop-filter:blur(12px);
+  color:#f1dfaa;font-size:.68rem;line-height:1.6;letter-spacing:.06em;
+  box-shadow:0 0 20px rgba(0,0,0,.55);
+}
+body.real-sky .god-eye{animation-duration:8s;opacity:.72}
+body.real-sky .bgla{animation:none;opacity:.55}
+@media(max-width:640px){
+  .experience-controls{top:.65rem;left:.65rem;max-width:74vw;gap:.3rem}
+  .mode-label{display:none}
+  .mode-btn{font-size:.58rem;padding:.27rem .45rem}
+  #serverTag{top:.7rem!important;right:.7rem!important}
+}
+
+/* ══ LOADER ══ */
+#loader{
+  position:fixed;inset:0;z-index:50;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;
+}
+#loader.on{display:flex}
+
+/* 起卦动画 */
+.divination-anim{
+  position:relative;width:120px;height:120px;
+  display:flex;align-items:center;justify-content:center;
+}
+.div-ring{
+  position:absolute;border-radius:50%;border:1px solid;
+  animation:ringRotate linear infinite;
+}
+.div-ring:nth-child(1){
+  width:120px;height:120px;border-color:rgba(201,168,76,.6);
+  animation-duration:8s;
+  box-shadow:0 0 10px rgba(201,168,76,.3),inset 0 0 10px rgba(201,168,76,.1);
+}
+.div-ring:nth-child(2){
+  width:90px;height:90px;border-color:rgba(120,80,200,.5);
+  animation-duration:6s;animation-direction:reverse;
+  box-shadow:0 0 8px rgba(120,80,200,.3);
+}
+.div-ring:nth-child(3){
+  width:60px;height:60px;border-color:rgba(201,168,76,.4);
+  animation-duration:4s;
+  box-shadow:0 0 6px rgba(201,168,76,.2);
+}
+@keyframes ringRotate{to{transform:rotate(360deg)}}
+.div-center{
+  font-size:2rem;
+  animation:centerPulse 2s ease infinite;
+  text-shadow:0 0 20px rgba(201,168,76,.8);
+  z-index:1;
+}
+@keyframes centerPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.15);opacity:1}}
+
+.div-hex{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.dh-line{
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  opacity:0;animation:hexAppear .3s ease forwards;
+}
+@keyframes hexAppear{to{opacity:1}}
+.dh-seg{height:4px;background:#c9a84c;border-radius:1px;box-shadow:0 0 6px rgba(201,168,76,.6)}
+
+#ldtxt{
+  color:rgba(255,255,255,.75);font-size:.82rem;letter-spacing:.3em;
+  font-family:'Noto Serif SC',serif;animation:fade 2s ease infinite;
+  text-shadow:0 0 10px rgba(201,168,76,.4);
+}
+@keyframes fade{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ══ RESULT PAGE ══ */
+.topbar{
+  position:absolute;top:0;left:0;right:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1.2rem;
+  background:linear-gradient(180deg,rgba(0,0,0,.75) 0%,transparent 100%);
+}
+.back-btn{
+  display:flex;align-items:center;gap:.5rem;flex-shrink:0;
+  background:rgba(0,0,0,.55);border:1px solid rgba(201,168,76,.4);
+  color:#e8cc7a;font-family:'Noto Serif SC',serif;font-size:.75rem;
+  padding:.4rem .9rem;border-radius:20px;cursor:pointer;letter-spacing:.1em;
+  backdrop-filter:blur(10px);transition:all .2s;
+}
+.back-btn:hover{background:rgba(201,168,76,.18);border-color:#c9a84c;color:#fff}
+.tabs{display:flex;gap:.3rem;flex-wrap:nowrap;justify-content:flex-end;max-width:calc(100% - 160px);min-width:0;overflow:hidden}
+.tab{
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.5);font-family:'Noto Serif SC',serif;font-size:.63rem;
+  padding:.28rem .62rem;border-radius:20px;cursor:pointer;letter-spacing:.06em;
+  backdrop-filter:blur(8px);transition:all .2s;white-space:nowrap;flex-shrink:1;
+}
+.tab:hover,.tab.on{
+  background:rgba(201,168,76,.2);border-color:rgba(201,168,76,.55);
+  color:#fff;box-shadow:0 0 8px rgba(201,168,76,.25);
+}
+
+/* 结果内容，铺满不滚动 */
+#rinner{
+  position:absolute;inset:0;
+  padding:3.6rem 1.2rem .8rem;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* 问题回显 */
+.q-echo{
+  flex:0 0 auto;text-align:center;
+  padding:.3rem 0 .5rem;margin-bottom:.5rem;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.q-echo .ql{font-size:.58rem;letter-spacing:.4em;color:rgba(255,255,255,.35);margin-bottom:.18rem}
+.q-echo .qt{font-family:'Ma Shan Zheng',cursive;font-size:1rem;color:rgba(255,255,255,.92);line-height:1.6}
+
+/* 卡片网格 */
+.cgrid{flex:1;min-height:0;display:grid;gap:.55rem;overflow:hidden}
+.cgrid.c2{grid-template-columns:1fr 1fr}
+.cgrid.c1{grid-template-columns:1fr}
+
+/* 卡片 */
+.card{
+  background:rgba(0,0,0,.62);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:.7rem .95rem;
+  backdrop-filter:blur(18px);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:cardIn .4s ease both;
+  position:relative;
+}
+.card::before{/* 顶部细线光 */
+  content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,currentColor,transparent);
+  opacity:.15;border-radius:1px;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card.s2{grid-column:1/-1}
+
+.clbl{font-size:.58rem;letter-spacing:.35em;font-weight:600;margin-bottom:.4rem;flex:0 0 auto;opacity:.9}
+.cbody{
+  font-family:'Ma Shan Zheng',cursive;font-size:.95rem;line-height:2.1;
+  color:rgba(255,255,255,.92);flex:1;overflow-y:auto;
+  letter-spacing:.04em;
+}
+.cbody::-webkit-scrollbar{width:2px}
+.cbody::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:1px}
+.cur{display:inline-block;width:2px;height:.85em;vertical-align:text-bottom;margin-left:1px;animation:blink .65s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+@keyframes blink2{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* ── 场景主题色 ── */
+/* 每个主题：卡片边框色、标签色、文字强调色 */
+.thA .card{border-color:rgba(201,168,76,.22)}
+.thA .card::before{color:#c9a84c}
+.thA .clbl{color:#c9a84c}
+.thA .cbody{color:#fff8e8}
+
+.thB .card{border-color:rgba(94,207,137,.2)}
+.thB .card::before{color:#5ecf89}
+.thB .clbl{color:#5ecf89}
+.thB .cbody{color:#edfff4}
+
+.thC .card{border-color:rgba(123,170,212,.2)}
+.thC .card::before{color:#7baad4}
+.thC .clbl{color:#7baad4}
+.thC .cbody{color:#e8f4ff}
+
+.thD .card{border-color:rgba(168,159,232,.2)}
+.thD .card::before{color:#a89fe8}
+.thD .clbl{color:#a89fe8}
+.thD .cbody{color:#f0eeff}
+
+.thE .card{border-color:rgba(109,203,160,.2)}
+.thE .card::before{color:#6dcba0}
+.thE .clbl{color:#6dcba0}
+.thE .cbody{color:#e8fff5}
+
+.thF .card{border-color:rgba(212,168,67,.2)}
+.thF .card::before{color:#d4a843}
+.thF .clbl{color:#d4a843}
+.thF .cbody{color:#fff8e0}
+
+/* 五行 */
+.wuxing{display:flex;gap:.4rem;flex:0 0 auto;margin-bottom:.45rem}
+.wx{flex:1;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:.45rem .2rem;text-align:center;backdrop-filter:blur(8px);transition:all .5s}
+.wx.hi{box-shadow:0 0 12px rgba(94,207,137,.3)}
+.wx-ch{font-family:'Ma Shan Zheng',cursive;font-size:1.25rem;display:block;margin-bottom:.1rem}
+.wx-lb{font-size:.52rem;letter-spacing:.06em;color:rgba(255,255,255,.4)}
+.wx-bar{height:2px;margin-top:.25rem;border-radius:1px;transform:scaleX(0);transition:transform 1.1s ease}
+.wx.hi .wx-bar{transform:scaleX(1)}
+
+/* 调养列表 */
+.rlist{list-style:none}
+.rlist li{display:flex;align-items:flex-start;gap:.45rem;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.8rem;color:rgba(255,255,255,.85);line-height:1.7}
+.rlist li::before{content:'◆';flex-shrink:0;font-size:.45rem;margin-top:.42rem;opacity:.7}
+
+/* 卦象线 */
+.hex3d{display:flex;flex-direction:column;align-items:center;gap:4px;margin:.35rem auto}
+.hxl{display:flex;justify-content:center;align-items:center}
+.hxyang,.hxyin-l,.hxyin-r{height:5px;border-radius:2px}
+.hxgap{width:9px}
+
+/* 铜钱 */
+.coins{display:flex;justify-content:center;gap:1.2rem;margin:.35rem 0}
+.coin{width:44px;height:44px;border-radius:50%;border:2px solid rgba(168,159,232,.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:all .3s;animation:fcoin var(--fd,2s) ease-in-out infinite alternate}
+.coin:hover{border-color:rgba(168,159,232,.9);box-shadow:0 0 16px rgba(168,159,232,.45)}
+.coin.flip{animation:cfp .5s ease}
+@keyframes fcoin{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+@keyframes cfp{0%,100%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.1)}}
+.hexd{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:40px}
+.hxrow{opacity:0;transform:translateY(4px);transition:all .35s;display:flex;justify-content:center}
+.hxrow.show{opacity:1;transform:translateY(0)}
+.hxseg{height:5px;background:#b0a8f0;border-radius:2px;box-shadow:0 0 7px rgba(168,159,232,.6)}
+.hxgp{width:9px}
+
+/* 罗盘 */
+.cmp-wrap{display:flex;justify-content:center;position:relative;margin:.3rem 0;flex:0 0 auto}
+.cmp-svg{width:120px;height:120px;animation:cspin 40s linear infinite}
+@keyframes cspin{to{transform:rotate(360deg)}}
+.cmp-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.cmp-name{font-family:'Ma Shan Zheng',cursive;font-size:1rem;color:#6dcba0;text-shadow:0 0 10px rgba(109,203,160,.6)}
+.cmp-date{font-size:.55rem;letter-spacing:.15em;color:rgba(109,203,160,.6);margin-top:.1rem}
+
+/* 道家引言 */
+.quote-big{flex:0 0 auto;padding:.45rem 0 .45rem 1.2rem;position:relative;margin-bottom:.4rem;border-left:2px solid rgba(212,168,67,.45)}
+.qmark{position:absolute;left:.08rem;top:-.1rem;font-size:2.2rem;font-family:Georgia,serif;color:rgba(212,168,67,.25);line-height:1}
+.q-src{font-size:.58rem;letter-spacing:.3em;color:rgba(212,168,67,.7);margin-bottom:.25rem}
+.q-text{font-family:'Ma Shan Zheng',cursive;font-size:.98rem;color:#ffd96a;line-height:1.9;margin-bottom:.25rem}
+.q-interp{font-size:.78rem;line-height:1.8;color:rgba(255,255,255,.7)}
+
+/* 场景标题 */
+.sc-title{
+  flex:0 0 auto;text-align:center;margin-bottom:.4rem;
+}
+.sc-title h2{font-family:'Ma Shan Zheng',cursive;font-size:1.2rem;letter-spacing:.2em}
+.sc-title .sub{font-size:.58rem;letter-spacing:.35em;opacity:.55;margin-top:.1rem}
+
+/* 错误框 */
+.errbox{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,120,100,.85);font-size:.9rem;line-height:2;text-align:center;gap:.5rem}
+.errbox strong{font-size:1.1rem;color:#ff8070}
+
+/* ── shake动画 ── */
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+
+/* ── 移动端适配 ── */
+@media(max-width:640px){
+  .logo-zh{font-size:3.2rem;letter-spacing:.3em}
+  .logo-en{font-size:.58rem;letter-spacing:.4em}
+  .logo-tagline{font-size:.68rem;letter-spacing:.2em}
+  .divider span{font-size:.55rem;letter-spacing:.18em}
+  .api-in{font-size:.8rem;padding:.6rem .8rem}
+  .api-btn{font-size:.75rem;padding:.6rem .9rem}
+  #question{font-size:.88rem;padding:1rem 5rem 1rem 1.1rem}
+  #askBtn{font-size:.75rem;padding:.52rem .9rem;letter-spacing:.1em}
+  .pill{font-size:.68rem;padding:.28rem .7rem}
+  .god-eye{width:280px;height:280px}
+  .bgla{font-size:.62rem}
+
+  /* 结果页：移动端单列 */
+  .cgrid.c2{grid-template-columns:1fr}
+  .card.s2{grid-column:1}
+  #rinner{padding:3.2rem .85rem .6rem}
+  .topbar{padding:.6rem .85rem}
+  .tabs{max-width:200px;gap:.25rem}
+  .tab{font-size:.58rem;padding:.25rem .5rem}
+  .back-btn{font-size:.68rem;padding:.35rem .7rem}
+
+  /* 五行格移动端 */
+  .wx-ch{font-size:1.1rem}
+  .wx-lb{font-size:.48rem}
+
+  /* 罗盘移动端 */
+  .cmp-svg{width:90px;height:90px}
+}
+
+@media(max-width:400px){
+  .logo-zh{font-size:2.6rem}
+  .tabs{display:none}
+}
+
+/* ── 复制按钮 ── */
+.copy-btn{
+  position:absolute;top:.55rem;right:.6rem;
+  background:transparent;border:none;cursor:pointer;
+  color:rgba(255,255,255,.25);font-size:.7rem;
+  padding:.2rem .4rem;border-radius:3px;
+  transition:all .2s;letter-spacing:.05em;
+  font-family:'Noto Serif SC',serif;
+  z-index:5;
+}
+.copy-btn:hover{color:rgba(255,255,255,.75);background:rgba(255,255,255,.08)}
+.copy-btn.copied{color:#6dffb0;text-shadow:0 0 6px rgba(109,255,176,.5)}
+
+
+/* ── 问答历史 ── */
+.hist-wrap{
+  width:100%;max-width:620px;margin-top:.8rem;
+  position:relative;z-index:1;
+}
+.hist-title{
+  font-size:.6rem;letter-spacing:.35em;color:rgba(201,168,76,.5);
+  margin-bottom:.45rem;text-align:center;
+}
+.hist-list{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
+.hist-item{
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:.28rem .8rem;
+  color:rgba(255,255,255,.5);font-family:'Noto Serif SC',serif;
+  font-size:.7rem;cursor:pointer;
+  backdrop-filter:blur(8px);transition:all .2s;
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.hist-item:hover{
+  background:rgba(201,168,76,.15);border-color:rgba(201,168,76,.4);
+  color:rgba(255,255,255,.85);
+}
+@media(max-width:640px){
+  .hist-item{max-width:140px;font-size:.65rem}
+}
+
+
+/* ── 字体渲染优化 ── */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+/* Logo 字体微调：Zhi Mang Xing 在大字号下需要减少字距 */
+.logo-zh {
+  font-weight: 400 !important;
+  letter-spacing: .35em !important;
+}
+/* 正文内容：让 Noto Serif SC 在深色背景下更清晰 */
+.cbody, .rlist li {
+  font-weight: 300;
+  letter-spacing: .02em;
+}
+/* 标题类字距 */
+.sc-title h2,
+.sd-head h1,
+.sb-head h1 {
+  font-family: 'Ma Shan Zheng', cursive;
+  letter-spacing: .18em;
+  font-weight: 400;
+}
+/* 卡片标签：用 Noto Serif SC 500 重量 */
+.clbl {
+  font-family: 'Noto Serif SC', serif !important;
+  font-weight: 500;
+  letter-spacing: .4em;
+}
+/* 问题回显 */
+.q-echo .qt {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 1.05rem;
+  letter-spacing: .08em;
+  line-height: 1.7;
+}
+/* 道家引言大字：最有文化感的场景用 Zhi Mang Xing */
+.q-text {
+  font-family: 'Zhi Mang Xing', cursive !important;
+  font-size: 1.15rem !important;
+  letter-spacing: .08em;
+  line-height: 2.1;
+}
+/* 卦象名称 */
+#dName, #aTitle, #aXiang {
+  font-family: 'Ma Shan Zheng', cursive !important;
+  letter-spacing: .18em;
+}
+/* 场景副标题 */
+.sc-title .sub, .logo-tagline {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 300;
+}
+/* 节气名 */
+.cmp-name {
+  font-family: 'Ma Shan Zheng', cursive !important;
+  letter-spacing: .12em;
+}
+/* 推背图颂词/谶词 */
+#aC1, #aC2, #cProphecy {
+  font-family: 'Ma Shan Zheng', cursive !important;
+  letter-spacing: .06em;
+  line-height: 2.2;
+}
+/* 五行格大字 */
+.wx-ch {
+  font-family: 'Ma Shan Zheng', cursive !important;
+  font-weight: 400;
+}
+/* 八卦标签 */
+.bgla {
+  font-family: 'Ma Shan Zheng', cursive !important;
+}
+/* Tab 按钮 */
+.tab, .back-btn, .pill, .hist-item, .api-btn {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 400;
+}
+
+
+/* ── 首页输入区优化 ── */
+.q-box{background:rgba(18,12,5,.88)!important;border-color:rgba(201,168,76,.42)!important;border-radius:12px!important;}
+.q-box:focus-within{background:rgba(25,17,8,.92)!important;border-color:rgba(201,168,76,.72)!important;box-shadow:0 0 0 2px rgba(201,168,76,.1),0 0 40px rgba(201,168,76,.15)!important;}
+#question{color:#f0e4cc!important;font-family:'Noto Serif SC',serif!important;font-size:1rem!important;}
+#question::placeholder{color:rgba(201,168,76,.4)!important;font-style:italic;}
+#askBtn{width:52px!important;height:52px!important;border-radius:50%!important;background:linear-gradient(135deg,rgba(201,168,76,.55),rgba(201,168,76,.35))!important;border:1.5px solid rgba(201,168,76,.85)!important;color:rgba(255,240,200,.9)!important;box-shadow:0 0 15px rgba(201,168,76,.25)!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:.72rem!important;letter-spacing:.05em!important;line-height:1.2!important;text-align:center!important;overflow:hidden!important;}
+#askBtn:hover{background:linear-gradient(135deg,rgba(201,168,76,.85),rgba(201,168,76,.65))!important;box-shadow:0 0 30px rgba(201,168,76,.6)!important;transform:scale(1.08)!important;color:#fff!important;}
+
+/* ── 快捷标签 ── */
+.pills{gap:.55rem!important;margin-top:1rem!important;}
+.pill{background:rgba(10,7,3,.72)!important;border:1px solid rgba(201,168,76,.28)!important;color:rgba(245,232,200,.78)!important;font-size:.76rem!important;padding:.4rem 1rem!important;border-radius:6px!important;letter-spacing:.06em!important;}
+.pill:hover{border-color:rgba(201,168,76,.65)!important;color:#fff!important;background:rgba(201,168,76,.18)!important;transform:translateY(-2px)!important;}
+.pill:active{transform:scale(.96)!important;}
+
+/* ── 历史记录 ── */
+.hist-wrap{width:100%;max-width:600px;margin-top:.8rem;position:relative;z-index:1;}
+.hist-title{font-size:.58rem;letter-spacing:.35em;color:rgba(201,168,76,.45);margin-bottom:.45rem;text-align:center;}
+.hist-list{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;}
+.hist-item{appearance:none;text-align:left;background:rgba(10,7,3,.65);border:1px solid rgba(201,168,76,.18);border-radius:6px;padding:.35rem .9rem;color:rgba(245,232,200,.65);font-family:'Noto Serif SC',serif;font-size:.72rem;cursor:pointer;backdrop-filter:blur(10px);transition:all .2s;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-item:hover{background:rgba(201,168,76,.2)!important;border-color:rgba(201,168,76,.55)!important;color:#fff!important;transform:translateY(-1px)!important;}
+.hist-item:active{transform:scale(.96)!important;background:rgba(201,168,76,.35)!important;}
+
+/* ── 等待动画 ── */
+#ldtxt{color:rgba(255,245,220,.95)!important;text-shadow:0 0 12px rgba(201,168,76,.4)!important;font-size:.88rem!important;}
+#loader-progress{width:220px;height:2px;background:rgba(201,168,76,.12);border-radius:1px;overflow:hidden;margin-top:.5rem;}
+#loader-progress-bar{height:100%;width:0%;background:linear-gradient(90deg,rgba(201,168,76,.4),rgba(201,168,76,.9));border-radius:1px;transition:width .8s ease;}
+#loader-steps{display:flex;gap:.5rem;align-items:center;margin-top:.5rem;}
+.lstep{font-size:.62rem;letter-spacing:.12em;color:rgba(255,255,255,.2);transition:color .4s;font-family:'Noto Serif SC',serif;}
+.lstep.active{color:rgba(201,168,76,.8);}
+.lstep.done{color:rgba(109,255,176,.6);}
+.lstep-sep{color:rgba(255,255,255,.12);font-size:.55rem;}
+
+/* ── 结果页背景遮罩 ── */
+#resultPage::before{content:'';position:absolute;inset:0;z-index:0;background:rgba(5,3,2,.52);backdrop-filter:blur(1.5px);pointer-events:none;}
+#rinner{position:relative;z-index:1;}
+.topbar{position:absolute;z-index:2;}
+
+/* ── 行动建议卡片 ── */
+.card.action-card{border-color:rgba(201,168,76,.32)!important;background:rgba(0,0,0,.78)!important;}
+.card.action-card .clbl{color:#c9a84c!important;}
+.action-item{display:flex;gap:.6rem;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.05);align-items:flex-start;}
+.action-item:last-child{border-bottom:none;}
+.action-num{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4);color:#c9a84c;font-size:.6rem;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:.15rem;}
+.action-text{font-size:.85rem;color:rgba(255,255,255,.88);line-height:1.8;font-family:'Noto Serif SC',serif;}
+
+/* ── 复制按钮 ── */
+.copy-btn{position:absolute;top:.45rem;right:.5rem;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);cursor:pointer;color:rgba(255,255,255,.4);font-size:.65rem;padding:.3rem .6rem;border-radius:4px;transition:all .2s;letter-spacing:.06em;font-family:'Noto Serif SC',serif;z-index:5;}
+.copy-btn:hover{color:#fff;background:rgba(201,168,76,.2);border-color:rgba(201,168,76,.4);}
+.copy-btn.copied{color:#6dffb0;text-shadow:0 0 6px rgba(109,255,176,.5);}
+
+/* ══════════════════════════════════════
+   精修版样式
+══════════════════════════════════════ */
+
+/* 1. 结果页背景大幅压暗 */
+#resultPage::before{
+  background:rgba(3,2,1,.72)!important;
+  backdrop-filter:blur(3px)!important;
+}
+
+/* 2. 正文行宽缩短、行高提升 */
+.cbody{
+  padding:0 .4rem!important;
+  line-height:2.0!important;
+  font-size:.86rem!important;
+}
+
+/* 3. 卡片边框弱化 — 只留顶部细金线 */
+.card{
+  border:none!important;
+  border-top:1px solid rgba(201,168,76,.22)!important;
+  background:rgba(0,0,0,.68)!important;
+  box-shadow:inset 0 1px 0 rgba(201,168,76,.12)!important;
+}
+.card:hover{
+  border-top-color:rgba(201,168,76,.45)!important;
+  box-shadow:inset 0 1px 0 rgba(201,168,76,.3),0 0 20px rgba(0,0,0,.3)!important;
+}
+
+/* 4. 标题层级强化 */
+/* 古文标签（讖曰/頌曰）— 暗金小字 */
+.thA .clbl,
+.thC .clbl,
+.thD .clbl,
+.thF .clbl{
+  color:rgba(201,168,76,.55)!important;
+  font-size:.58rem!important;
+  letter-spacing:.45em!important;
+}
+/* 养生/节气标签 */
+.thB .clbl,
+.thE .clbl{
+  color:rgba(94,207,137,.5)!important;
+  font-size:.58rem!important;
+}
+/* 建议卡片标签 — 最亮金色 */
+.card.action-card .clbl{
+  color:#e8cc7a!important;
+  font-size:.65rem!important;
+  letter-spacing:.35em!important;
+  text-shadow:0 0 8px rgba(201,168,76,.4)!important;
+}
+
+/* 5. 结果页顶部紧凑 */
+#rinner{
+  padding:3.2rem 1rem .6rem!important;
+}
+.q-echo{
+  padding:.2rem 0 .4rem!important;
+  margin-bottom:.4rem!important;
+}
+
+/* 6. 按钮统一视觉语言 */
+.back-btn{
+  border-radius:6px!important;
+  border:1px solid rgba(201,168,76,.35)!important;
+  font-size:.72rem!important;
+}
+.back-btn:hover{
+  border-color:rgba(201,168,76,.7)!important;
+  box-shadow:0 0 10px rgba(201,168,76,.2)!important;
+}
+.tab{
+  border-radius:6px!important;
+  font-size:.62rem!important;
+  padding:.28rem .65rem!important;
+}
+.tab.on,.tab:hover{
+  border-color:rgba(201,168,76,.55)!important;
+  box-shadow:0 0 8px rgba(201,168,76,.18)!important;
+}
+/* 复制按钮 — 仅 hover 卡片时显现 */
+.copy-btn{
+  opacity:0!important;
+  transition:opacity .2s!important;
+}
+.card:hover .copy-btn{
+  opacity:1!important;
+}
+
+/* 7. 历史记录加极淡底色 + hover 箭头 */
+.hist-item{
+  background:rgba(8,5,2,.75)!important;
+  border-color:rgba(201,168,76,.22)!important;
+  position:relative!important;
+}
+.hist-item::after{
+  content:'↑';
+  position:absolute;right:.5rem;top:50%;transform:translateY(-50%);
+  font-size:.65rem;color:rgba(201,168,76,.0);
+  transition:color .2s;
+}
+.hist-item:hover::after{
+  color:rgba(201,168,76,.7)!important;
+}
+
+/* 8. 空卡片隐藏 */
+.card.empty-card{
+  display:none!important;
+}
+
+/* ── 失败状态 ── */
+.error-state{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:1.2rem;text-align:center;
+  padding:2rem;
+}
+.error-icon{
+  font-size:2.5rem;
+  filter:drop-shadow(0 0 12px rgba(201,168,76,.3));
+  animation:errorFloat 3s ease-in-out infinite;
+}
+@keyframes errorFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.error-title{
+  font-family:'Ma Shan Zheng',cursive;
+  font-size:1.3rem;letter-spacing:.2em;
+  color:rgba(255,255,255,.85);
+  text-shadow:0 0 20px rgba(201,168,76,.2);
+}
+.error-desc{
+  font-family:'Noto Serif SC',serif;
+  font-size:.82rem;letter-spacing:.1em;
+  color:rgba(255,255,255,.4);
+  line-height:1.9;max-width:280px;
+}
+.error-question{
+  font-family:'Noto Serif SC',serif;
+  font-size:.78rem;
+  color:rgba(201,168,76,.55);
+  letter-spacing:.08em;
+  max-width:320px;
+  padding:.5rem 1rem;
+  border:1px solid rgba(201,168,76,.2);
+  border-radius:6px;
+  background:rgba(0,0,0,.3);
+  backdrop-filter:blur(8px);
+}
+.error-retry-btn{
+  background:linear-gradient(135deg,rgba(201,168,76,.45),rgba(201,168,76,.25));
+  border:1px solid rgba(201,168,76,.65);
+  border-radius:8px;
+  color:#fff;
+  font-family:'Noto Serif SC',serif;
+  font-size:.85rem;letter-spacing:.18em;
+  padding:.7rem 2rem;
+  cursor:pointer;
+  transition:all .25s;
+  backdrop-filter:blur(10px);
+  box-shadow:0 0 15px rgba(201,168,76,.15);
+}
+.error-retry-btn:hover{
+  background:linear-gradient(135deg,rgba(201,168,76,.7),rgba(201,168,76,.45));
+  box-shadow:0 0 25px rgba(201,168,76,.35);
+  transform:scale(1.04);
+}
+.error-back{
+  font-size:.7rem;color:rgba(255,255,255,.3);
+  letter-spacing:.1em;cursor:pointer;
+  font-family:'Noto Serif SC',serif;
+  transition:color .2s;
+  background:none;border:none;
+}
+.error-back:hover{color:rgba(255,255,255,.6);}
+
+/* 隐藏空卡片和topbar（错误状态下） */
+#resultPage.error-mode .topbar{ display:none!important; }
+#resultPage.error-mode #rinner{ padding:0!important; }
+
+/* ── 收尾精修 ── */
+
+/* 1. 正文亮度降低、行高增加 */
+.cbody{
+  color:rgba(255,255,255,.78)!important;
+  line-height:2.15!important;
+}
+.thA .cbody{ color:rgba(255,242,210,.76)!important; }
+.thB .cbody{ color:rgba(237,255,244,.76)!important; }
+.thC .cbody{ color:rgba(232,244,255,.76)!important; }
+.thD .cbody{ color:rgba(240,238,255,.76)!important; }
+.thE .cbody{ color:rgba(232,255,245,.76)!important; }
+.thF .cbody{ color:rgba(255,248,224,.76)!important; }
+
+/* 2. action-item 间距加大，条目间有呼吸感 */
+.action-item{
+  padding:.55rem 0!important;
+  border-bottom:1px solid rgba(255,255,255,.06)!important;
+  gap:.65rem!important;
+}
+.action-item:last-child{ border-bottom:none!important; }
+.action-text{
+  font-size:.84rem!important;
+  line-height:1.85!important;
+  color:rgba(255,255,255,.82)!important;
+}
+
+/* 3. 非数组的长文：自动分段（按条目序号换行） */
+.cbody.has-numbers p,
+.cbody.has-numbers br{
+  margin-bottom:.75rem;
+}
+
+/* 4. 标题与正文间距加大 */
+.clbl{
+  margin-bottom:.55rem!important;
+}
+
+/* 5. 卡片内边距宽松 */
+.card{
+  padding:.85rem 1.1rem!important;
+}
+
+/* ── 卡片滚动优化 ── */
+
+/* 可滚动卡片相对定位，用于底部渐隐 */
+.card{ overflow:visible!important; }
+.cbody{
+  overflow-y:auto!important;
+  position:relative;
+}
+
+/* 纤细滚动条 */
+.cbody::-webkit-scrollbar{ width:2px; }
+.cbody::-webkit-scrollbar-track{ background:transparent; }
+.cbody::-webkit-scrollbar-thumb{
+  background:rgba(201,168,76,.3);
+  border-radius:1px;
+}
+.cbody::-webkit-scrollbar-thumb:hover{
+  background:rgba(201,168,76,.6);
+}
+
+/* 底部渐隐遮罩（内容超出时才可见） */
+.card-scroll-wrap{
+  position:relative;
+  flex:1;min-height:0;overflow:hidden;
+}
+.card-scroll-wrap::after{
+  content:'';
+  position:absolute;bottom:0;left:0;right:0;
+  height:32px;pointer-events:none;
+  background:linear-gradient(to bottom,transparent,rgba(0,0,0,.65));
+  opacity:0;transition:opacity .3s;
+  border-radius:0 0 8px 8px;
+}
+.card-scroll-wrap.overflowing::after{
+  opacity:1;
+}
+/* 場景示例問題 */
+#sceneExamples{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem;min-height:2rem;transition:opacity .3s}
+#sceneExamples.hidden{opacity:0;pointer-events:none}
+.ex-btn{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);color:rgba(201,168,76,.75);
+  padding:.32rem .75rem;border-radius:20px;font-size:.72rem;cursor:pointer;font-family:'Noto Serif SC',serif;
+  letter-spacing:.04em;transition:all .2s;white-space:nowrap}
+.ex-btn:hover{background:rgba(201,168,76,.18);border-color:rgba(201,168,76,.6);color:rgba(201,168,76,1)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="experience-controls">
+  <div class="mode-group" aria-label="天象模式">
+    <span class="mode-label">天象</span>
+    <button class="mode-btn on" id="skyRealBtn" type="button" title="按當前時間定位象徵性天球" onclick="setSkyMode('real')">實時</button>
+    <button class="mode-btn" id="skyDreamBtn" type="button" title="自由流動的沉浸動畫" onclick="setSkyMode('dream')">靈境</button>
+  </div>
+  <div class="mode-group" aria-label="回答深度">
+    <span class="mode-label">解讀</span>
+    <button class="mode-btn" id="briefBtn" type="button" onclick="setResponseMode('brief')">簡要</button>
+    <button class="mode-btn on" id="deepBtn" type="button" onclick="setResponseMode('deep')">深度</button>
+  </div>
+</div>
+<div id="celestialTip"></div>
+<div id="serverTag" style="position:fixed;top:1.1rem;right:1.2rem;z-index:200;display:none;align-items:center;gap:.45rem;background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.28);border-radius:20px;padding:.28rem .85rem;backdrop-filter:blur(12px);font-size:.68rem;color:rgba(201,168,76,.65);letter-spacing:.1em;pointer-events:none;"><span style="width:6px;height:6px;border-radius:50%;background:#6dffb0;box-shadow:0 0 6px rgba(109,255,176,.8);display:inline-block;"></span>&nbsp;已連接</div>
+
+<!-- ══ LANDING ══ -->
+<div id="landing">
+  <div class="god-eye"></div>
+  <div class="bagua-labels" id="baguaLabels"></div>
+
+  <span class="logo-zh fu">天機</span>
+  <div class="divider fu"><span>叩問蒼天 · 典籍應答</span></div>
+  <div id="ganzhiBar" class="fu" style="font-size:.6rem;letter-spacing:.28em;color:rgba(201,168,76,.45);margin-bottom:1rem;text-align:center;"></div>
+
+  <div id="apiChip" style="display:none"></div>
+  <div class="api-wrap" id="apiWrap" style="display:none"><div class="api-row"></div><div id="apiMsg"></div></div>
+
+  <div class="q-wrap fu" style="width:100%;max-width:600px;position:relative;z-index:1;">
+    <div class="q-box" style="position:relative;backdrop-filter:blur(24px);overflow:hidden;">
+      <textarea id="question" placeholder="請問天機……&#10;今年大勢如何？失眠怎麼調養？易經如何解讀我的困境？" rows="3" style="padding:1.2rem 5.5rem 1.2rem 1.5rem;min-height:76px;"></textarea>
+      <button id="askBtn" onclick="handleAsk()" style="position:absolute;right:.85rem;bottom:.85rem;cursor:pointer;transition:all .25s;"></button>
+    </div>
+    <div class="pills fu">
+      <div class="pill" onmouseenter="renderSceneExamples('A')" onclick="sq('今年大勢走向如何，推背圖如何印證？')">推背 · 大勢</div>
+      <div class="pill" onmouseenter="renderSceneExamples('B')" onclick="sq('我最近失眠焦慮，黃帝內經怎麼說？')">內經 · 調養</div>
+      <div class="pill" onmouseenter="renderSceneExamples('C')" onclick="sq('今年全球局勢與中國機遇，典籍如何看？')">時事 · 天機</div>
+      <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="sq('用易經起一卦，問今年事業運勢')">易經 · 起卦</div>
+      <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="sq('現在是什麼節氣，如何養生調息？')">節氣 · 養生</div>
+      <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="sq('我面臨重要抉擇，道德經有什麼智慧？')">道家 · 智慧</div>
+    </div>
+    <div id="sceneExamples" class="hidden fu"></div>
+  </div>
+
+  <div class="hist-wrap" id="histWrap" style="display:none">
+    <div class="hist-title">最近問過</div>
+    <div class="hist-list" id="histList"></div>
+  </div>
+</div>
+
+<!-- ══ LOADER ══ -->
+<div id="loader">
+  <div class="divination-anim">
+    <div class="div-ring"></div>
+    <div class="div-ring"></div>
+    <div class="div-ring"></div>
+    <div class="div-hex" id="divHex"></div>
+  </div>
+  <div id="ldtxt">解析問題意圖……</div>
+  <div id="loader-progress"><div id="loader-progress-bar"></div></div>
+  <div id="loader-steps"><span class="lstep" id="lstep1">起卦</span><span class="lstep-sep">→</span><span class="lstep" id="lstep2">推演</span><span class="lstep-sep">→</span><span class="lstep" id="lstep3">生成解讀</span></div>
+  <div id="loader-timer" style="font-size:.58rem;letter-spacing:.2em;color:rgba(255,255,255,.28);margin-top:.5rem;font-family:'Noto Serif SC',serif;">預計 60–90 秒</div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div id="resultPage">
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()">
+      <span>☯</span><span>重新問天</span>
+    </button>
+    <div class="tabs" id="tabs"></div>
+  </div>
+  <div id="rinner"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  CLASSICS DB
+// ══════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+//  神枢典籍库 v2.0 — 扩充修订版
+//  典籍均为公有领域文言原文，按场景分类索引
+//  推背图注明：民间流传版本，非学术认定原本
+// ═══════════════════════════════════════════════════════════
+
+const CLASSICS = {
+
+// ─────────────────────────────────────────
+//  推背图（民间流传版·金圣叹批注本）
+//  注：推背图无可靠原始版本，现存多为后人增补
+//  本库收录民间流传最广版本，仅供参考
+// ─────────────────────────────────────────
+tuibei: [
+  { xiang:"第一象 甲子", gua:"坤宫·坤卦", chen:"茫茫天地，不知所止。日月循环，周而复始。", song:"自从盘古迄希夷，虎斗龙争事正奇。悟得循环真谛理，试观玄女演周期。", jietu:"开篇总纲，言天地循环、阴阳更替，万事皆有始终，周而复始。" },
+  { xiang:"第二象 乙丑", gua:"乾宫·履卦", chen:"累累硕果，莫明其数。水流东海，一去不复。", song:"坤顺乾刚相配宜，干戈动处帝图移。女主阴柔克九五，阴盛阳衰势渐低。", jietu:"旧王朝覆灭，新势力崛起，政权交替之象。" },
+  { xiang:"第三象 丙寅", gua:"艮宫·贲卦", chen:"跋涉山川，英雄竟起。污泥横流，玉石难分。", song:"豕鼠同眠各得安，一朝分别异云端。手执利剑临四海，青龙白虎各西东。", jietu:"乱世英雄辈出，真伪难辨，最终强者胜出。" },
+  { xiang:"第四象 丁卯", gua:"坤宫·豫卦", chen:"头有角，身有翼。蟒化龙，有雨则益。", song:"九州稻米脱壳新，华夏乾坤又一春。东海鱼龙云雾起，一声雷震定乾坤。", jietu:"新朝建立，气象一新，东方龙腾，天下归心。" },
+  { xiang:"第五象 戊辰", gua:"坎宫·需卦", chen:"一龙一猪，相争相斗。市里坐江山，万里一孤守。", song:"运际一阳来复时，日月当空紫气微。木下一了结春秋，流水行云物竞移。", jietu:"权贵相争，否极泰来，一阳来复之象。" },
+  { xiang:"第六象 己巳", gua:"巽宫·小畜卦", chen:"日月当空，照临下土。扑朔迷离，不文不武。", song:"乾坤再造话斜阳，开辟新朝旧帝场。一朝权在公侯手，竟把乾坤启羽商。", jietu:"日月同辉，新旧交替，权柄易手。" },
+  { xiang:"第七象 庚午", gua:"坤宫·师卦", chen:"大车横路，大树当途。各分东西，不问云何。", song:"此时一定乾坤局，金鳌海外驾神驹。忆昔强秦功与罪，人间哭笑两模糊。", jietu:"大局已定，各安其位，往昔功过由后人评说。" },
+  { xiang:"第八象 辛未", gua:"离宫·鼎卦", chen:"忽南忽北，乍东乍西。不许人见，浩劫当时。", song:"金鸡无处觅金鳌，玉兔腾空笑汉高。遍地烟尘弥宇宙，一时难辨鬼和妖。", jietu:"天下大乱，烽烟四起，浩劫难免。" },
+  { xiang:"第九象 壬申", gua:"震宫·丰卦", chen:"鼓角声喧，旌旗蔽日。万马奔腾，三军挥戈。", song:"北方胡虏乱中原，千里流亡哭不堪。可惜梁朝非汉代，人心惆怅马蹄来。", jietu:"战鼓喧天，铁骑横行，北方势力南下，中原战火连天。" },
+  { xiang:"第十象 癸酉", gua:"兑宫·革卦", chen:"此消彼长，其名乃强。如日方中，天下向往。", song:"木子冲天长，金刀定四方。上言加致力，下言覆帝王。", jietu:"强者崛起，如日中天，帝业更替，天下归心。" },
+  { xiang:"第十一象 甲戌", gua:"乾宫·姤卦", chen:"口中有心，日月相临。非金非木，天下升平。", song:"漫天风雨渡江来，天下英雄聚一台。同是杀人与为乐，可知刀刃变锄犁。", jietu:"英雄际会，刀兵化为农具，天下从战乱走向太平。" },
+  { xiang:"第十二象 乙亥", gua:"艮宫·损卦", chen:"太极初判，万物共生。乾坤甫定，时维盛明。", song:"欲识中华新定名，须向金陵看盛明。一朝建业垂青史，文治武功举国荣。", jietu:"新朝建立，文治武功并举，天下太平，举国欣荣。" },
+  { xiang:"第十三象 丙子", gua:"坎宫·节卦", chen:"一阴一阳，上竭下进。翅振九天，三才得润。", song:"光芒四射贯长虹，大树当空枝干雄。解散乾坤真消息，东方一片好春风。", jietu:"阴阳调和，东方大地春风吹拂，生机勃发。" },
+  { xiang:"第十四象 丁丑", gua:"离宫·明夷卦", chen:"一人被发，跣足行走。手捏青苗，如获至宝。", song:"西方有人足踏地，万里长城处处起。猛士无缘见太平，明月几度照离亭。", jietu:"艰苦奋斗，开疆拓土，和平难得，离别成常。" },
+  { xiang:"第十五象 戊寅", gua:"震宫·解卦", chen:"扑朔迷离，不文不武。非彼非此，此中有主。", song:"草蛇灰线伏脉千里，千古兴亡事本奇。数点梅花天地春，一声爆竹旧年辞。", jietu:"历史迷雾重重，兴亡轮回，梅花开处见春意。" },
+  { xiang:"第十六象 己卯", gua:"巽宫·观卦", chen:"真主出世，人心归向。百战百胜，化家为国。", song:"太白旗下飞帷幕，龙蛇逐鹿奔中原。一朝英雄成大业，万里山河入版图。", jietu:"真命天子出世，英雄逐鹿，成就大业，河山归于一统。" },
+  { xiang:"第十七象 庚辰", gua:"艮宫·贲卦", chen:"水火克济，各得其宜。明明四海，亿兆欢居。", song:"雷声掣电斗彤云，金枝玉叶势如春。弃甲寻羊变寻玉，国中日出彩云新。", jietu:"水火相济，万民安居乐业，国运昌盛。" },
+  { xiang:"第十八象 辛巳", gua:"坤宫·观卦", chen:"高祖崩后，嗣主孱弱。骨肉相残，叔侄交恶。", song:"骨肉相残祸几深，宫廷变故起沉吟。从来权力生纷争，帝业相传有废兴。", jietu:"皇权交替，骨肉相争，宫廷内斗，权力更迭。" },
+  { xiang:"第十九象 壬午", gua:"震宫·噬嗑卦", chen:"拨乱反正，任贤选能。武功文治，煊赫无比。", song:"中天日月双轮照，内外相安景象新。莫道安平无大业，圣君贤相化奇珍。", jietu:"乱后治世，任贤择能，内外安宁，盛世再现。" },
+  { xiang:"第二十象 癸未", gua:"兑宫·夬卦", chen:"大道之行，天下为公。用舍行藏，因时为雄。", song:"自古人生有盛衰，盛时志气贯云霄。若还盛极而衰处，须向行藏悟进退。", jietu:"盛极则衰，进退有度，知时务者为俊杰。" },
+  { xiang:"第二十一象 甲申", gua:"乾宫·乾卦", chen:"一人作乱，九族皆殃。大事已过，小丑跳梁。", song:"内外相攻骨肉残，党同伐异乱朝纲。万民嗷嗷无宁日，黎庶涂炭哭朔方。", jietu:"骨肉相残，朝纲大乱，百姓受苦，须待明主拨乱反正。" },
+  { xiang:"第二十二象 乙酉", gua:"坤宫·复卦", chen:"草头火脚，宫阙灰飞。人口凋零，骨肉分离。", song:"鸡鸣风雨几时休，万姓流离哭不收。莫把兴亡看作戏，由来胜负一沙鸥。", jietu:"烽火连天，宫阙成灰，万民流离，盛衰轮回如梦。" },
+  { xiang:"第二十三象 丙戌", gua:"震宫·豫卦", chen:"大风起兮，草木皆折。南征北战，东荡西决。", song:"否极泰来运已通，草衣木食入山中。时来骏马如龙走，地下纵横有老翁。", jietu:"否极泰来，山中有隐者蓄势待发，时机一到如龙腾渊。" },
+  { xiang:"第二十四象 丁亥", gua:"离宫·旅卦", chen:"兔走乌飞，时不我待。有话无话，点到为止。", song:"阴阳变化自无穷，此消彼长在其中。吉凶相倚随时变，祸福无门只在人。", jietu:"阴阳变化无穷，吉凶相依，祸福由人心而定。" },
+  { xiang:"第二十五象 戊子", gua:"坎宫·坎卦", chen:"铁树开花，是真是假。洛书何处，有真有假。", song:"乾坤一变荡滔滔，闻听弦歌鼓瑟谣。从此清平无事扰，海清河晏庆重朝。", jietu:"真伪难辨，需明辨是非，待乾坤清明，海晏河清。" },
+  { xiang:"第二十六象 己丑", gua:"艮宫·剥卦", chen:"天无二日，地无二主。始则同根，后则相拒。", song:"一兔一狐共一山，仁义自是各一般。干戈扰攘知多少，到底金瓯不可残。", jietu:"争权夺利，仁义难全，然国家根基不可动摇。" },
+  { xiang:"第二十七象 庚寅", gua:"巽宫·鼎卦", chen:"天地交泰，人物腾蛟。亲小人远，人去楼空。", song:"火克金兮鼎已成，美人图里有真情。一朝权在宵人手，颠倒阴阳乱太平。", jietu:"奸邪当道，阴阳颠倒，须识清小人之害。" },
+  { xiang:"第二十八象 辛卯", gua:"坤宫·谦卦", chen:"两日共一月，上下相争列。起伏竟如何，江边有人说。", song:"双星并举各争辉，你死我活争高低。胜负未知休笑他，山中另有隐姓名。", jietu:"双雄并立，争斗不休，胜负未定，山中另有真主。" },
+  { xiang:"第二十九象 壬辰", gua:"震宫·归妹卦", chen:"日月丽天，人人仰望。一旦失势，拱手而让。", song:"风云突变百花残，一夜寒霜变鬓斑。帝业难成空对镜，江山又落别人颜。", jietu:"风云突变，帝业难成，江山易主，世事无常。" },
+  { xiang:"第三十象 癸巳", gua:"兑宫·履卦", chen:"九州同，百姓乐。有不同，在后阁。", song:"有一真人出现时，苍生咸庆乐雍熙。大同世界真如此，不信神仙信此时。", jietu:"天下大同，真人出世，万民欢庆，太平盛世降临。" },
+  { xiang:"第三十一象 甲午", gua:"乾宫·夬卦", chen:"一人有庆，万寿无疆。四夷宾服，八方来王。", song:"君明臣良国泰平，四方宾服颂英明。从此长治承天下，雨顺风调岁岁荣。", jietu:"明君贤臣，国泰民安，四方宾服，天下太平。" },
+  { xiang:"第三十二象 乙未", gua:"坤宫·剥卦", chen:"杨花飞，蜀道难。升仙台，变人间。", song:"不是一番寒彻骨，争得梅花扑鼻香。红颜自古薄命多，花落水流春去也。", jietu:"历经艰辛方得果，红颜命薄，花落流水，春去秋来。" },
+  { xiang:"第三十三象 丙申", gua:"艮宫·蒙卦", chen:"天有眼，地有根。一阳来复，以还其真。", song:"忽逢迅雷惊天地，祸起萧墙人未知。虎踞龙盘真主出，翻云覆雨定乾坤。", jietu:"天地震动，真主现世，虎踞龙盘之势，翻云覆雨重定乾坤。" },
+  { xiang:"第三十四象 丁酉", gua:"震宫·震卦", chen:"非哭非笑，民和日好。千门万户，俱换新貌。", song:"一声炮响天下变，龙蛇之际方知险。无端大地起烟尘，人间处处哭声遍。", jietu:"山河动荡，炮声中天地变色，百姓流离，而后换新颜。" },
+  { xiang:"第三十五象 戊戌", gua:"离宫·噬嗑卦", chen:"鸟无足，山有月。旭日升，人都哭。", song:"是非成败总无凭，满眼干戈泪纵横。白骨堆中争一鹿，问他谁是主人翁。", jietu:"是非成败难定，干戈不息，白骨堆中争天下，最终谁是主人。" },
+  { xiang:"第三十六象 己亥", gua:"坎宫·屯卦", chen:"水火相交，阴阳迭盛。短衣非衣，半文不武。", song:"一元复始换新机，万象更新旧貌移。三阳开泰逢盛世，大地欣欣草木知。", jietu:"一元复始，万象更新，三阳开泰，盛世来临。" },
+  { xiang:"第三十七象 庚子", gua:"巽宫·巽卦", chen:"不分牛马，不辨猪羊。不论平地，不管他乡。", song:"日月无光天地昏，全凭智力解乾坤。人能寒苦方成器，路在脚下始通门。", jietu:"混乱之际，需凭智力拨乱，脚踏实地方能成功。" },
+  { xiang:"第三十八象 辛丑", gua:"震宫·恒卦", chen:"雷声大作，雨势如注。天下混乱，大事已布。", song:"翻天覆地不知年，一统河山在眼前。三军过后尽开颜，旌旗处处换新天。", jietu:"雷霆万钧，革命成功，三军欢腾，旧貌换新颜，天下一统。" },
+  { xiang:"第三十九象 壬寅", gua:"坎宫·坎卦", chen:"水势滔天，土崩鱼烂。气数已尽，变生肘腋。", song:"忽逢大水际天来，鱼鳖虾蟹化尘埃。此时须是英雄定，长揖雄图万古开。", jietu:"大势倾覆，旧秩序崩溃，英雄应时而出，开创万古新局。" },
+  { xiang:"第四十象 癸卯", gua:"离宫·离卦", chen:"日丽中天，温暖四海。世界大同，其乐无涯。", song:"太平景象期在此，九州人民尽欢颜。两岸猿声啼不住，轻舟已过万重山。", jietu:"太平盛世降临，天下大同，人民欢欣，轻舟已过险滩。" },
+  { xiang:"第四十一象 甲辰", gua:"震宫·震卦", chen:"有客西来，言论风采。四方平定，民安物泰。", song:"言论自由天地宽，四方贤达聚一堂。民主风气蔚然起，政通人和乐小康。", jietu:"言论自由，四方贤才聚集，民主之风兴起，政通人和。" },
+  { xiang:"第四十二象 乙巳", gua:"坤宫·坤卦", chen:"既得天下，自古谁无。以强凌弱，岂是丈夫。", song:"以强凌弱乱乾坤，英雄豪杰竞纷纷。长江后浪推前浪，一代新人换旧人。", jietu:"以强凌弱非正道，英雄更迭，长江后浪推前浪。" },
+  { xiang:"第四十三象 丙午", gua:"乾宫·大有卦", chen:"流水东去，一去不返。问君知否，是福是祸。", song:"天涯何处觅神仙，自是当年有夙缘。芳草绿遍天涯路，人间哪处不青天。", jietu:"命运流转，福祸相依，芳草处处，人间自有青天。" },
+  { xiang:"第四十四象 丁未", gua:"坎宫·需卦", chen:"既得之后，天下大乱。莫能相救，徒唤奈何。", song:"兴亡成败一棋枰，谁个英雄是楚卿。大地山河多少事，到头莫问杳冥冥。", jietu:"兴亡成败如棋局，英雄已去，大地山河沧桑，不问杳冥。" },
+  { xiang:"第四十五象 戊申", gua:"离宫·晋卦", chen:"世界万象，无奇不有。有物有则，莫悖其咎。", song:"万国同风共此时，科技进步日月驰。日行千里非梦想，蟾宫折桂有人知。", jietu:"科技日进，万里如一日，人类探索天宇之志终将实现。" },
+  { xiang:"第四十六象 己酉", gua:"坤宫·升卦", chen:"朝野俱泰，民无异心。两曜同光，天下文明。", song:"圣人出而天下宁，大道行而万邦亲。文明远播传四海，太平景象满乾坤。", jietu:"大道推行，文明远播，天下太平，万邦来朝。" },
+  { xiang:"第四十七象 庚戌", gua:"艮宫·艮卦", chen:"大厦将倾，一木难支。先有先无，终无终有。", song:"黑雾弥漫路难行，山穷水复疑无径。柳暗花明又一村，不信东风唤不回。", jietu:"山穷水复之际，柳暗花明，东风终会再来。" },
+  { xiang:"第四十八象 辛亥", gua:"震宫·颐卦", chen:"冬去春来，雨过天晴。一声霹雳，天下皆惊。", song:"冬尽春来气象新，霹雳一声振乾坤。人间从此太平日，燕语莺歌处处闻。", jietu:"冬尽春来，霹雳之后天下震惊，太平新世界降临。" },
+  { xiang:"第四十九象 壬子", gua:"兑宫·兑卦", chen:"闻风而起，得步进步。开始为难，后来易处。", song:"一步一个脚印深，天行健兮自强进。知难而进终成事，岁月不居志不移。", jietu:"闻风而起，知难而进，脚踏实地，志坚则事成。" },
+  { xiang:"第五十象 癸丑", gua:"乾宫·乾卦", chen:"五星联珠，其色黄白。兵戈之后，天下太平。", song:"兵革扰攘已休兵，遥望中原气象新。五色旗扬天下定，丰衣足食遂民情。", jietu:"战乱平息，五星高照，气象更新，民生富足，天下太平。" },
+  { xiang:"第五十一象 甲寅", gua:"坎宫·涣卦", chen:"人各有心，似是而非。欲求太平，须问天机。", song:"太平世界显然光，试看谁为万世芳。上下同心齐奋发，山河锦绣固金汤。", jietu:"上下同心，山河锦绣，太平盛世人人共享。" },
+  { xiang:"第五十二象 乙卯", gua:"艮宫·蛊卦", chen:"门内有人，方在左边。去者出走，来者推门。", song:"人去人来事已更，流光容易把人惊。世间多少沧桑事，尽在春花秋月中。", jietu:"人事代谢，沧桑变迁，流光易逝，万事尽在春秋轮回。" },
+  { xiang:"第五十三象 丙辰", gua:"震宫·小过卦", chen:"七十二年，如梦幻泡影。忽而有，忽而无。", song:"七十二年若梦幻，往事如烟散云端。物换星移几度秋，人间沧海又桑田。", jietu:"七十二年弹指间，往事如烟，沧海桑田，人间大梦一场。" },
+  { xiang:"第五十四象 丁巳", gua:"离宫·丰卦", chen:"翻天覆地，反覆思量。猪羊为主，虎马成双。", song:"运当终结有何方，一树梨花压海棠。莫向东风吹恨去，人间万事总沧桑。", jietu:"运数终结，莫怨东风，人间万事皆沧桑，顺应天时为上。" },
+  { xiang:"第五十五象 戊午", gua:"离宫·鼎卦", chen:"有人翼飞，化为神仙。飞天入地，渺渺茫茫。", song:"乘风御气驭长虹，飞天遁地本神功。科技日新月异变，人类梦想入苍穹。", jietu:"人类借助科技飞天入地，梦想成真，文明大步迈进。" },
+  { xiang:"第五十六象 己未", gua:"坎宫·井卦", chen:"镫盏无油，晷短时促。烦事方了，又生枝蔓。", song:"数点梅花天地春，小人道长君子贫。可怜辜负忠良士，无处能容一片心。", jietu:"小人得势，忠良受困，时机短促，事端难止，须待春回。" },
+  { xiang:"第五十七象 庚申", gua:"震宫·恒卦", chen:"万国咸通，蛮貊顺服。边境宁靖，社稷安堵。", song:"环球一气运来亨，四海升平靖烽烟。万国通商文化盛，人间极乐是今天。", jietu:"万国通商，四海升平，文化交流，人类迈向和平繁荣。" },
+  { xiang:"第五十八象 辛酉", gua:"兑宫·兑卦", chen:"木下一了，人月相逢。逢而又逢，大梦初醒。", song:"炎炎烈日炙人寒，蒸蒸日上国势安。河山浩荡新气象，凤翥龙翔胜旧观。", jietu:"烈日高照，国运蒸蒸日上，河山气象一新，凤翥龙翔。" },
+  { xiang:"第五十九象 壬戌", gua:"乾宫·履卦", chen:"一阴一阳，道之所在。天下太平，大道复见。", song:"否极泰来事事宜，天下升平人所知。可笑蜗角蛮触争，毕竟谁胜更谁负。", jietu:"否极泰来，大道复现，天下太平，蜗角之争终无意义。" },
+  { xiang:"第六十象 癸亥", gua:"坤宫·坤卦", chen:"茫茫天地，不知所止。曰：终而复始。", song:"万古乾坤一局棋，输赢胜负各相宜。自从推背图成后，世世代代有人知。", jietu:"终象，天地轮回，始终如一，万古棋局，自有定数。" },
+],
+
+// ─────────────────────────────────────────
+//  道德经（老子）全81章
+// ─────────────────────────────────────────
+daodejing: [
+  { zhang:1, text:"道可道，非常道。名可名，非常名。无名天地之始，有名万物之母。故常无欲，以观其妙；常有欲，以观其徼。此两者同出而异名，同谓之玄，玄之又玄，众妙之门。", key:["道","名","玄","无","有","始","母","妙"] },
+  { zhang:2, text:"天下皆知美之为美，斯恶已。皆知善之为善，斯不善已。故有无相生，难易相成，长短相较，高下相倾，音声相和，前后相随。是以圣人处无为之事，行不言之教。", key:["美","善","有无","相生","无为","不言"] },
+  { zhang:3, text:"不尚贤，使民不争；不贵难得之货，使民不为盗；不见可欲，使民心不乱。是以圣人之治，虚其心，实其腹，弱其志，强其骨。常使民无知无欲，使夫智者不敢为也。", key:["贤","争","治","心","志","知","欲"] },
+  { zhang:4, text:"道冲，而用之或不盈。渊兮，似万物之宗。挫其锐，解其纷，和其光，同其尘，湛兮似或存。吾不知谁之子，象帝之先。", key:["道","冲","渊","锐","光","尘","帝"] },
+  { zhang:5, text:"天地不仁，以万物为刍狗；圣人不仁，以百姓为刍狗。天地之间，其犹橐龠乎？虚而不屈，动而愈出。多言数穷，不如守中。", key:["天地","不仁","圣人","百姓","虚","守中","多言"] },
+  { zhang:6, text:"谷神不死，是谓玄牝。玄牝之门，是谓天地根。绵绵若存，用之不勤。", key:["谷神","玄牝","天地根","绵绵","不死"] },
+  { zhang:7, text:"天长地久。天地所以能长且久者，以其不自生，故能长生。是以圣人后其身而身先，外其身而身存。非以其无私邪？故能成其私。", key:["天长地久","不自生","长生","圣人","无私","后其身"] },
+  { zhang:8, text:"上善若水。水善利万物而不争，处众人之所恶，故几于道。居善地，心善渊，与善仁，言善信，政善治，事善能，动善时。夫唯不争，故无尤。", key:["善","水","不争","居","心","言","政","事","动","时"] },
+  { zhang:9, text:"持而盈之，不如其已；揣而锐之，不可长保。金玉满堂，莫之能守；富贵而骄，自遗其咎。功成而弗居，天之道也。", key:["功成","退","骄","富贵","金玉","天道","盈"] },
+  { zhang:10, text:"载营魄抱一，能无离乎？专气致柔，能如婴儿乎？涤除玄览，能无疵乎？爱国治民，能无为乎？天门开阖，能为雌乎？明白四达，能无知乎？", key:["一","柔","婴儿","无为","雌","知","专气"] },
+  { zhang:11, text:"三十辐共一毂，当其无，有车之用。埏埴以为器，当其无，有器之用。凿户牖以为室，当其无，有室之用。故有之以为利，无之以为用。", key:["无","有","用","利","器","室","车"] },
+  { zhang:12, text:"五色令人目盲，五音令人耳聋，五味令人口爽，驰骋畋猎令人心发狂，难得之货令人行妨。是以圣人为腹不为目，故去彼取此。", key:["色","音","味","心","目","腹","欲"] },
+  { zhang:13, text:"宠辱若惊，贵大患若身。何谓宠辱若惊？宠为下，得之若惊，失之若惊，是谓宠辱若惊。何谓贵大患若身？吾所以有大患者，为吾有身，及吾无身，吾有何患？", key:["宠辱","若惊","大患","身","得失"] },
+  { zhang:14, text:"视之不见名曰夷，听之不闻名曰希，搏之不得名曰微。此三者不可致诘，故混而为一。其上不皦，其下不昧，绳绳不可名，复归于无物。", key:["夷","希","微","一","无物","道体"] },
+  { zhang:15, text:"古之善为士者，微妙玄通，深不可识。豫兮若冬涉川，犹兮若畏四邻，俨兮其若客，涣兮若冰之将释，敦兮其若朴，旷兮其若谷，混兮其若浊。", key:["善士","微妙","谷","朴","浊","慎","守"] },
+  { zhang:16, text:"致虚极，守静笃。万物并作，吾以观复。夫物芸芸，各复归其根。归根曰静，是谓复命。复命曰常，知常曰明。不知常，妄作凶。知常容，容乃公，公乃王，王乃天，天乃道，道乃久，没身不殆。", key:["虚","静","复","根","常","明","容","公"] },
+  { zhang:17, text:"太上，下知有之；其次，亲而誉之；其次，畏之；其次，侮之。信不足焉，有不信焉。悠兮其贵言，功成事遂，百姓皆谓我自然。", key:["太上","信","贵言","功成","自然","领导"] },
+  { zhang:18, text:"大道废，有仁义；慧智出，有大伪；六亲不和，有孝慈；国家昏乱，有忠臣。", key:["大道废","仁义","大伪","孝慈","忠臣","昏乱"] },
+  { zhang:19, text:"绝圣弃智，民利百倍；绝仁弃义，民复孝慈；绝巧弃利，盗贼无有。此三者，以为文不足，故令有所属：见素抱朴，少私寡欲，绝学无忧。", key:["朴","寡欲","素","绝学","利","少私"] },
+  { zhang:20, text:"绝学无忧。唯之与阿，相去几何？善之与恶，相去若何？我独泊兮其未兆，如婴儿之未孩；傫傫兮若无所归。众人皆有余，而我独若遗。我愚人之心也哉！", key:["绝学","婴儿","泊","独","愚","众人"] },
+  { zhang:21, text:"孔德之容，惟道是从。道之为物，惟恍惟惚。惚兮恍兮，其中有象；恍兮惚兮，其中有物；窈兮冥兮，其中有精；其精甚真，其中有信。", key:["德","道","恍惚","象","物","精","信"] },
+  { zhang:22, text:"曲则全，枉则直，洼则盈，弊则新，少则得，多则惑。是以圣人抱一为天下式。不自见，故明；不自是，故彰；不自伐，故有功；不自矜，故长。夫唯不争，故天下莫能与之争。", key:["曲全","少得","多惑","不争","明","功","长"] },
+  { zhang:23, text:"希言自然。故飘风不终朝，骤雨不终日。孰为此者？天地。天地尚不能久，而况于人乎？故从事于道者，道者同于道，德者同于德，失者同于失。", key:["希言","自然","风雨","天地","道","德"] },
+  { zhang:24, text:"企者不立，跨者不行，自见者不明，自是者不彰，自伐者无功，自矜者不长。其在道也，曰余食赘行，物或恶之，故有道者不处。", key:["企","跨","自见","自是","自伐","自矜","余食"] },
+  { zhang:25, text:"有物混成，先天地生。寂兮寥兮，独立而不改，周行而不殆，可以为天下母。吾不知其名，字之曰道，强为之名曰大。大曰逝，逝曰远，远曰反。", key:["道","大","逝","远","反","天地","母","混成"] },
+  { zhang:26, text:"重为轻根，静为躁君。是以圣人终日行不离辎重，虽有荣观，燕处超然。奈何万乘之主而以身轻天下？轻则失本，躁则失君。", key:["重","轻","静","躁","根","君","失","本"] },
+  { zhang:27, text:"善行无辙迹，善言无瑕谪，善数不用筹策，善闭无关键而不可开，善结无绳约而不可解。是以圣人常善救人，故无弃人；常善救物，故无弃物。是谓袭明。", key:["善","无辙","无瑕","救人","救物","袭明"] },
+  { zhang:28, text:"知其雄，守其雌，为天下谿。为天下谿，常德不离，复归于婴儿。知其白，守其黑，为天下式。知其荣，守其辱，为天下谷。", key:["雄","雌","白","黑","荣","辱","婴儿","谷"] },
+  { zhang:29, text:"将欲取天下而为之，吾见其不得已。天下神器，不可为也，不可执也。为者败之，执者失之。是以圣人无为，故无败；无执，故无失。", key:["天下","神器","无为","败","失","执"] },
+  { zhang:30, text:"以道佐人主者，不以兵强天下，其事好还。师之所处，荆棘生焉。大军之后，必有凶年。善有果而已，不敢以取强。果而勿矜，果而勿伐，果而勿骄。", key:["兵","强","师","凶","果","强","荆棘"] },
+  { zhang:31, text:"夫兵者，不祥之器，物或恶之，故有道者不处。君子居则贵左，用兵则贵右。兵者不祥之器，非君子之器，不得已而用之，恬淡为上。", key:["兵","不祥","君子","不得已","恬淡"] },
+  { zhang:32, text:"道常无名。朴，虽小，天下莫能臣也。侯王若能守之，万物将自宾。天地相合，以降甘露，民莫之令而自均。", key:["无名","朴","小","自宾","甘露","自均"] },
+  { zhang:33, text:"知人者智，自知者明。胜人者有力，自胜者强。知足者富，强行者有志。不失其所者久，死而不亡者寿。", key:["知人","自知","胜人","自胜","知足","富","志","久","寿"] },
+  { zhang:34, text:"大道泛兮，其可左右。万物恃之以生而不辞，功成而弗名有。衣养万物而不为主，可名于小；万物归焉而不为主，可名为大。", key:["大道","泛","左右","万物","功成","衣养","大","小"] },
+  { zhang:35, text:"执大象，天下往。往而不害，安平太。乐与饵，过客止。道之出口，淡乎其无味，视之不足见，听之不足闻，用之不足既。", key:["大象","天下","安平太","道","淡","无味"] },
+  { zhang:36, text:"将欲歙之，必固张之；将欲弱之，必固强之；将欲废之，必固兴之；将欲取之，必固与之。是谓微明。柔弱胜刚强。", key:["歙","张","弱","强","废","兴","取","与","微明","柔胜刚"] },
+  { zhang:37, text:"道常无为而无不为。侯王若能守之，万物将自化。化而欲作，吾将镇之以无名之朴。无名之朴，夫亦将无欲。不欲以静，天下将自定。", key:["无为","自化","朴","无欲","静","自定"] },
+  { zhang:38, text:"上德不德，是以有德；下德不失德，是以无德。上德无为而无以为，下德无为而有以为。上仁为之而无以为，上义为之而有以为。上礼为之而莫之应，则攘臂而扔之。", key:["德","无为","仁","义","礼","上德","下德"] },
+  { zhang:39, text:"昔之得一者：天得一以清，地得一以宁，神得一以灵，谷得一以盈，万物得一以生，侯王得一以为天下贞。", key:["一","天","地","神","谷","万物","清","宁","贞"] },
+  { zhang:40, text:"反者道之动，弱者道之用。天下万物生于有，有生于无。", key:["反","弱","动","用","有","无","生"] },
+  { zhang:41, text:"上士闻道，勤而行之；中士闻道，若存若亡；下士闻道，大笑之，不笑不足以为道。故建言有之：明道若昧，进道若退，夷道若颣。", key:["上士","中士","下士","道","行","退","勤"] },
+  { zhang:42, text:"道生一，一生二，二生三，三生万物。万物负阴而抱阳，冲气以为和。", key:["一","二","三","万物","阴","阳","和","生"] },
+  { zhang:43, text:"天下之至柔，驰骋天下之至坚。无有入无间，吾是以知无为之有益。不言之教，无为之益，天下希及之。", key:["柔","坚","无有","无间","无为","不言"] },
+  { zhang:44, text:"名与身孰亲？身与货孰多？得与亡孰病？是故甚爱必大费，多藏必厚亡。知足者不辱，知止者不殆，可以长久。", key:["名","身","货","得","亡","知足","知止","长久"] },
+  { zhang:45, text:"大成若缺，其用不弊。大盈若冲，其用不穷。大直若屈，大巧若拙，大辩若讷。静胜躁，寒胜热，清静为天下正。", key:["大成","大盈","大直","大巧","大辩","静","躁","清静"] },
+  { zhang:46, text:"天下有道，却走马以粪；天下无道，戎马生于郊。罪莫大于可欲，祸莫大于不知足，咎莫大于欲得。故知足之足，常足矣。", key:["有道","无道","知足","欲","祸","罪","足"] },
+  { zhang:47, text:"不出户，知天下；不窥牖，见天道。其出弥远，其知弥少。是以圣人不行而知，不见而名，不为而成。", key:["不出户","天下","天道","知","圣人","不为而成"] },
+  { zhang:48, text:"为学日益，为道日损。损之又损，以至于无为。无为而无不为。取天下常以无事，及其有事，不足以取天下。", key:["为学","为道","日益","日损","无为","无事"] },
+  { zhang:49, text:"圣人无常心，以百姓心为心。善者，吾善之；不善者，吾亦善之，德善。信者，吾信之；不信者，吾亦信之，德信。", key:["圣人","百姓","善","信","德"] },
+  { zhang:50, text:"出生入死。生之徒，十有三；死之徒，十有三；人之生，动之于死地，亦十有三。夫何故？以其生生之厚。", key:["生","死","动","厚","出生入死"] },
+  { zhang:51, text:"道生之，德畜之，物形之，势成之。是以万物莫不尊道而贵德。道之尊，德之贵，夫莫之命而常自然。", key:["道","德","物","势","尊","贵","自然"] },
+  { zhang:52, text:"天下有始，以为天下母。既知其母，以知其子。既知其子，复守其母，没身不殆。", key:["始","母","子","守","殆","知"] },
+  { zhang:53, text:"使我介然有知，行于大道，惟施是畏。大道甚夷，而人好径。朝甚除，田甚芜，仓甚虚；服文彩，带利剑，厌饮食，财货有余；是谓盗夸，非道也哉！", key:["大道","径","盗夸","非道","朝","仓"] },
+  { zhang:54, text:"善建者不拔，善抱者不脱，子孙以祭祀不辍。修之于身，其德乃真；修之于家，其德乃余；修之于乡，其德乃长；修之于国，其德乃丰；修之于天下，其德乃普。", key:["善建","善抱","修身","德","家","乡","国","天下"] },
+  { zhang:55, text:"含德之厚，比于赤子。蜂虿虺蛇不螫，猛兽不据，攫鸟不搏。骨弱筋柔而握固，未知牝牡之合而朘作，精之至也。终日号而不嗄，和之至也。", key:["德","赤子","婴儿","柔","精","和"] },
+  { zhang:56, text:"知者不言，言者不知。塞其兑，闭其门，挫其锐，解其纷，和其光，同其尘，是谓玄同。", key:["知者不言","言者不知","玄同","塞","挫锐","和光"] },
+  { zhang:57, text:"以正治国，以奇用兵，以无事取天下。天下多忌讳，而民弥贫；民多利器，国家滋昏；人多伎巧，奇物滋起；法令滋彰，盗贼多有。", key:["正","奇","无事","治国","用兵","法令","忌讳"] },
+  { zhang:58, text:"其政闷闷，其民淳淳；其政察察，其民缺缺。祸兮福之所倚，福兮祸之所伏。孰知其极？其无正也。正复为奇，善复为妖。", key:["政","民","祸","福","倚","伏","正","奇"] },
+  { zhang:59, text:"治人事天，莫若啬。夫唯啬，是谓早服。早服谓之重积德，重积德则无不克，无不克则莫知其极。", key:["啬","德","克","极","服","治人事天"] },
+  { zhang:60, text:"治大国若烹小鲜。以道莅天下，其鬼不神。非其鬼不神，其神不伤人。非其神不伤人，圣人亦不伤人。", key:["治大国","烹小鲜","道","鬼","神","圣人"] },
+  { zhang:61, text:"大国者下流，天下之交，天下之牝。牝常以静胜牡，以静为下。故大国以下小国，则取小国；小国以下大国，则取大国。", key:["大国","小国","下","静","牝","交"] },
+  { zhang:62, text:"道者，万物之奥，善人之宝，不善人之所保。美言可以市尊，美行可以加人。人之不善，何弃之有？", key:["道","万物之奥","善人","美言","美行","不弃"] },
+  { zhang:63, text:"为无为，事无事，味无味。大小多少，报怨以德。图难于其易，为大于其细。天下难事必作于易，天下大事必作于细。", key:["无为","无事","报怨以德","易","细","难","大"] },
+  { zhang:64, text:"其安易持，其未兆易谋，其脆易泮，其微易散。为之于未有，治之于未乱。合抱之木，生于毫末；九层之台，起于累土；千里之行，始于足下。", key:["安","持","未兆","未乱","毫末","累土","足下","千里"] },
+  { zhang:65, text:"古之善为道者，非以明民，将以愚之。民之难治，以其智多。故以智治国，国之贼；不以智治国，国之福。", key:["善为道","智","愚","治国","福","贼"] },
+  { zhang:66, text:"江海所以能为百谷王者，以其善下之，故能为百谷王。是以欲上民，必以言下之；欲先民，必以身后之。", key:["江海","下","百谷","上","先","言","身"] },
+  { zhang:67, text:"天下皆谓我道大，似不肖。夫唯大，故似不肖。若肖，久矣其细也夫。我有三宝，持而保之：一曰慈，二曰俭，三曰不敢为天下先。", key:["三宝","慈","俭","不敢为先","道大"] },
+  { zhang:68, text:"善为士者不武，善战者不怒，善胜敌者不与，善用人者为之下。是谓不争之德，是谓用人之力，是谓配天之极。", key:["善战","不怒","不争","下","德","天","用人"] },
+  { zhang:69, text:"用兵有言：吾不敢为主，而为客；不敢进寸，而退尺。是谓行无行，攘无臂，扔无敌，执无兵。祸莫大于轻敌，轻敌几丧吾宝。", key:["用兵","退","轻敌","祸","丧","无行"] },
+  { zhang:70, text:"吾言甚易知，甚易行。天下莫能知，莫能行。言有宗，事有君。夫唯无知，是以不我知。知我者希，则我者贵。是以圣人被褐而怀玉。", key:["易知","易行","无知","知我者希","被褐怀玉"] },
+  { zhang:71, text:"知不知，尚矣；不知知，病也。夫唯病病，是以不病。圣人不病，以其病病，是以不病。", key:["知","不知","病","圣人","知不知"] },
+  { zhang:72, text:"民不畏威，则大威至。无狎其所居，无厌其所生。夫唯不厌，是以不厌。是以圣人自知不自见，自爱不自贵。", key:["威","自知","自爱","不自见","不自贵"] },
+  { zhang:73, text:"勇于敢则杀，勇于不敢则活。天之道，不争而善胜，不言而善应，不召而自来，繟然而善谋。天网恢恢，疏而不失。", key:["勇","敢","天道","不争","善胜","不言","天网恢恢"] },
+  { zhang:74, text:"民不畏死，奈何以死惧之？若使民常畏死，而为奇者，吾得执而杀之，孰敢？常有司杀者杀。夫代司杀者杀，是谓代大匠斫。", key:["死","惧","司杀","代斫","民","畏"] },
+  { zhang:75, text:"民之饥，以其上食税之多，是以饥。民之难治，以其上之有为，是以难治。民之轻死，以其上求生之厚，是以轻死。", key:["饥","税","难治","有为","轻死","求生","民"] },
+  { zhang:76, text:"人之生也柔弱，其死也坚强。草木之生也柔脆，其死也枯槁。故坚强者死之徒，柔弱者生之徒。是以兵强则灭，木强则折，强大处下，柔弱处上。", key:["柔弱","坚强","生","死","兵","折","上","下"] },
+  { zhang:77, text:"天之道，其犹张弓与？高者抑之，下者举之，有余者损之，不足者补之。天之道，损有余而补不足；人之道则不然，损不足以奉有余。", key:["天道","张弓","损有余","补不足","人道"] },
+  { zhang:78, text:"天下莫柔弱于水，而攻坚强者莫之能胜，以其无以易之。弱之胜强，柔之胜刚，天下莫不知，莫能行。", key:["水","柔弱","坚强","胜","知","行"] },
+  { zhang:79, text:"和大怨，必有余怨，安可以为善？是以圣人执左契，而不责于人。有德司契，无德司彻。天道无亲，常与善人。", key:["和怨","善","德","天道","善人","契"] },
+  { zhang:80, text:"小国寡民，使有什伯之器而不用，使民重死而不远徙。甘其食，美其服，安其居，乐其俗。邻国相望，鸡犬之声相闻，民至老死，不相往来。", key:["小国","寡民","甘食","美服","安居","乐俗","鸡犬"] },
+  { zhang:81, text:"信言不美，美言不信。善者不辩，辩者不善。知者不博，博者不知。圣人不积，既以为人己愈有，既以与人己愈多。天之道，利而不害；圣人之道，为而不争。", key:["信言","善者","知者","圣人","天道","不争","利"] },
+],
+
+// ─────────────────────────────────────────
+//  庄子·内篇（核心段落）
+// ─────────────────────────────────────────
+zhuangzi: [
+  { pian:"逍遥游", text:"北冥有鱼，其名为鲲。鲲之大，不知其几千里也。化而为鸟，其名为鹏。鹏之背，不知其几千里也；怒而飞，其翼若垂天之云。", key:["鲲","鹏","逍遥","飞","大","化"] },
+  { pian:"逍遥游", text:"风之积也不厚，则其负大翼也无力。故九万里则风斯在下矣，而后乃今培风；背负青天而莫之夭阏者，而后乃今将图南。", key:["风","九万里","大翼","青天","图南","积厚"] },
+  { pian:"逍遥游", text:"小知不及大知，小年不及大年。奚以知其然也？朝菌不知晦朔，蟪蛄不知春秋，此小年也。", key:["小知","大知","小年","大年","朝菌","蟪蛄"] },
+  { pian:"逍遥游", text:"若夫乘天地之正，而御六气之辩，以游无穷者，彼且恶乎待哉！故曰：至人无己，神人无功，圣人无名。", key:["至人","神人","圣人","无己","无功","无名","逍遥","无穷"] },
+  { pian:"齐物论", text:"天下莫大于秋豪之末，而太山为小；莫寿于殇子，而彭祖为夭。天地与我并生，而万物与我为一。", key:["齐物","万物为一","天地","并生","大小","寿夭"] },
+  { pian:"齐物论", text:"昔者庄周梦为胡蝶，栩栩然胡蝶也，自喻适志与！不知周也。俄然觉，则蘧蘧然周也。不知周之梦为胡蝶与，胡蝶之梦为周与？周与胡蝶，则必有分矣，此之谓物化。", key:["蝴蝶梦","物化","梦","觉","庄周"] },
+  { pian:"齐物论", text:"古之人，其知有所至矣。恶乎至？有以为未始有物者，至矣，尽矣，不可以加矣。其次以为有物矣，而未始有封也。其次以为有封焉，而未始有是非也。", key:["知","物","封","是非","至","古人"] },
+  { pian:"养生主", text:"吾生也有涯，而知也无涯。以有涯随无涯，殆已；已而为知者，殆而已矣。为善无近名，为恶无近刑。缘督以为经，可以保身，可以全生，可以养亲，可以尽年。", key:["生","知","有涯","无涯","养生","保身","全生"] },
+  { pian:"养生主", text:"庖丁为文惠君解牛，手之所触，肩之所倚，足之所履，膝之所踦，砉然响然，奏刀騞然，莫不中音。臣之所好者道也，进乎技矣。", key:["庖丁","解牛","道","技","养生","游刃有余"] },
+  { pian:"养生主", text:"彼节者有间，而刀刃者无厚；以无厚入有间，恢恢乎其于游刃必有余地矣。是以十九年而刀刃若新发于硎。", key:["游刃有余","节","刀刃","无厚","有间","技道"] },
+  { pian:"人间世", text:"知其不可奈何而安之若命，德之至也。", key:["不可奈何","安之若命","德","至"] },
+  { pian:"人间世", text:"山木自寇也，膏火自煎也。桂可食，故伐之；漆可用，故割之。人皆知有用之用，而莫知无用之用也。", key:["有用","无用","无用之用","山木","自寇"] },
+  { pian:"德充符", text:"平者，水停之盛也。其可以为法也，内保之而外不荡也。德者，成和之修也。德不形者，物不能离也。", key:["平","水","德","和","法","不形"] },
+  { pian:"大宗师", text:"夫道，有情有信，无为无形；可传而不可受，可得而不可见；自本自根，未有天地，自古以固存；神鬼神帝，生天生地；在太极之先而不为高，在六极之下而不为深。", key:["道","无为无形","可传","自本自根","神","天地"] },
+  { pian:"大宗师", text:"古之真人，不知说生，不知恶死；其出不欣，其入不距；翛然而往，翛然而来而已矣。不忘其所始，不求其所终；受而喜之，忘而复之，是之谓不以心捐道，不以人助天。", key:["真人","生死","不欣不距","道","天","心"] },
+  { pian:"应帝王", text:"至人之用心若镜，不将不迎，应而不藏，故能胜物而不伤。", key:["至人","镜","不将不迎","应","不藏","胜物"] },
+],
+
+// ─────────────────────────────────────────
+//  孙子兵法（十三篇核心句）
+// ─────────────────────────────────────────
+sunzi: [
+  { pian:"始计篇", text:"兵者，国之大事，死生之地，存亡之道，不可不察也。故经之以五事，校之以计而索其情：一曰道，二曰天，三曰地，四曰将，五曰法。", key:["兵","国","道","天","地","将","法","五事","大事"] },
+  { pian:"始计篇", text:"兵者，诡道也。故能而示之不能，用而示之不用，近而示之远，远而示之近。利而诱之，乱而取之，实而备之，强而避之，怒而挠之，卑而骄之，佚而劳之，亲而离之。", key:["诡道","示","利","乱","实","强","怒","卑","佚","亲"] },
+  { pian:"始计篇", text:"夫未战而庙算胜者，得算多也；未战而庙算不胜者，得算少也。多算胜，少算不胜，而况于无算乎！", key:["庙算","多算","少算","胜","谋","算"] },
+  { pian:"作战篇", text:"故兵贵胜，不贵久。故知兵之将，民之司命，国家安危之主也。", key:["兵贵胜","不贵久","知兵","将","安危"] },
+  { pian:"谋攻篇", text:"故上兵伐谋，其次伐交，其次伐兵，其下攻城。攻城之法，为不得已。", key:["上兵伐谋","伐交","伐兵","攻城","不得已"] },
+  { pian:"谋攻篇", text:"知彼知己，百战不殆；不知彼而知己，一胜一负；不知彼，不知己，每战必殆。", key:["知彼知己","百战不殆","胜","负","知"] },
+  { pian:"谋攻篇", text:"故用兵之法，十则围之，五则攻之，倍则分之，敌则能战之，少则能逃之，不若则能避之。故小敌之坚，大敌之擒也。", key:["十则围之","五则攻之","倍则分之","避","逃","坚"] },
+  { pian:"军形篇", text:"昔之善战者，先为不可胜，以待敌之可胜。不可胜在己，可胜在敌。故善战者，能为不可胜，不能使敌之必可胜。", key:["善战","不可胜","可胜","在己","在敌"] },
+  { pian:"兵势篇", text:"凡战者，以正合，以奇胜。故善出奇者，无穷如天地，不竭如江海。", key:["以正合","以奇胜","善出奇","无穷","天地","江海"] },
+  { pian:"虚实篇", text:"夫兵形象水，水之行避高而趋下，兵之形避实而击虚；水因地而制流，兵因敌而制胜。", key:["兵形","水","避高趋下","避实击虚","制流","制胜"] },
+  { pian:"虚实篇", text:"故善攻者，敌不知其所守；善守者，敌不知其所攻。微乎微乎，至于无形；神乎神乎，至于无声，故能为敌之司命。", key:["善攻","善守","无形","无声","微妙","司命"] },
+  { pian:"军争篇", text:"故其疾如风，其徐如林，侵掠如火，不动如山，难知如阴，动如雷震。", key:["疾如风","徐如林","侵掠如火","不动如山","难知如阴","动如雷震"] },
+  { pian:"九变篇", text:"故将有五危：必死可杀，必生可虏，忿速可侮，廉洁可辱，爱民可烦。凡此五者，将之过也，用兵之灾也。", key:["五危","将","过","死","生","忿","廉","爱民"] },
+  { pian:"地形篇", text:"知彼知己，胜乃不殆；知天知地，胜乃可全。", key:["知彼知己","知天知地","胜","全"] },
+  { pian:"火攻篇", text:"主不可以怒而兴师，将不可以愠而致战。合于利而动，不合于利而止。怒可以复喜，愠可以复悦，亡国不可以复存，死者不可以复生。", key:["怒","兴师","利","动","止","亡国","死者","复"] },
+  { pian:"用间篇", text:"故明君贤将，所以动而胜人，成功出于众者，先知也。先知者，不可取于鬼神，不可象于事，不可验于度，必取于人，知敌之情者也。", key:["明君","贤将","先知","胜","情报","人","知"] },
+],
+
+// ─────────────────────────────────────────
+//  孟子（核心章句）
+// ─────────────────────────────────────────
+mengzi: [
+  { pian:"梁惠王上", text:"孟子见梁惠王。王曰：'叟，不远千里而来，亦将有以利吾国乎？'孟子对曰：'王，何必曰利？亦有仁义而已矣。'", key:["仁义","利","王","何必曰利"] },
+  { pian:"梁惠王上", text:"老吾老，以及人之老；幼吾幼，以及人之幼，天下可运于掌。", key:["老","幼","仁","天下","推己及人"] },
+  { pian:"梁惠王上", text:"民为贵，社稷次之，君为轻。是故得乎丘民而为天子，得乎天子为诸侯，得乎诸侯为大夫。", key:["民贵","社稷","君轻","民为贵","天子"] },
+  { pian:"公孙丑上", text:"我善养吾浩然之气。其为气也，至大至刚，以直养而无害，则塞于天地之间。其为气也，配义与道；无是，馁也。", key:["浩然之气","至大至刚","养气","义","道","塞"] },
+  { pian:"公孙丑上", text:"天时不如地利，地利不如人和。", key:["天时","地利","人和","和"] },
+  { pian:"公孙丑上", text:"仁者无敌。", key:["仁者","无敌","仁"] },
+  { pian:"滕文公上", text:"劳心者治人，劳力者治于人；治于人者食人，治人者食于人，天下之通义也。", key:["劳心","劳力","治人","治于人","通义"] },
+  { pian:"离娄上", text:"仁，人之安宅也；义，人之正路也。旷安宅而弗居，舍正路而不由，哀哉！", key:["仁","义","安宅","正路","居","由"] },
+  { pian:"离娄上", text:"行有不得者，皆反求诸己，其身正而天下归之。", key:["反求诸己","正","天下归","行","得"] },
+  { pian:"离娄下", text:"大人者，言不必信，行不必果，惟义所在。", key:["大人","义","信","果","言行"] },
+  { pian:"万章下", text:"颂其诗，读其书，不知其人，可乎？是以论其世也。是尚友也。", key:["知人论世","诗","书","友","论世"] },
+  { pian:"告子上", text:"仁义礼智，非由外铄我也，我固有之也，弗思耳矣。故曰：求则得之，舍则失之。", key:["仁义礼智","固有","求","得","舍","失"] },
+  { pian:"告子上", text:"虽存乎人者，岂无仁义之心哉？其所以放其良心者，亦犹斧斤之于木也。", key:["仁义","良心","放","木","斧斤"] },
+  { pian:"告子下", text:"天将降大任于是人也，必先苦其心志，劳其筋骨，饿其体肤，空乏其身，行拂乱其所为，所以动心忍性，曾益其所不能。", key:["大任","苦心","劳筋骨","动心忍性","磨砺","增益"] },
+  { pian:"告子下", text:"生于忧患，死于安乐。", key:["忧患","安乐","生","死","居安思危"] },
+  { pian:"尽心上", text:"尽其心者，知其性也；知其性，则知天矣。存其心，养其性，所以事天也。", key:["尽心","知性","知天","存心","养性","事天"] },
+  { pian:"尽心上", text:"穷则独善其身，达则兼善天下。", key:["穷","达","独善","兼善","天下","修身"] },
+],
+
+// ─────────────────────────────────────────
+//  大学·中庸（核心原文）
+// ─────────────────────────────────────────
+daxue_zhongyong: [
+  { dian:"大学", text:"大学之道，在明明德，在亲民，在止于至善。知止而后有定，定而后能静，静而后能安，安而后能虑，虑而后能得。", key:["明明德","亲民","至善","知止","定","静","安","虑","得"] },
+  { dian:"大学", text:"物有本末，事有终始，知所先后，则近道矣。", key:["本末","终始","先后","道","知"] },
+  { dian:"大学", text:"古之欲明明德于天下者，先治其国；欲治其国者，先齐其家；欲齐其家者，先修其身；欲修其身者，先正其心；欲正其心者，先诚其意；欲诚其意者，先致其知；致知在格物。", key:["格物","致知","诚意","正心","修身","齐家","治国","平天下"] },
+  { dian:"大学", text:"物格而后知至，知至而后意诚，意诚而后心正，心正而后身修，身修而后家齐，家齐而后国治，国治而后天下平。", key:["格物","知至","意诚","心正","身修","家齐","国治","天下平"] },
+  { dian:"大学", text:"自天子以至于庶人，壹是皆以修身为本。其本乱而末治者否矣，其所厚者薄，而其所薄者厚，未之有也。", key:["修身为本","本","末","厚","薄","天子","庶人"] },
+  { dian:"中庸", text:"天命之谓性，率性之谓道，修道之谓教。道也者，不可须臾离也，可离非道也。", key:["天命","性","道","教","修道","不可离"] },
+  { dian:"中庸", text:"喜怒哀乐之未发，谓之中；发而皆中节，谓之和。中也者，天下之大本也；和也者，天下之达道也。", key:["中","和","喜怒哀乐","大本","达道","中节"] },
+  { dian:"中庸", text:"致中和，天地位焉，万物育焉。", key:["中和","天地","万物","位","育"] },
+  { dian:"中庸", text:"博学之，审问之，慎思之，明辨之，笃行之。有弗学，学之弗能，弗措也；有弗问，问之弗知，弗措也。", key:["博学","审问","慎思","明辨","笃行","学","问","思","辨","行"] },
+  { dian:"中庸", text:"诚者，天之道也；诚之者，人之道也。诚者不勉而中，不思而得，从容中道，圣人也。", key:["诚","天道","人道","中道","圣人","不勉","不思"] },
+  { dian:"中庸", text:"故至诚无息，不息则久，久则征，征则悠远，悠远则博厚，博厚则高明。", key:["至诚","无息","久","悠远","博厚","高明"] },
+],
+
+// ─────────────────────────────────────────
+//  易经·系辞传（上下）核心句
+// ─────────────────────────────────────────
+xici: [
+  { pian:"系辞上传", text:"天尊地卑，乾坤定矣。卑高以陈，贵贱位矣。动静有常，刚柔断矣。", key:["天","地","乾","坤","贵贱","刚柔","动静"] },
+  { pian:"系辞上传", text:"一阴一阳之谓道，继之者善也，成之者性也。仁者见之谓之仁，知者见之谓之知，百姓日用而不知，故君子之道鲜矣。", key:["一阴一阳","道","善","性","仁","知","君子","百姓"] },
+  { pian:"系辞上传", text:"易有太极，是生两仪，两仪生四象，四象生八卦，八卦定吉凶，吉凶生大业。", key:["太极","两仪","四象","八卦","吉凶","大业"] },
+  { pian:"系辞上传", text:"形而上者谓之道，形而下者谓之器。化而裁之谓之变，推而行之谓之通，举而措之天下之民谓之事业。", key:["形而上","道","形而下","器","变","通","事业"] },
+  { pian:"系辞上传", text:"圣人以此洗心，退藏于密，吉凶与民同患，神以知来，知以藏往。", key:["洗心","退藏","神","知来","藏往","圣人"] },
+  { pian:"系辞下传", text:"天地之大德曰生，圣人之大宝曰位，何以守位曰仁，何以聚人曰财，理财正辞、禁民为非曰义。", key:["天地大德","生","位","仁","财","义","圣人"] },
+  { pian:"系辞下传", text:"易穷则变，变则通，通则久。", key:["穷","变","通","久","易"] },
+  { pian:"系辞下传", text:"君子安而不忘危，存而不忘亡，治而不忘乱，是以身安而国家可保也。", key:["安不忘危","存不忘亡","治不忘乱","居安思危","保"] },
+  { pian:"系辞下传", text:"善不积不足以成名，恶不积不足以灭身。小人以小善为无益而弗为也，以小恶为无伤而弗去也，故恶积而不可掩，罪大而不可解。", key:["积善","积恶","小善","小恶","名","灭身"] },
+  { pian:"说卦传", text:"乾，健也；坤，顺也；震，动也；巽，入也；坎，陷也；离，丽也；艮，止也；兑，说也。", key:["乾健","坤顺","震动","巽入","坎陷","离丽","艮止","兑说","八卦"] },
+  { pian:"说卦传", text:"乾为天，为圜，为君，为父，为玉，为金，为寒，为冰，为大赤，为良马，为瘠马，为驳马，为木果。", key:["乾","天","君","父","金","玉","取象"] },
+  { pian:"说卦传", text:"坤为地，为母，为布，为釜，为吝啬，为均，为子母牛，为大舆，为文，为众，为柄，其于地也为黑。", key:["坤","地","母","均","文","众","取象"] },
+],
+
+// ─────────────────────────────────────────
+//  论语（全20篇核心章句，修订扩充版）
+// ─────────────────────────────────────────
+lunyu: [
+  { pian:"学而", text:"学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？", key:["学","习","朋","乐","君子","知"] },
+  { pian:"学而", text:"吾日三省吾身：为人谋而不忠乎？与朋友交而不信乎？传不习乎？", key:["三省","忠","信","习","自省"] },
+  { pian:"学而", text:"君子食无求饱，居无求安，敏于事而慎于言，就有道而正焉，可谓好学也已。", key:["君子","好学","敏事慎言","有道","正"] },
+  { pian:"为政", text:"为政以德，譬如北辰，居其所而众星共之。", key:["为政","德","北辰","众星"] },
+  { pian:"为政", text:"温故而知新，可以为师矣。", key:["温故","知新","师","学"] },
+  { pian:"为政", text:"学而不思则罔，思而不学则殆。", key:["学","思","罔","殆"] },
+  { pian:"为政", text:"知之为知之，不知为不知，是知也。", key:["知","不知","实事求是","知之"] },
+  { pian:"八佾", text:"人而不仁，如礼何？人而不仁，如乐何？", key:["仁","礼","乐","人"] },
+  { pian:"里仁", text:"里仁为美。择不处仁，焉得知？", key:["仁","美","择","知"] },
+  { pian:"里仁", text:"见贤思齐焉，见不贤而内自省也。", key:["贤","齐","自省","不贤"] },
+  { pian:"里仁", text:"父母在，不远游，游必有方。", key:["父母","游","方","孝"] },
+  { pian:"里仁", text:"德不孤，必有邻。", key:["德","孤","邻","仁"] },
+  { pian:"公冶长", text:"敏而好学，不耻下问，是以谓之文也。", key:["好学","下问","不耻","文","敏"] },
+  { pian:"雍也", text:"知之者不如好之者，好之者不如乐之者。", key:["知","好","乐","学习","兴趣"] },
+  { pian:"雍也", text:"质胜文则野，文胜质则史，文质彬彬，然后君子。", key:["质","文","彬彬","君子","野","史"] },
+  { pian:"述而", text:"三人行，必有我师焉。择其善者而从之，其不善者而改之。", key:["师","善","改","三人","从"] },
+  { pian:"述而", text:"不愤不启，不悱不发，举一隅不以三隅反，则不复也。", key:["愤","启","发","举一反三","教"] },
+  { pian:"述而", text:"志于道，据于德，依于仁，游于艺。", key:["志道","据德","依仁","游艺","道德仁艺"] },
+  { pian:"泰伯", text:"士不可以不弘毅，任重而道远。仁以为己任，不亦重乎？死而后已，不亦远乎？", key:["弘毅","任重","道远","仁","死而后已"] },
+  { pian:"泰伯", text:"民可使由之，不可使知之。", key:["民","由","知","治"] },
+  { pian:"子罕", text:"逝者如斯夫，不舍昼夜。", key:["逝","时间","昼夜","珍惜","流逝"] },
+  { pian:"子罕", text:"三军可夺帅也，匹夫不可夺志也。", key:["志","三军","帅","匹夫","意志"] },
+  { pian:"子罕", text:"后生可畏，焉知来者之不如今也？四十、五十而无闻焉，斯亦不足畏也已。", key:["后生可畏","年龄","进取","闻","畏"] },
+  { pian:"乡党", text:"食不厌精，脍不厌细。食饐而餲，鱼馁而肉败，不食。色恶，不食。臭恶，不食。失饪，不食。不时，不食。", key:["食","精","细","不时","饮食","养生"] },
+  { pian:"先进", text:"未知生，焉知死。", key:["生","死","知","务本"] },
+  { pian:"颜渊", text:"克己复礼为仁。一日克己复礼，天下归仁焉。为仁由己，而由人乎哉？", key:["仁","克己","复礼","天下","由己"] },
+  { pian:"颜渊", text:"己所不欲，勿施于人。", key:["己","不欲","勿施","仁","恕"] },
+  { pian:"颜渊", text:"君子成人之美，不成人之恶，小人反是。", key:["君子","成人之美","小人","美","恶"] },
+  { pian:"子路", text:"其身正，不令而行；其身不正，虽令不从。", key:["身正","令","行","不正","从"] },
+  { pian:"子路", text:"名不正则言不顺，言不顺则事不成。", key:["正名","言","顺","事成"] },
+  { pian:"宪问", text:"修己以敬，修己以安人，修己以安百姓。", key:["修己","敬","安人","安百姓"] },
+  { pian:"卫灵公", text:"工欲善其事，必先利其器。", key:["工","善事","利器","准备","工具"] },
+  { pian:"卫灵公", text:"人无远虑，必有近忧。", key:["远虑","近忧","谋","计划"] },
+  { pian:"卫灵公", text:"过而不改，是谓过矣。", key:["过","改","错误","知错改错"] },
+  { pian:"季氏", text:"生而知之者，上也；学而知之者，次也；困而学之，又其次也；困而不学，民斯为下矣。", key:["生知","学知","困学","上","下","知"] },
+  { pian:"阳货", text:"性相近也，习相远也。", key:["性","习","近","远","教育"] },
+  { pian:"微子", text:"往者不可谏，来者犹可追。", key:["往","来","谏","追","过去","未来"] },
+  { pian:"子张", text:"博学而笃志，切问而近思，仁在其中矣。", key:["博学","笃志","切问","近思","仁"] },
+  { pian:"尧曰", text:"不知命，无以为君子也；不知礼，无以立也；不知言，无以知人也。", key:["知命","知礼","知言","知人","君子"] },
+],
+
+// ─────────────────────────────────────────
+//  黄帝内经（扩充修订版）
+// ─────────────────────────────────────────
+neijing: [
+  { pian:"素问·上古天真论", text:"上古之人，其知道者，法于阴阳，和于术数，食饮有节，起居有常，不妄作劳，故能形与神俱，而尽终其天年，度百岁乃去。", key:["养生","天年","阴阳","节","起居","形神"] },
+  { pian:"素问·上古天真论", text:"今时之人不然也，以酒为浆，以妄为常，醉以入房，以欲竭其精，以耗散其真，不知持满，不时御神，务快其心，逆于生乐，起居无节，故半百而衰也。", key:["酒","妄","精","耗","衰","无节","逆"] },
+  { pian:"素问·上古天真论", text:"虚邪贼风，避之有时，恬惔虚无，真气从之，精神内守，病安从来。", key:["虚邪贼风","恬惔虚无","真气","精神内守","病","避"] },
+  { pian:"素问·四气调神大论", text:"春三月，此谓发陈。天地俱生，万物以荣，夜卧早起，广步于庭，被发缓形，以使志生，生而勿杀，予而勿夺，赏而勿罚，此春气之应，养生之道也。", key:["春","发陈","早起","志","生","养生"] },
+  { pian:"素问·四气调神大论", text:"夏三月，此谓蕃秀。天地气交，万物华实，夜卧早起，无厌于日，使志无怒，使华英成秀，使气得泄，若所爱在外，此夏气之应，养长之道也。", key:["夏","蕃秀","志","怒","气泄","养长"] },
+  { pian:"素问·四气调神大论", text:"秋三月，此谓容平。天气以急，地气以明，早卧早起，与鸡俱兴，使志安宁，以缓秋刑，收敛神气，使秋气平，无外其志，使肺气清，此秋气之应，养收之道也。", key:["秋","容平","收敛","肺","早卧早起","养收"] },
+  { pian:"素问·四气调神大论", text:"冬三月，此谓闭藏。水冰地坼，无扰乎阳，早卧晚起，必待日光，使志若伏若匿，若有私意，若已有得，去寒就温，无泄皮肤，使气亟夺，此冬气之应，养藏之道也。", key:["冬","闭藏","藏","早卧晚起","寒","温","肾","养藏"] },
+  { pian:"素问·四气调神大论", text:"圣人不治已病，治未病；不治已乱，治未乱。夫病已成而后药之，乱已成而后治之，譬犹渴而穿井，斗而铸锥，不亦晚乎？", key:["治未病","已病","预防","圣人","养生"] },
+  { pian:"素问·阴阳应象大论", text:"阴阳者，天地之道也，万物之纲纪，变化之父母，生杀之本始，神明之府也，治病必求于本。", key:["阴阳","天地","道","变化","生杀","本","治病"] },
+  { pian:"素问·阴阳应象大论", text:"天有四时五行，以生长收藏，以生寒暑燥湿风。人有五脏化五气，以生喜怒悲忧恐。", key:["四时","五行","五脏","喜怒悲忧恐","寒暑燥湿风"] },
+  { pian:"素问·阴阳应象大论", text:"怒伤肝，悲胜怒；喜伤心，恐胜喜；思伤脾，怒胜思；忧伤肺，喜胜忧；恐伤肾，思胜恐。", key:["怒","肝","喜","心","思","脾","忧","肺","恐","肾","情志"] },
+  { pian:"素问·阴阳应象大论", text:"壮火之气衰，少火之气壮。壮火食气，气食少火。壮火散气，少火生气。", key:["壮火","少火","气","生","散","食"] },
+  { pian:"素问·灵兰秘典论", text:"心者，君主之官也，神明出焉。肺者，相傅之官，治节出焉。肝者，将军之官，谋虑出焉。胆者，中正之官，决断出焉。", key:["心","肺","肝","胆","脏腑","官","神明","决断","谋虑"] },
+  { pian:"素问·灵兰秘典论", text:"脾胃者，仓廪之官，五味出焉。肾者，作强之官，伎巧出焉。膀胱者，州都之官，津液藏焉，气化则能出矣。", key:["脾","胃","肾","膀胱","津液","五味","气化"] },
+  { pian:"素问·生气通天论", text:"阳气者，若天与日，失其所，则折寿而不彰，故天运当以日光明。是故阳因而上，卫外者也。", key:["阳气","天","日","寿","卫外","上"] },
+  { pian:"素问·金匮真言论", text:"春气者，病在头；夏气者，病在脏；秋气者，病在肩背；冬气者，病在四肢。", key:["春","夏","秋","冬","头","脏","肩背","四肢"] },
+  { pian:"素问·举痛论", text:"余知百病生于气也，怒则气上，喜则气缓，悲则气消，恐则气下，寒则气收，炅则气泄，惊则气乱，劳则气耗，思则气结。", key:["气","怒","喜","悲","恐","惊","劳","思","百病"] },
+  { pian:"素问·藏气法时论", text:"肝色青，宜食甘，粳米、牛肉、枣、葵皆甘。心色赤，宜食酸，小豆、犬肉、李、韭皆酸。肺色白，宜食苦，麦、羊肉、杏、薤皆苦。肾色黑，宜食辛，黄黍、鸡肉、桃、葱皆辛。脾色黄，宜食咸，大豆、猪肉、栗、藿皆咸。", key:["五色","五味","肝","心","肺","肾","脾","饮食","食疗"] },
+  { pian:"素问·至真要大论", text:"寒者热之，热者寒之，微者逆之，甚者从之，坚者削之，客者除之，劳者温之，结者散之，留者攻之，燥者濡之，急者缓之，散者收之。", key:["寒热","治则","逆从","散","收","温","润"] },
+  { pian:"灵枢·本神", text:"天之在我者德也，地之在我者气也，德流气薄而生者也。故生之来谓之精；两精相搏谓之神；随神往来者谓之魂；并精而出入者谓之魄。", key:["精","神","魂","魄","德","气","生"] },
+  { pian:"灵枢·经脉", text:"经脉者，所以能决死生，处百病，调虚实，不可不通也。", key:["经脉","死生","百病","虚实","通"] },
+  { pian:"灵枢·经脉", text:"肺手太阴之脉，起于中焦，下络大肠，还循胃口，上膈属肺，从肺系横出腋下，下循臑内，行少阴心主之前，下肘中，循臂内上骨下廉，入寸口，上鱼，循鱼际，出大指之端。", key:["肺经","手太阴","经脉","循行","腧穴"] },
+  { pian:"素问·宝命全形论", text:"天覆地载，万物悉备，莫贵于人。人以天地之气生，四时之法成。", key:["天地","人","四时","气","贵","生"] },
+  { pian:"灵枢·顺气一日分为四时", text:"春生、夏长、秋收、冬藏，是气之常也，人亦应之。以一日分为四时，朝则为春，日中为夏，日入为秋，夜半为冬。", key:["春生","夏长","秋收","冬藏","朝","日中","日入","夜半","时辰"] },
+  { pian:"素问·疏五过论", text:"凡欲诊病者，必问饮食居处，暴乐暴苦，始乐后苦，皆伤精气；精气竭绝，形体毁沮。暴怒伤阴，暴喜伤阳。", key:["诊病","饮食","居处","精气","怒","喜","伤"] },
+],
+
+// ─────────────────────────────────────────
+//  易经·64卦（卦辞+象辞+核心爻辞）完整版
+// ─────────────────────────────────────────
+yijing: [
+  { id:1, name:"乾", full:"乾为天", ci:"元，亨，利，贞。", xiang:"天行健，君子以自强不息。", yaoci:"初九：潜龙，勿用。九二：见龙在田，利见大人。九五：飞龙在天，利见大人。上九：亢龙有悔。", key:["元亨","自强","刚健","龙","天","潜龙","飞龙","亢龙"] },
+  { id:2, name:"坤", full:"坤为地", ci:"元，亨，利，牝马之贞。君子有攸往，先迷后得主。", xiang:"地势坤，君子以厚德载物。", yaoci:"初六：履霜，坚冰至。六三：含章可贞。六六：龙战于野，其血玄黄。", key:["厚德","载物","柔顺","地","顺","履霜"] },
+  { id:3, name:"屯", full:"水雷屯", ci:"元亨，利贞，勿用有攸往，利建侯。", xiang:"云雷屯，君子以经纶。", yaoci:"初九：磐桓，利居贞，利建侯。六三：即鹿无虞，惟入于林中，君子几，不如舍，往吝。", key:["屯难","初生","建侯","艰难","经纶"] },
+  { id:4, name:"蒙", full:"山水蒙", ci:"亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告，利贞。", xiang:"山下出泉，蒙，君子以果行育德。", yaoci:"初六：发蒙，利用刑人，用说桎梏，以往吝。九二：包蒙，吉。", key:["蒙昧","启蒙","求学","童蒙","育德"] },
+  { id:5, name:"需", full:"水天需", ci:"有孚，光亨，贞吉，利涉大川。", xiang:"云上于天，需，君子以饮食宴乐。", yaoci:"九五：需于酒食，贞吉。上六：入于穴，有不速之客三人来，敬之终吉。", key:["等待","需时","饮食","有孚","涉川"] },
+  { id:6, name:"讼", full:"天水讼", ci:"有孚，窒，惕，中吉，终凶。利见大人，不利涉大川。", xiang:"天与水违行，讼，君子以作事谋始。", yaoci:"初六：不永所事，小有言，终吉。九五：讼，元吉。", key:["争讼","谋始","不利","大人","窒"] },
+  { id:7, name:"师", full:"地水师", ci:"贞，丈人，吉无咎。", xiang:"地中有水，师，君子以容民畜众。", yaoci:"初六：师出以律，否臧凶。九二：在师，中吉，无咎。", key:["军事","师众","丈人","容民","贞"] },
+  { id:8, name:"比", full:"水地比", ci:"吉，原筮，元永贞，无咎。不宁方来，后夫凶。", xiang:"地上有水，比，先王以建万国，亲诸侯。", yaoci:"初六：有孚，比之，无咎。九五：显比，王用三驱，失前禽，邑人不诫，吉。", key:["亲比","团结","建国","亲侯","吉"] },
+  { id:11, name:"泰", full:"地天泰", ci:"小往大来，吉，亨。", xiang:"天地交，泰，后以财成天地之道，辅相天地之宜，以左右民。", yaoci:"初九：拔茅茹，以其汇，征吉。九三：无平不陂，无往不复，艰贞无咎。", key:["泰","吉","小往大来","天地交","亨"] },
+  { id:12, name:"否", full:"天地否", ci:"否之匪人，不利君子贞，大往小来。", xiang:"天地不交，否，君子以俭德辟难，不可荣以禄。", yaoci:"初六：拔茅茹，以其汇，贞吉，亨。九五：休否，大人吉。", key:["否","不通","俭德","大往小来","难"] },
+  { id:13, name:"同人", full:"天火同人", ci:"同人于野，亨，利涉大川，利君子贞。", xiang:"天与火，同人，君子以类族辨物。", yaoci:"初九：同人于门，无咎。九五：同人，先号啕而后笑，大师克相遇。", key:["同人","野","亨","君子","同心"] },
+  { id:14, name:"大有", full:"火天大有", ci:"元亨。", xiang:"火在天上，大有，君子以遏恶扬善，顺天休命。", yaoci:"初九：无交害，匪咎，艰则无咎。九五：厥孚交如，威如，吉。", key:["大有","元亨","善","顺天","盛"] },
+  { id:15, name:"谦", full:"地山谦", ci:"亨，君子有终。", xiang:"地中有山，谦，君子以裒多益寡，称物平施。", yaoci:"初六：谦谦君子，用涉大川，吉。六五：不富，以其邻，利用侵伐，无不利。", key:["谦","谦逊","君子","平","终"] },
+  { id:16, name:"豫", full:"雷地豫", ci:"利建侯行师。", xiang:"雷出地奋，豫，先王以作乐崇德，殷荐之上帝，以配祖考。", yaoci:"初六：鸣豫，凶。六五：贞疾，恒不死。", key:["豫","喜悦","乐","建侯","德"] },
+  { id:17, name:"随", full:"泽雷随", ci:"元亨，利贞，无咎。", xiang:"泽中有雷，随，君子以向晦入宴息。", yaoci:"初九：官有渝，贞吉，出门交有功。九四：随有获，贞凶，有孚在道，以明何咎。", key:["随","顺从","无咎","随时","元亨"] },
+  { id:24, name:"复", full:"地雷复", ci:"亨，出入无疾，朋来无咎。反复其道，七日来复，利有攸往。", xiang:"雷在地中，复，先王以至日闭关，商旅不行，后不省方。", yaoci:"初九：不远复，无祇悔，元吉。六四：中行独复。", key:["复","一阳来复","亨","七日","回归"] },
+  { id:29, name:"坎", full:"坎为水", ci:"习坎，有孚，维心亨，行有尚。", xiang:"水洊至，习坎，君子以常德行，习教事。", yaoci:"初六：习坎，入于坎窞，凶。九五：坎不盈，祗既平，无咎。", key:["坎","险","水","有孚","常德"] },
+  { id:30, name:"离", full:"离为火", ci:"利贞，亨，畜牝牛，吉。", xiang:"明两作，离，大人以继明照于四方。", yaoci:"初九：履错然，敬之，无咎。九五：出涕沱若，戚嗟若，吉。", key:["离","火","明","照","继明"] },
+  { id:32, name:"恒", full:"雷风恒", ci:"亨，无咎，利贞，利有攸往。", xiang:"雷风恒，君子以立不易方。", yaoci:"初六：浚恒，贞凶，无攸利。九二：悔亡。九四：田无禽。", key:["恒","持久","立","不易","恒心"] },
+  { id:39, name:"蹇", full:"水山蹇", ci:"利西南，不利东北，利见大人，贞吉。", xiang:"山上有水，蹇，君子以反身修德。", yaoci:"初六：往蹇，来誉。六二：王臣蹇蹇，匪躬之故。", key:["蹇","艰难","修德","反身","利西南"] },
+  { id:40, name:"解", full:"雷水解", ci:"利西南，无所往，其来复吉，有攸往，夙吉。", xiang:"雷雨作，解，君子以赦过宥罪。", yaoci:"初六：无咎。九四：解而拇，朋至斯孚。", key:["解","解脱","赦","宥","利西南"] },
+  { id:47, name:"困", full:"泽水困", ci:"亨，贞，大人吉，无咎，有言不信。", xiang:"泽无水，困，君子以致命遂志。", yaoci:"初六：臀困于株木，入于幽谷，三岁不觌。九五：劓刖，困于赤绂，乃徐有说，利用祭祀。", key:["困","困境","遂志","致命","大人"] },
+  { id:49, name:"革", full:"泽火革", ci:"己日乃孚，元亨，利贞，悔亡。", xiang:"泽中有火，革，君子以治历明时。", yaoci:"初九：巩用黄牛之革。九五：大人虎变，未占有孚。", key:["革","变革","改革","元亨","明时","虎变"] },
+  { id:50, name:"鼎", full:"火风鼎", ci:"元吉，亨。", xiang:"木上有火，鼎，君子以正位凝命。", yaoci:"初六：鼎颠趾，利出否。九五：鼎黄耳，金铉，利贞。", key:["鼎","革故鼎新","元吉","正位","凝命"] },
+  { id:51, name:"震", full:"震为雷", ci:"亨，震来虩虩，笑言哑哑，震惊百里，不丧匕鬯。", xiang:"洊雷，震，君子以恐惧修省。", yaoci:"初九：震来虩虩，后笑言哑哑，吉。六二：震来厉，亿丧贝，跻于九陵，勿逐，七日得。", key:["震","雷","恐惧","修省","惊"] },
+  { id:52, name:"艮", full:"艮为山", ci:"艮其背，不获其身，行其庭，不见其人，无咎。", xiang:"兼山，艮，君子以思不出其位。", yaoci:"初六：艮其趾，无咎，利永贞。九三：艮其限，列其夤，厉薰心。", key:["艮","止","山","思位","无咎"] },
+  { id:55, name:"丰", full:"雷火丰", ci:"亨，王假之，勿忧，宜日中。", xiang:"雷电皆至，丰，君子以折狱致刑。", yaoci:"初九：遇其配主，虽旬无咎，往有尚。六二：丰其蔀，日中见斗，往得疑疾，有孚发若，吉。", key:["丰","丰盛","日中","亨","盛极"] },
+  { id:63, name:"既济", full:"水火既济", ci:"亨，小利贞，初吉终乱。", xiang:"水在火上，既济，君子以思患而预防之。", yaoci:"初九：曳其轮，濡其尾，无咎。九五：东邻杀牛，不如西邻之禴祭，实受其福。", key:["既济","完成","初吉","预防","既成"] },
+  { id:64, name:"未济", full:"火水未济", ci:"亨，小狐汔济，濡其尾，无攸利。", xiang:"火在水上，未济，君子以慎辨物居方。", yaoci:"初六：濡其尾，吝。九五：贞吉，无悔，君子之光，有孚，吉。", key:["未济","未成","慎","辨物","亨"] },
+],
+
+// ─────────────────────────────────────────
+//  24节气养生（修订版：内经引用严格核查）
+// ─────────────────────────────────────────
+jieqi: {
+  "立春": { date:"2月4日前后", wuxing:"木", zang:"肝", yangsheng:"立春肝气始升，宜疏肝理气。《素问·四气调神大论》言：「春三月，此谓发陈，天地俱生，万物以荣，夜卧早起，广步于庭，被发缓形，以使志生。」宜多食辛甘升发之品，如韭菜、香菜、葱。情志宜舒畅，忌郁怒压抑。", neijing:"《素问·四气调神大论》：「春三月，此谓发陈，天地俱生，万物以荣，夜卧早起，广步于庭，被发缓形，以使志生，生而勿杀，予而勿夺，赏而勿罚，此春气之应，养生之道也。」", shichen:"寅时（3-5点）肺经当令，宜深眠养气；卯时（5-7点）大肠经当令，晨起排便；辰时（7-9点）胃经当令，宜早餐。" },
+  "雨水": { date:"2月19日前后", wuxing:"土", zang:"脾", yangsheng:"雨水时节湿气渐重，脾主运化水湿，宜健脾化湿。《素问·灵兰秘典论》言脾胃为仓廪之官，此时护脾最要。食薏米、山药、红枣温补脾胃，少食生冷。", neijing:"《素问·灵兰秘典论》：「脾胃者，仓廪之官，五味出焉。」", shichen:"巳时（9-11点）脾经当令，宜健脾运化；午时（11-13点）心经当令，宜小憩养心神。" },
+  "惊蛰": { date:"3月6日前后", wuxing:"木", zang:"肝", yangsheng:"惊蛰春雷动，阳气大升，肝气旺盛。《素问·灵兰秘典论》言「肝者，将军之官，谋虑出焉」，春令宜护肝。饮食宜清淡，少食酸收。可做伸展运动舒展筋骨。", neijing:"《素问·灵兰秘典论》：「肝者，将军之官，谋虑出焉。胆者，中正之官，决断出焉。」", shichen:"丑时（1-3点）肝经当令，须熟睡以养肝血；子时（23-1点）胆经当令，宜23点前入睡。" },
+  "春分": { date:"3月21日前后", wuxing:"木", zang:"肝", yangsheng:"春分阴阳均等，《素问·阴阳应象大论》言「阴阳者，天地之道也，万物之纲纪」，此时宜调和阴阳，饮食不可偏颇。多食当季蔬菜，保持情绪平和。", neijing:"《素问·阴阳应象大论》：「阴阳者，天地之道也，万物之纲纪，变化之父母，生杀之本始，神明之府也，治病必求于本。」", shichen:"卯时（5-7点）大肠经当令，晨起排便清肠；申时（15-17点）膀胱经当令，多饮温水。" },
+  "清明": { date:"4月5日前后", wuxing:"木", zang:"肝", yangsheng:"清明肝木旺盛，《素问·举痛论》言「怒则气上」，此节气须防肝气太过化火。宜踏青舒畅情志，少食发物。可用菊花、桑叶泡茶清肝明目。", neijing:"《素问·举痛论》：「余知百病生于气也，怒则气上，喜则气缓，悲则气消，恐则气下。」", shichen:"寅时肺经当令，宜早起深呼吸；辰时胃经当令，早餐必食。" },
+  "谷雨": { date:"4月20日前后", wuxing:"土", zang:"脾", yangsheng:"谷雨湿气最重，《素问·阴阳应象大论》言湿与脾相应，宜祛湿健脾。食薏仁、赤小豆、冬瓜利湿。少食甜腻生湿之品。", neijing:"《素问·阴阳应象大论》：「天有四时五行，以生长收藏，以生寒暑燥湿风。人有五脏化五气，以生喜怒悲忧恐。」", shichen:"未时（13-15点）小肠经当令，饭后缓行助消化；戌时（19-21点）心包经当令，宜放松休闲。" },
+  "立夏": { date:"5月6日前后", wuxing:"火", zang:"心", yangsheng:"立夏心气当令，《素问·四气调神大论》言「夏三月，此谓蕃秀，使志无怒，使气得泄」。宜食苦味清心，如莲子、苦瓜。午时小憩养心神，避免大汗伤心气。", neijing:"《素问·四气调神大论》：「夏三月，此谓蕃秀，天地气交，万物华实，夜卧早起，无厌于日，使志无怒。」", shichen:"午时（11-13点）心经当令，宜养心小憩；未时小肠经当令，饭后可轻微活动。" },
+  "小满": { date:"5月21日前后", wuxing:"火", zang:"心", yangsheng:"小满湿热渐重，《素问·举痛论》言「炅则气泄」，暑热之时气随汗泄，需防过汗伤气。食冬瓜、绿豆清热利湿。居所保持通风干燥。", neijing:"《素问·举痛论》：「炅则气泄，惊则气乱，劳则气耗，思则气结。」", shichen:"申时（15-17点）膀胱经当令，宜多饮温水；酉时（17-19点）肾经当令，散步固肾气。" },
+  "芒种": { date:"6月6日前后", wuxing:"火", zang:"心", yangsheng:"芒种暑热渐盛，《素问·金匮真言论》言「夏气者，病在脏」，心为夏令之脏，暑热最易扰心。宜清心解暑，食西瓜、绿豆、莲子。作息规律，午睡养心。", neijing:"《素问·金匮真言论》：「春气者，病在头；夏气者，病在脏；秋气者，病在肩背；冬气者，病在四肢。」", shichen:"子时护胆，丑时护肝，此两时辰须熟睡，为全天精气之本。" },
+  "夏至": { date:"6月21日前后", wuxing:"火", zang:"心", yangsheng:"夏至阳极一阴生，《素问·灵兰秘典论》言「心者，君主之官也，神明出焉」。夏至养心即养神明。避烈日，多食酸甘，心静自然凉。此为冬病夏治要时。", neijing:"《素问·灵兰秘典论》：「心者，君主之官也，神明出焉。」", shichen:"午时（11-13点）心经当令，最宜养心；子时23点前务必入睡以养阳。" },
+  "小暑": { date:"7月7日前后", wuxing:"火", zang:"心", yangsheng:"小暑酷热，《素问·举痛论》言「劳则气耗」，暑月过劳气更虚，宜静养。清热消暑，食冬瓜、苦瓜、绿豆汤。少动多静，防中暑伤气。", neijing:"《素问·举痛论》：「劳则气耗，思则气结，余知百病生于气也。」", shichen:"卯时大肠经当令，晨起排便清热；申时膀胱经当令，补充水分。" },
+  "大暑": { date:"7月23日前后", wuxing:"土", zang:"脾", yangsheng:"大暑一年最热，《素问·四气调神大论》言「天地气交，万物华实」，大暑阳气最盛，此时补阳事半功倍。饮食宜清淡，多食薏米、莲子。适度运动以出汗排湿。", neijing:"《素问·四气调神大论》：「夏三月，此谓蕃秀，天地气交，万物华实。」", shichen:"早晨5-7点最凉宜晨练；午时最热须休息；傍晚酉时肾经当令可散步。" },
+  "立秋": { date:"8月7日前后", wuxing:"金", zang:"肺", yangsheng:"立秋肺气当令，《素问·四气调神大论》言「秋三月，此谓容平，收敛神气，使秋气平，使肺气清」。秋燥伤肺，宜食梨、蜂蜜、百合、银耳滋润。开始早睡早起。", neijing:"《素问·四气调神大论》：「秋三月，此谓容平，天气以急，地气以明，早卧早起，与鸡俱兴，使志安宁，以缓秋刑，收敛神气，使秋气平，无外其志，使肺气清。」", shichen:"寅时（3-5点）肺经当令，须熟睡养肺；卯时大肠经当令，晨起排便。" },
+  "处暑": { date:"8月23日前后", wuxing:"金", zang:"肺", yangsheng:"处暑暑气渐退，《素问·灵兰秘典论》言「肺者，相傅之官，治节出焉」，秋季护肺即护全身气机。宜养肺润燥，食沙参、玉竹、麦冬。注意防秋凉。", neijing:"《素问·灵兰秘典论》：「肺者，相傅之官，治节出焉。」", shichen:"戌时（19-21点）心包经当令，宜放松娱乐；亥时（21-23点）三焦经当令，准备入睡。" },
+  "白露": { date:"9月8日前后", wuxing:"金", zang:"肺", yangsheng:"白露秋燥更重，《素问·至真要大论》言「燥者濡之」，秋燥须滋润以对。多食梨、荸荠、百合、银耳。足部保暖，切勿赤脚着凉。", neijing:"《素问·至真要大论》：「燥者濡之，急者缓之，散者收之，损者温之。」", shichen:"寅时肺经当令，最宜深度睡眠养肺；申时膀胱经当令，多饮温水。" },
+  "秋分": { date:"9月23日前后", wuxing:"金", zang:"肺", yangsheng:"秋分阴阳再平衡，《素问·阴阳应象大论》言「阴阳者，天地之道也」。此时宜滋阴敛阳，收神气。食芝麻、核桃、银耳。情绪宜平和，防秋悲伤肺。", neijing:"《素问·阴阳应象大论》：「天有四时五行，以生长收藏，以生寒暑燥湿风。人有五脏化五气，以生喜怒悲忧恐。」", shichen:"卯时晨起深呼吸；寅时熟睡养肺；酉时（17-19点）肾经当令，保肾气。" },
+  "寒露": { date:"10月8日前后", wuxing:"金", zang:"肺", yangsheng:"寒露寒气渐重，《素问·四气调神大论》言冬之收藏已见苗头，须防寒护阳。食温热之品：山药、莲子、红枣、核桃。重视足部保暖，睡前泡脚。", neijing:"《素问·四气调神大论》：「冬三月，此谓闭藏，去寒就温，无泄皮肤，使气亟夺。」", shichen:"丑时（1-3点）肝经当令，须深度睡眠；子时（23-1点）胆经当令，须在此前入睡。" },
+  "霜降": { date:"10月23日前后", wuxing:"土", zang:"脾", yangsheng:"霜降是秋冬之交，《素问·灵兰秘典论》言脾胃为后天之本，霜降补脾即为冬季储能。食栗子、山药、南瓜补脾益气。防秋燥，多饮温水。", neijing:"《素问·灵兰秘典论》：「脾胃者，仓廪之官，五味出焉。」", shichen:"巳时（9-11点）脾经当令，宜健脾运化；午时养心小憩不可少。" },
+  "立冬": { date:"11月7日前后", wuxing:"水", zang:"肾", yangsheng:"立冬开始冬藏，《素问·四气调神大论》言「冬三月，此谓闭藏，水冰地坼，无扰乎阳，早卧晚起，必待日光」。肾为冬脏，宜补肾藏精。食黑豆、黑芝麻、核桃。", neijing:"《素问·四气调神大论》：「冬三月，此谓闭藏，水冰地坼，无扰乎阳，早卧晚起，必待日光，使志若伏若匿，若有私意，若已有得，去寒就温。」", shichen:"子时亥时须熟睡，此两时辰阴气最盛，宜静养；午时小憩片刻以养阳。" },
+  "小雪": { date:"11月22日前后", wuxing:"水", zang:"肾", yangsheng:"小雪寒气加重，《素问·阴阳应象大论》言「恐伤肾，思胜恐」，冬季肾虚易生恐慌，宜以平静之思化解。温补肾阳，食羊肉、韭菜、核桃。多晒太阳。", neijing:"《素问·阴阳应象大论》：「怒伤肝，悲胜怒；喜伤心，恐胜喜；思伤脾，怒胜思；忧伤肺，喜胜忧；恐伤肾，思胜恐。」", shichen:"酉时（17-19点）肾经当令，是补肾最佳时机；亥时三焦经当令，宜温水泡脚入睡。" },
+  "大雪": { date:"12月7日前后", wuxing:"水", zang:"肾", yangsheng:"大雪寒冬深处，《素问·灵兰秘典论》言「肾者，作强之官，伎巧出焉」，肾藏精，精气足则体力强。宜大补肾精，食枸杞、核桃、黑芝麻。防寒护颈背腰膝。", neijing:"《素问·灵兰秘典论》：「肾者，作强之官，伎巧出焉。膀胱者，州都之官，津液藏焉，气化则能出矣。」", shichen:"子时前务必入睡；丑时肝经当令，熟睡以藏血；寅时肺经当令，深睡以养肺气。" },
+  "冬至": { date:"12月22日前后", wuxing:"水", zang:"肾", yangsheng:"冬至一阳生，《素问·金匮真言论》言「冬气者，病在四肢」，冬至护四肢即护全身阳气之根本。此为养生最关键节点，宜温补阳气，食羊肉汤、当归生姜。此日起阳气渐复。", neijing:"《素问·金匮真言论》：「春气者，病在头；夏气者，病在脏；秋气者，病在肩背；冬气者，病在四肢。」", shichen:"子时（23-1点）一阳来复，此时入睡即为顺应天时养阳；午时小憩以接天阳。" },
+  "小寒": { date:"1月6日前后", wuxing:"水", zang:"肾", yangsheng:"小寒为全年最冷时节，《素问·至真要大论》言「寒者热之」，寒邪为患以热法治之。食热饮暖皆合此道，食羊肉、红枣、桂圆、生姜。防寒护阳，勿过度运动耗气。", neijing:"《素问·至真要大论》：「寒者热之，热者寒之，微者逆之，甚者从之。」", shichen:"子时前入睡养阳；晨间寅卯时起床后，需待阳光再做户外活动。" },
+  "大寒": { date:"1月20日前后", wuxing:"水", zang:"肾", yangsheng:"大寒岁末，《素问·四气调神大论》言「冬三月，使志若伏若匿，若有私意，若已有得」，冬季须收藏情志，不可轻易外泄。进补收尾，固本培元，食山药、黄芪、枸杞炖汤。", neijing:"《素问·四气调神大论》：「冬三月，此谓闭藏，使志若伏若匿，若有私意，若已有得。」", shichen:"全天注意保暖；亥子两时务必入睡，为明年春天养足精气。" },
+}
+
+}; // end CLASSICS
+
+// ═══════════════════════════════════════════════════════════
+//  RAG检索引擎 v2.0
+// ═══════════════════════════════════════════════════════════
+
+function tokenize(text) {
+  const tokens = new Set();
+  for (let i = 0; i < text.length; i++) {
+    for (let len = 1; len <= 4; len++) {
+      if (i + len <= text.length) tokens.add(text.slice(i, i + len));
+    }
+  }
+  return tokens;
+}
+
+function scoreDoc(query, keywords, text) {
+  let s = 0;
+  const qt = tokenize(query);
+  // keyword exact match (high weight)
+  (keywords || []).forEach(k => { if (query.includes(k)) s += 4; });
+  // text token overlap
+  const tt = tokenize(text || '');
+  qt.forEach(t => { if (tt.has(t) && t.length >= 2) s += 1; });
+  return s;
+}
+
+function retrieveClassics(query, scene) {
+  const results = [];
+
+  const addTop = (arr, labelFn, contentFn, count = 3) => {
+    arr.map(x => ({ ...x, _s: scoreDoc(query, x.key || [], labelFn(x) + ' ' + contentFn(x)) }))
+       .sort((a, b) => b._s - a._s)
+       .slice(0, count)
+       .forEach(x => results.push({ type: x._type, title: labelFn(x), content: contentFn(x) }));
+  };
+
+  if (scene === 'A' || scene === 'C') {
+    CLASSICS.tuibei.forEach(x => x._type = '推背图（民间流传版）');
+    addTop(CLASSICS.tuibei,
+      x => x.xiang,
+      x => `谶曰：${x.chen}\n颂曰：${x.song}\n解：${x.jietu}`,
+      scene === 'C' ? 2 : 3
+    );
+  }
+
+  if (scene === 'B' || scene === 'E') {
+    CLASSICS.neijing.forEach(x => x._type = '黄帝内经');
+    addTop(CLASSICS.neijing, x => x.pian, x => x.text, 4);
+  }
+
+  if (scene === 'D') {
+    CLASSICS.yijing.forEach(x => x._type = '易经');
+    addTop(CLASSICS.yijing,
+      x => x.full,
+      x => `卦辞：${x.ci}\n象辞：${x.xiang}\n爻辞：${x.yaoci || ''}`,
+      3
+    );
+    CLASSICS.xici.forEach(x => x._type = '易经·系辞传');
+    addTop(CLASSICS.xici, x => x.pian, x => x.text, 2);
+  }
+
+  if (scene === 'F') {
+    CLASSICS.daodejing.forEach(x => x._type = '道德经');
+    addTop(CLASSICS.daodejing, x => `第${x.zhang}章`, x => x.text, 3);
+    CLASSICS.zhuangzi.forEach(x => x._type = '庄子');
+    addTop(CLASSICS.zhuangzi, x => `庄子·${x.pian}`, x => x.text, 2);
+    CLASSICS.lunyu.forEach(x => x._type = '论语');
+    addTop(CLASSICS.lunyu, x => `论语·${x.pian}`, x => x.text, 2);
+    CLASSICS.sunzi.forEach(x => x._type = '孙子兵法');
+    addTop(CLASSICS.sunzi, x => `孙子·${x.pian}`, x => x.text, 1);
+    CLASSICS.mengzi.forEach(x => x._type = '孟子');
+    addTop(CLASSICS.mengzi, x => `孟子·${x.pian}`, x => x.text, 1);
+    CLASSICS.daxue_zhongyong.forEach(x => x._type = x.dian);
+    addTop(CLASSICS.daxue_zhongyong, x => x.dian, x => x.text, 1);
+  }
+
+  // ALL：跨典籍全量语义检索（Step2 概念增强用）
+  if (scene === 'ALL') {
+    CLASSICS.daodejing.forEach(x => x._type = '道德经');
+    addTop(CLASSICS.daodejing, x => `第${x.zhang}章`, x => x.text, 3);
+    CLASSICS.neijing.forEach(x => x._type = '黄帝内经');
+    addTop(CLASSICS.neijing, x => x.pian, x => x.text, 3);
+    CLASSICS.lunyu.forEach(x => x._type = '论语');
+    addTop(CLASSICS.lunyu, x => `论语·${x.pian}`, x => x.text, 2);
+    CLASSICS.mengzi.forEach(x => x._type = '孟子');
+    addTop(CLASSICS.mengzi, x => `孟子·${x.pian}`, x => x.text, 2);
+    CLASSICS.zhuangzi.forEach(x => x._type = '庄子');
+    addTop(CLASSICS.zhuangzi, x => `庄子·${x.pian}`, x => x.text, 2);
+    CLASSICS.sunzi.forEach(x => x._type = '孙子兵法');
+    addTop(CLASSICS.sunzi, x => `孙子·${x.pian}`, x => x.text, 2);
+    CLASSICS.xici.forEach(x => x._type = '易经系辞');
+    addTop(CLASSICS.xici, x => x.pian, x => x.text, 1);
+    CLASSICS.tuibei.forEach(x => x._type = '推背图');
+    addTop(CLASSICS.tuibei, x => x.xiang, x => `谶：${x.chen} 颂：${x.song}`, 2);
+  }
+
+  return results;
+}
+
+function formatContext(results) {
+  return results
+    .filter(r => r._s === undefined || r._s > 0)
+    .map(r => `【${r.type}·${r.title}】\n${r.content}`)
+    .join('\n\n');
+}
+
+function getJieqiData(name) {
+  return CLASSICS.jieqi[name] || null;
+}
+
+
+// ══════════════════════════════════════
+//  THREE.JS — 道教星象系统
+//  北斗七星 · 二十八宿四象 · 三垣 · 五行星
+// ══════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('c');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
+  cam.position.set(0, 0, 8);
+
+  // ── 背景星空（密集小星，模拟银河）──
+  const bgGeo = new THREE.BufferGeometry();
+  const bgPos = new Float32Array(6000 * 3);
+  const bgCol = new Float32Array(6000 * 3);
+  for(let i = 0; i < 6000; i++){
+    bgPos[i*3]   = (Math.random() - .5) * 160;
+    bgPos[i*3+1] = (Math.random() - .5) * 160;
+    bgPos[i*3+2] = (Math.random() - .5) * 100 - 20;
+    // 银河带：z轴压扁，y轴倾斜
+    const hue = Math.random() < .2 ? .13 : Math.random() * .4 + .55;
+    const c = new THREE.Color().setHSL(hue, Math.random() * .4 + .2, Math.random() * .3 + .3);
+    bgCol[i*3]=c.r; bgCol[i*3+1]=c.g; bgCol[i*3+2]=c.b;
+  }
+  bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+  bgGeo.setAttribute('color',    new THREE.BufferAttribute(bgCol, 3));
+  scene.add(new THREE.Points(bgGeo, new THREE.PointsMaterial({
+    size:.04, vertexColors:true, transparent:true, opacity:.6, depthWrite:false
+  })));
+
+  // ── 近景亮星 ──
+  const nearGeo = new THREE.BufferGeometry();
+  const nearPos = new Float32Array(200 * 3);
+  for(let i = 0; i < 200; i++){
+    nearPos[i*3]   = (Math.random()-.5)*60;
+    nearPos[i*3+1] = (Math.random()-.5)*60;
+    nearPos[i*3+2] = (Math.random()-.5)*30 - 5;
+  }
+  nearGeo.setAttribute('position', new THREE.BufferAttribute(nearPos, 3));
+  scene.add(new THREE.Points(nearGeo, new THREE.PointsMaterial({
+    size:.15, color:0xffffff, transparent:true, opacity:.9, depthWrite:false
+  })));
+
+  // ── 北斗七星（真实相对位置，放大居中）──
+  // 基于实际星图坐标（RA/Dec转换后归一化）
+  const BEIDOU = [
+    { name:'天枢', x:-2.2, y: 1.2, z:-2, mag:1.8, color:0xffd4a0 }, // α 大熊
+    { name:'天璇', x:-1.5, y: 1.0, z:-2, mag:2.4, color:0xffe0b0 }, // β
+    { name:'天玑', x:-0.8, y: 1.4, z:-2, mag:2.4, color:0xffeedd }, // γ
+    { name:'天权', x:-0.3, y: 1.1, z:-2, mag:3.3, color:0xffffff  }, // δ（较暗）
+    { name:'玉衡', x: 0.5, y: 1.5, z:-2, mag:1.8, color:0xffd4a0 }, // ε
+    { name:'开阳', x: 1.4, y: 1.8, z:-2, mag:2.1, color:0xffeedd }, // ζ
+    { name:'摇光', x: 2.2, y: 1.4, z:-2, mag:1.9, color:0xffd4a0 }, // η
+  ];
+
+  const beidouGroup = new THREE.Group();
+  scene.add(beidouGroup);
+
+  // 星点
+  BEIDOU.forEach((star, i) => {
+    const size = (4 - star.mag) * 0.06 + 0.08;
+    const geo = new THREE.SphereGeometry(size, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({
+      color: star.color, transparent:true, opacity:.95
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(star.x, star.y, star.z);
+    mesh.userData = { name: star.name, idx: i };
+    beidouGroup.add(mesh);
+
+    // 星名标签（用发光点代替文字）
+    const glowGeo = new THREE.SphereGeometry(size * 2.5, 8, 8);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: star.color, transparent:true, opacity:.15
+    });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    glow.position.copy(mesh.position);
+    beidouGroup.add(glow);
+  });
+
+  // 北斗连线
+  const beidouLinePoints = BEIDOU.map(s => new THREE.Vector3(s.x, s.y, s.z));
+  const beidouLineMat = new THREE.LineBasicMaterial({
+    color: 0xc9a84c, transparent:true, opacity:.5
+  });
+  beidouGroup.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(beidouLinePoints),
+    beidouLineMat
+  ));
+
+  // 北极星
+  const polarGeo = new THREE.SphereGeometry(.12, 12, 12);
+  const polarMat = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.95});
+  const polarStar = new THREE.Mesh(polarGeo, polarMat);
+  polarStar.position.set(0, 3.5, -2);
+  scene.add(polarStar);
+  // 北极星光晕
+  const polarGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(.35, 12, 12),
+    new THREE.MeshBasicMaterial({color:0xaaddff, transparent:true, opacity:.12})
+  );
+  polarGlow.position.copy(polarStar.position);
+  scene.add(polarGlow);
+
+  // 北斗指向北极星的虚线
+  const pointerPts = [
+    new THREE.Vector3(BEIDOU[0].x, BEIDOU[0].y, BEIDOU[0].z),
+    new THREE.Vector3(BEIDOU[1].x, BEIDOU[1].y, BEIDOU[1].z),
+    new THREE.Vector3(0, 3.5, -2),
+  ];
+  beidouGroup.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pointerPts),
+    new THREE.LineBasicMaterial({color:0x7baad4, transparent:true, opacity:.25, dashSize:.1, gapSize:.1})
+  ));
+
+  // ── 二十八宿·四象（真实分组）──
+  // 东青龙7宿 南朱雀7宿 西白虎7宿 北玄武7宿
+  const SIFANG = [
+    { name:'东青龙', xius:['角','亢','氐','房','心','尾','箕'], color:0x44dd88, hue:.38 },
+    { name:'南朱雀', xius:['井','鬼','柳','星','张','翼','轸'], color:0xff6644, hue:.05 },
+    { name:'西白虎', xius:['奎','娄','胃','昴','毕','觜','参'], color:0xddddff, hue:.65 },
+    { name:'北玄武', xius:['斗','牛','女','虚','危','室','壁'], color:0x4488ff, hue:.60 },
+  ];
+
+  const xiuGroup = new THREE.Group();
+  xiuGroup.position.z = -1;
+  scene.add(xiuGroup);
+
+  const XIU_RADIUS = 3.8;
+  SIFANG.forEach((fang, fi) => {
+    const baseAngle = (fi / 4) * Math.PI * 2 - Math.PI / 2;
+    fang.xius.forEach((xiu, xi) => {
+      const angle = baseAngle + (xi - 3) * (Math.PI * 2 / 28);
+      const r = XIU_RADIUS + (Math.random() - .5) * .3;
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r * .7; // 压扁成椭圆更像星图
+
+      const starGeo = new THREE.SphereGeometry(.06, 6, 6);
+      const starMat = new THREE.MeshBasicMaterial({
+        color: fang.color, transparent:true, opacity:.8
+      });
+      const star = new THREE.Mesh(starGeo, starMat);
+      star.position.set(x, y, 0);
+      star.userData = { xiu, fang: fang.name };
+      xiuGroup.add(star);
+
+      // 小光晕
+      const haloMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(.18, 6, 6),
+        new THREE.MeshBasicMaterial({color: fang.color, transparent:true, opacity:.08})
+      );
+      haloMesh.position.copy(star.position);
+      xiuGroup.add(haloMesh);
+    });
+
+    // 四象弧线
+    const arcPts = [];
+    for(let a = baseAngle - Math.PI/4*0.9; a <= baseAngle + Math.PI/4*0.9; a += 0.05){
+      arcPts.push(new THREE.Vector3(
+        Math.cos(a) * XIU_RADIUS,
+        Math.sin(a) * XIU_RADIUS * .7,
+        0
+      ));
+    }
+    xiuGroup.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(arcPts),
+      new THREE.LineBasicMaterial({color: fang.color, transparent:true, opacity:.2})
+    ));
+  });
+
+  // ── 三垣（紫微垣/太微垣/天市垣）环形区域 ──
+  const YUAN = [
+    { name:'紫微垣', r:.9,  color:0x9966ff, opacity:.12 }, // 中央
+    { name:'太微垣', r:2.0, color:0xc9a84c, opacity:.07 }, // 外圈
+    { name:'天市垣', r:3.0, color:0x44aaff, opacity:.05 }, // 更外
+  ];
+  YUAN.forEach(yuan => {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(yuan.r, .015, 6, 80),
+      new THREE.MeshBasicMaterial({color: yuan.color, transparent:true, opacity: yuan.opacity * 3})
+    );
+    ring.position.z = -1.5;
+    scene.add(ring);
+  });
+
+  // ── 八卦环（居中，比北斗小，有仪式感）──
+  const baguaGroup = new THREE.Group();
+  baguaGroup.position.set(0, 0, -1.5);
+  scene.add(baguaGroup);
+
+  // 外环
+  baguaGroup.add(new THREE.Mesh(
+    new THREE.TorusGeometry(1.8, .007, 8, 100),
+    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.4})
+  ));
+  // 内环
+  baguaGroup.add(new THREE.Mesh(
+    new THREE.TorusGeometry(1.2, .005, 8, 80),
+    new THREE.MeshBasicMaterial({color:0x9966ff, transparent:true, opacity:.25})
+  ));
+  // 八条辐射线
+  for(let i = 0; i < 8; i++){
+    const a = (i/8) * Math.PI * 2;
+    const pts = [
+      new THREE.Vector3(Math.cos(a)*.35, Math.sin(a)*.35, 0),
+      new THREE.Vector3(Math.cos(a)*1.8, Math.sin(a)*1.8, 0),
+    ];
+    baguaGroup.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({color:0xc9a84c, transparent:true, opacity:.18})
+    ));
+  }
+  // 八卦爻（八个方位）
+  const TRI = [[1,1,1],[1,0,1],[0,1,1],[1,1,0],[0,0,1],[1,0,0],[0,1,0],[0,0,0]];
+  TRI.forEach((pat, idx) => {
+    const angle = (idx/8)*Math.PI*2 - Math.PI/2;
+    const r = 2.15;
+    const cx = Math.cos(angle)*r, cy = Math.sin(angle)*r;
+    pat.forEach((yang, li) => {
+      const ly = cy + (li-1)*0.11;
+      if(yang){
+        baguaGroup.add(new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(cx-.16, ly, 0),
+            new THREE.Vector3(cx+.16, ly, 0),
+          ]),
+          new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.6})
+        ));
+      } else {
+        [-.07, .07].forEach(ox => {
+          baguaGroup.add(new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(cx+ox-.08, ly, 0),
+              new THREE.Vector3(cx+ox+.02, ly, 0),
+            ]),
+            new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.4})
+          ));
+        });
+      }
+    });
+  });
+  // 太极圆心
+  baguaGroup.add(new THREE.Mesh(
+    new THREE.CircleGeometry(.22, 32),
+    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.35})
+  ));
+
+  // ── 五行星（金木水火土 对应五颗行星，轨道运行）──
+  const WUXING_PLANETS = [
+    { name:'木星', element:'木', color:0x88cc66, orbit:2.8, speed:.18, phase:0    },
+    { name:'火星', element:'火', color:0xff6633, orbit:3.3, speed:.28, phase:1.2  },
+    { name:'土星', element:'土', color:0xddaa44, orbit:3.8, speed:.12, phase:2.4  },
+    { name:'金星', element:'金', color:0xffffff, orbit:2.2, speed:.35, phase:3.6  },
+    { name:'水星', element:'水', color:0x44aaff, orbit:1.7, speed:.45, phase:4.8  },
+  ];
+  const planetMeshes = WUXING_PLANETS.map(p => {
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(.07, 8, 8),
+      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.9})
+    );
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(.2, 8, 8),
+      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.1})
+    );
+    mesh.userData = p;
+    scene.add(mesh);
+    scene.add(glow);
+    return {mesh, glow, ...p};
+  });
+
+  // ── 结果页星尘 ──
+  const dustGeo = new THREE.BufferGeometry();
+  const dustPos = new Float32Array(3000*3);
+  const dustCol = new Float32Array(3000*3);
+  for(let i = 0; i < 3000; i++){
+    const theta = Math.random()*Math.PI*2, phi = Math.random()*Math.PI;
+    const r = 3 + Math.random()*8;
+    dustPos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+    dustPos[i*3+1] = r*Math.cos(phi)*.35;
+    dustPos[i*3+2] = r*Math.sin(phi)*Math.sin(theta) - 4;
+    const c = new THREE.Color().setHSL(Math.random()*.12, .85, .72);
+    dustCol[i*3]=c.r; dustCol[i*3+1]=c.g; dustCol[i*3+2]=c.b;
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+  dustGeo.setAttribute('color',    new THREE.BufferAttribute(dustCol, 3));
+  const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+    size:.032, vertexColors:true, transparent:true, opacity:0, depthWrite:false
+  }));
+  scene.add(dust);
+
+  // ── 场景高亮：根据问题场景高亮对应星宿 ──
+  window._highlightScene = function(scene){
+    // 重置所有星宿亮度
+    xiuGroup.children.forEach(c => {
+      if(c.material) c.material.opacity = c.geometry.type === 'SphereGeometry' ?
+        (c.geometry.parameters.radius > .1 ? .08 : .8) : .08;
+    });
+    // 根据场景高亮对应四象
+    const sceneMap = {
+      'B': 0, // 养生→东青龙（肝木）
+      'C': 1, // 时事→南朱雀（火/势）
+      'A': 2, // 命理→西白虎
+      'E': 3, // 节气→北玄武（水/肾）
+      'D': 0, // 易经→东青龙
+      'F': 1, // 道家→南朱雀
+    };
+    const targetFang = sceneMap[scene];
+    if(targetFang !== undefined){
+      let count = 0;
+      xiuGroup.children.forEach(c => {
+        if(c.userData && c.userData.fang === SIFANG[targetFang].name){
+          if(c.material){
+            c.material.opacity = c.geometry.parameters?.radius > .1 ? .35 : .95;
+          }
+          count++;
+        }
+      });
+    }
+    // 对应五行星高亮
+    const planetMap = {'B':'木星','C':'火星','E':'水星','A':'土星','D':'木星','F':'金星'};
+    const targetPlanet = planetMap[scene];
+    planetMeshes.forEach(p => {
+      p.mesh.material.opacity = p.name === targetPlanet ? 1 : .9;
+      p.glow.material.opacity = p.name === targetPlanet ? .35 : .1;
+      p.glow.scale.setScalar(p.name === targetPlanet ? 1.8 : 1);
+    });
+  };
+
+  let mx=0, my=0, inResult=false;
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX/innerWidth - .5) * 2;
+    my = -(e.clientY/innerHeight - .5) * 2;
+  });
+
+
+  // ── 浑天仪 ──
+  const hunGroup = new THREE.Group();
+  hunGroup.position.set(0,-.3,-.5);
+  scene.add(hunGroup);
+  hunGroup.add(new THREE.Mesh(new THREE.TorusGeometry(1.15,.018,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.55})));
+  const huangHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,80),new THREE.MeshBasicMaterial({color:0xe8cc7a,transparent:true,opacity:.45}));
+  huangHuan.rotation.x=0.41;hunGroup.add(huangHuan);
+  const zwHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.010,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.35}));
+  zwHuan.rotation.y=Math.PI/2;hunGroup.add(zwHuan);
+  const dpHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.010,8,80),new THREE.MeshBasicMaterial({color:0x9966ff,transparent:true,opacity:.28}));
+  dpHuan.rotation.x=Math.PI/2;hunGroup.add(dpHuan);
+  hunGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,2.5,8),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.5})));
+  const kuiG=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,1.6,6),new THREE.MeshBasicMaterial({color:0xffd4a0,transparent:true,opacity:.6}));
+  kuiG.rotation.z=Math.PI/2;hunGroup.add(kuiG);
+
+  // ── 日晷 ──
+  (function(){
+    const names=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    let ticks='';
+    for(let i=0;i<12;i++){
+      const a=(i/12)*Math.PI*2-Math.PI/2;
+      const x1=(65+Math.cos(a)*48).toFixed(1),y1=(65+Math.sin(a)*48).toFixed(1);
+      const x2=(65+Math.cos(a)*56).toFixed(1),y2=(65+Math.sin(a)*56).toFixed(1);
+      const xt=(65+Math.cos(a)*40).toFixed(1),yt=(65+Math.sin(a)*40+4).toFixed(1);
+      ticks+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>';
+      ticks+='<text x="'+xt+'" y="'+yt+'" text-anchor="middle" fill="rgba(201,168,76,0.7)" font-size="9" font-family="serif">'+names[i]+'</text>';
+    }
+    const wrap=document.createElement('div');
+    wrap.id='sundial';
+    wrap.style.cssText='position:fixed;bottom:1.8rem;left:1.8rem;z-index:100;width:120px;height:120px;pointer-events:none;transition:opacity .5s;';
+    wrap.innerHTML='<svg viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">'
+      +'<circle cx="65" cy="65" r="60" fill="rgba(0,0,0,.55)" stroke="rgba(201,168,76,.4)" stroke-width="1.5"/>'
+      +ticks
+      +'<line id="gnomon" x1="65" y1="65" x2="65" y2="18" stroke="#e8cc7a" stroke-width="2" stroke-linecap="round"/>'
+      +'<circle id="shichen-dot" cx="65" cy="20" r="4" fill="#c9a84c" opacity="0.9"/>'
+      +'<circle cx="65" cy="65" r="4" fill="rgba(201,168,76,.8)"/>'
+      +'<text x="65" y="114" text-anchor="middle" fill="rgba(201,168,76,0.45)" font-size="8" font-family="serif" letter-spacing="1">十二時辰儀</text>'
+      +'<text id="shichen-txt" x="65" y="76" text-anchor="middle" fill="rgba(245,239,224,0.85)" font-size="11" font-family="serif"></text>'
+      +'</svg>';
+    document.body.appendChild(wrap);
+    function updateSundial(){
+      const now=new Date(),h24=now.getHours(),min=now.getMinutes();
+      const SC=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+      const curSC=SC[Math.floor(((h24+1)%24)/2)];
+      const angle=((h24*60+min)/720)*Math.PI*2-Math.PI/2;
+      const r=44,gx=(65+Math.cos(angle)*r).toFixed(1),gy=(65+Math.sin(angle)*r).toFixed(1);
+      const g=document.getElementById('gnomon'),dot=document.getElementById('shichen-dot'),txt=document.getElementById('shichen-txt');
+      if(g){g.setAttribute('x2',gx);g.setAttribute('y2',gy);}
+      if(dot){dot.setAttribute('cx',gx);dot.setAttribute('cy',gy);}
+      if(txt){txt.textContent=curSC+'時';}
+    }
+    updateSundial();setInterval(updateSundial,60000);
+  })();
+
+  window._setResultMode = function(on){
+    inResult=on;
+    var sd=document.getElementById('sundial');if(sd)sd.style.opacity=on?'0':'1';
+    const tgt = on ? .7 : 0, step = on ? .018 : -.025;
+    const iv = setInterval(() => {
+      dust.material.opacity += step;
+      if((step>0 && dust.material.opacity>=tgt)||(step<0 && dust.material.opacity<=tgt)){
+        dust.material.opacity = tgt; clearInterval(iv);
+      }
+    }, 16);
+    // 八卦环结果页淡化
+    baguaGroup.children.forEach(c => {
+      if(c.material) c.material.opacity *= on ? .35 : 1;
+    });
+    // 北斗七星保持可见
+    beidouGroup.children.forEach(c => {
+      if(c.material) c.material.opacity *= on ? .5 : 1;
+    });
+  };
+
+  const clock = new THREE.Clock();
+  const pageOpenedAt = Date.now();
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  const tip = document.getElementById('celestialTip');
+  window._skyMode = localStorage.getItem('shenshu_sky_mode') || 'real';
+
+  function realSkyAngle(){
+    const now = new Date();
+    return ((now.getHours()*60 + now.getMinutes() + now.getSeconds()/60) / 1440) * Math.PI * 2;
+  }
+
+  window.addEventListener('click', function(e){
+    const clickTarget=e.target;
+    if(inResult || (clickTarget instanceof Element && clickTarget.closest('button,textarea,.q-box,.pills,.hist-wrap,.experience-controls'))) return;
+    pointer.x = (e.clientX / innerWidth) * 2 - 1;
+    pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+    raycaster.setFromCamera(pointer, cam);
+    const targets = [];
+    beidouGroup.children.forEach(function(c){ if(c.userData && c.userData.name) targets.push(c); });
+    xiuGroup.children.forEach(function(c){ if(c.userData && c.userData.xiu) targets.push(c); });
+    planetMeshes.forEach(function(p){ targets.push(p.mesh); });
+    const hit = raycaster.intersectObjects(targets, false)[0];
+    if(!hit){ tip.style.display='none'; return; }
+    const d = hit.object.userData || {};
+    const text = d.name ? `${d.name}${d.element ? ' · 五行'+d.element : ' · 北斗'}` : `${d.xiu}宿 · ${d.fang}`;
+    tip.textContent = text;
+    tip.style.left = Math.min(e.clientX+12, innerWidth-150)+'px';
+    tip.style.top = Math.min(e.clientY+12, innerHeight-60)+'px';
+    tip.style.display = 'block';
+    setTimeout(function(){tip.style.display='none';},2200);
+  });
+
+  (function animate(){
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    if(typeof hunGroup!=='undefined'){hunGroup.rotation.y=t*.07;if(hunGroup.children[1])hunGroup.children[1].rotation.z=t*.04;}
+    // 背景星空缓慢旋转
+    bgGeo.getAttribute('position');
+    scene.children[0].rotation.y = t * .008;
+    scene.children[0].rotation.x = Math.sin(t * .05) * .02;
+
+    const realMode = window._skyMode === 'real';
+    const elapsedReal = (Date.now() - pageOpenedAt) / 1000;
+    const skyAngle = realSkyAngle();
+
+    // 实时模式按当前时刻定位；灵境模式保持原有舞台动画
+    xiuGroup.rotation.z = realMode ? skyAngle : t * .02;
+
+    // 五行星轨道运行
+    planetMeshes.forEach(p => {
+      const angle = (realMode ? skyAngle * (.45 + p.speed) : t * p.speed) + p.phase;
+      const x = Math.cos(angle) * p.orbit;
+      const y = Math.sin(angle) * p.orbit * .4;
+      p.mesh.position.set(x, y, -1);
+      p.glow.position.copy(p.mesh.position);
+    });
+
+    // 北极星光晕脉动
+    const pulse = 1 + Math.sin(t * 1.5) * .08;
+    polarGlow.scale.setScalar(pulse);
+
+    if(!inResult){
+      // 首页：北斗七星缓慢绕北极星旋转
+      beidouGroup.rotation.z = realMode ? skyAngle : t * .06;
+      // 八卦环旋转
+      baguaGroup.rotation.z = realMode ? skyAngle / 8 + elapsedReal * .00003 : t * .12;
+      baguaGroup.rotation.x = my * .05 + Math.sin(t*.35) * .03;
+      baguaGroup.scale.setScalar(1 + Math.sin(t*.9)*.03);
+      // 视差
+      cam.position.x += (mx*.5 - cam.position.x) * .04;
+      cam.position.y += (my*.3 - cam.position.y) * .04;
+    } else {
+      beidouGroup.rotation.z += .0008;
+      baguaGroup.rotation.z += .001;
+      cam.position.x += (mx*.15 - cam.position.x) * .03;
+      cam.position.y += (my*.1  - cam.position.y) * .03;
+    }
+    cam.lookAt(0, 0, 0);
+    renderer.render(scene, cam);
+  })();
+
+  window.addEventListener('resize', () => {
+    cam.aspect = innerWidth/innerHeight;
+    cam.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+})();
+
+// ══ 八卦方位標籤 ══
+(function(){
+  const BAGUA=[
+    {name:'乾',sub:'天',angle:-90,r:46},{name:'坎',sub:'水',angle:-45,r:46},
+    {name:'艮',sub:'山',angle:0,r:46},{name:'震',sub:'雷',angle:45,r:46},
+    {name:'巽',sub:'風',angle:90,r:46},{name:'離',sub:'火',angle:135,r:46},
+    {name:'坤',sub:'地',angle:180,r:46},{name:'兌',sub:'澤',angle:-135,r:46},
+  ];
+  const container=document.getElementById('baguaLabels');
+  BAGUA.forEach(({name,sub,angle})=>{
+    const el=document.createElement('div');
+    el.className='bgla';
+    el.innerHTML=`<span style="display:block;font-size:.8rem">${name}</span><span style="display:block;font-size:.55rem;opacity:.6">${sub}</span>`;
+    const rad=(angle-90)*Math.PI/180;
+    const r=42; // % from center
+    el.style.left=`${50+r*Math.cos(rad)*.6}%`; // *0.6 because aspect ratio
+    el.style.top=`${50+r*Math.sin(rad)}%`;
+    el.style.transform='translate(-50%,-50%)';
+    el.style.animationDelay=`${Math.random()*2}s`;
+    container.appendChild(el);
+  });
+})();
+
+// ══ 起卦動畫爻線 ══
+let loaderIv;
+function animateDivHex(){
+  const container=document.getElementById('divHex');
+  container.innerHTML='';
+  let line=0;
+  loaderIv=setInterval(()=>{
+    if(line>=6){line=0;container.innerHTML='';}
+    const yang=Math.random()>.5;
+    const row=document.createElement('div');row.className='dh-line';
+    row.style.animationDelay='0s';
+    if(yang){const s=document.createElement('div');s.className='dh-seg';s.style.cssText='width:50px';row.appendChild(s);}
+    else{
+      const s1=document.createElement('div');s1.className='dh-seg';s1.style.width='22px';
+      const g=document.createElement('div');g.style.width='6px';
+      const s2=document.createElement('div');s2.className='dh-seg';s2.style.width='22px';
+      row.appendChild(s1);row.appendChild(g);row.appendChild(s2);
+    }
+    container.appendChild(row);
+    line++;
+  },350);
+}
+
+// ══ APP LOGIC ══
+let apiKey='';
+let responseMode=localStorage.getItem('shenshu_response_mode')||'deep';
+
+function syncModeControls(){
+  const sky=window._skyMode||localStorage.getItem('shenshu_sky_mode')||'real';
+  document.body.classList.toggle('real-sky',sky==='real');
+  document.getElementById('skyRealBtn').classList.toggle('on',sky==='real');
+  document.getElementById('skyDreamBtn').classList.toggle('on',sky==='dream');
+  document.getElementById('briefBtn').classList.toggle('on',responseMode==='brief');
+  document.getElementById('deepBtn').classList.toggle('on',responseMode==='deep');
+}
+function setSkyMode(mode){
+  window._skyMode=mode==='dream'?'dream':'real';
+  localStorage.setItem('shenshu_sky_mode',window._skyMode);
+  syncModeControls();
+}
+function setResponseMode(mode){
+  responseMode=mode==='brief'?'brief':'deep';
+  localStorage.setItem('shenshu_response_mode',responseMode);
+  syncModeControls();
+}
+
+
+// ══ 干支纪年实时计算 ══
+function getGanzhi(year){
+  const TG=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  const DZ=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  const SX=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+  const base=1984; // 甲子年
+  const tg=TG[(year-base+60*10)%10];
+  const dz=DZ[(year-base+60*60)%12];
+  const sx=SX[(year-base+60*60)%12];
+  return {gz:tg+dz, sx, tg, dz};
+}
+function getCurrentGanzhi(){
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=now.getMonth()+1;
+  const day=now.getDate();
+  const g=getGanzhi(year);
+  // 月柱（粗略：以节气为界，这里简化为月份）
+  const TG=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  const DZ=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  // 月地支从寅月（一月末立春）开始
+  const mDZ=(month+1)%12; // 简化
+  const mTG=TG[(year*12+mDZ)%10];
+  const monthGZ=mTG+DZ[mDZ];
+  return {year:g.gz, sx:g.sx, month:monthGZ, yearNum:year};
+}
+
+// ══ 问答历史 ══
+const HIST_KEY = 'shenshu_hist';
+const HIST_MAX = 6;
+
+function saveHist(q){
+  try{
+    let list = JSON.parse(localStorage.getItem(HIST_KEY)||'[]');
+    list = [q, ...list.filter(x=>x!==q)].slice(0,HIST_MAX);
+    localStorage.setItem(HIST_KEY, JSON.stringify(list));
+    renderHist();
+  }catch(e){}
+}
+
+function renderHist(){
+  try{
+    const list=JSON.parse(localStorage.getItem(HIST_KEY)||'[]');
+    const wrap=document.getElementById('histWrap');
+    const ul=document.getElementById('histList');
+    if(!list.length){if(wrap)wrap.style.display='none';return;}
+    if(wrap)wrap.style.display='block';
+    if(!ul)return;
+    ul.innerHTML='';
+    list.forEach(function(q){
+      const btn=document.createElement('button');
+      btn.className='hist-item';btn.type='button';
+      btn.textContent=q;btn.title=q;
+      btn.addEventListener('click',function(){
+        const el=document.getElementById('question');
+        if(el){el.value=q;el.focus();}
+        btn.style.background='rgba(201,168,76,.4)';
+        btn.style.borderColor='#c9a84c';btn.style.color='#fff';
+        setTimeout(function(){btn.style.background='';btn.style.borderColor='';btn.style.color='';},400);
+      });
+      ul.appendChild(btn);
+    });
+  }catch(e){console.error('renderHist',e);}
+}
+
+
+function saveKey(){
+  const v=document.getElementById('apiKey').value.trim();
+  if(!v){setMsg('請輸入 API Key','err');return;}
+  if(!v.startsWith('sk-')){setMsg('格式不對，應以 sk- 開頭','err');return;}
+  apiKey=v;sessionStorage.setItem('dskey',v);
+  setMsg('✓ 已連接','ok');
+  setTimeout(()=>{
+    document.getElementById('apiWrap').classList.add('hidden');
+    document.getElementById('apiChip').style.display='flex';
+  },700);
+}
+function resetKey(){
+  document.getElementById('apiWrap').classList.remove('hidden');
+  document.getElementById('apiChip').style.display='none';
+  document.getElementById('apiKey').value='';
+  setMsg('','');
+  setTimeout(()=>document.getElementById('apiKey').focus(),150);
+}
+function setMsg(t,c){const e=document.getElementById('apiMsg');e.textContent=t;e.className=c||'';}
+function sq(q){
+  document.getElementById('question').value=q;
+  hideExamples();
+  handleAsk();
+}
+
+function escapeHTML(value){
+  return String(value ?? '').replace(/[&<>"']/g,function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
+}
+
+window.addEventListener('load',()=>{
+  function updateTimeDisplay(){
+    const gz=getCurrentGanzhi();
+    const el=document.getElementById('ganzhiBar');
+    if(!el)return;
+    const now=new Date();
+    const SC=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    const shichen=SC[Math.floor(((now.getHours()+1)%24)/2)];
+    el.textContent=`${gz.year}年 ${gz.sx}年 · ${now.getMonth()+1}月${now.getDate()}日 · 当前${shichen}时`;
+  }
+  updateTimeDisplay();
+  setInterval(updateTimeDisplay,60000);
+  syncModeControls();
+  renderHist();
+  renderSceneExamples('A');
+  document.getElementById('askBtn').textContent='問天';
+  document.getElementById('question').addEventListener('input', function(){
+    if(this.value.trim()) hideExamples();
+  });
+});
+document.getElementById('question').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleAsk();}
+});
+
+function detect(q){
+  if(/失眠|焦慮|疲勞|養生|脏腑|調養|補氣|氣血|陰虛|陽虛|體質|中醫|睡眠|頭疼|肝|脾|肺|腎|心/.test(q)) return 'B';
+  if(/時事|局勢|全球|經濟|戰爭|科技|2025|2026|趨勢|AI|國際|機遇|政治|美國|外交|股市/.test(q)) return 'C';
+  if(/起卦|占卦|卦象|搖卦|易經問/.test(q)) return 'D';
+  if(/節氣|時辰|羅盤|春分|夏至|秋分|冬至|立春|立夏|立秋|立冬|芒種|清明|節令/.test(q)) return 'E';
+  if(/道德經|莊子|論語|道家|儒家|孔子|老子|智慧|選擇|決策|困惑|迷茫|意義|人生/.test(q)) return 'F';
+  return 'A';
+}
+
+const LD=['解析問題意圖……','參閱典籍原文……','推演天機……','整合古今智慧……','凝練回答中……'];
+let ldIv2;
+function showLoader(){
+  document.getElementById('loader').classList.add('on');
+  animateDivHex();
+  let i=0;ldIv2=setInterval(()=>{document.getElementById('ldtxt').textContent=LD[++i%LD.length];},1400);
+  // 倒计时
+  let elapsed=0;
+  window._loaderTimer=setInterval(function(){
+    elapsed++;
+    const el=document.getElementById('loader-timer');
+    if(!el) return;
+    if(elapsed<60) el.textContent='預計約 '+(90-elapsed)+' 秒完成';
+    else if(elapsed<90) el.textContent='正在深度推演，請稍候…';
+    else el.textContent='典籍豐富，解讀較深，稍安勿躁…';
+  },1000);
+}
+function hideLoader(){
+  clearInterval(ldIv2);clearInterval(loaderIv);
+  if(window._loaderTimer){clearInterval(window._loaderTimer);window._loaderTimer=null;}
+  document.getElementById('loader').classList.remove('on');
+  document.getElementById('divHex').innerHTML='';
+  // 重置进度条
+  const bar=document.getElementById('loader-progress-bar');
+  if(bar){setTimeout(function(){bar.style.transition='none';bar.style.width='0%';setTimeout(function(){bar.style.transition='width .8s ease';},50);},300);}
+  // 重置步骤
+  ['lstep1','lstep2','lstep3'].forEach(function(id){const s=document.getElementById(id);if(s)s.className='lstep';});
+  const timer=document.getElementById('loader-timer');
+  if(timer)timer.textContent='預計 30–60 秒';
+}
+
+async function handleAsk(){
+  const q=document.getElementById('question').value.trim();
+  if(!q){
+    const btn=document.getElementById('askBtn');
+    btn.style.animation='shake .4s ease';
+    setTimeout(()=>{btn.style.animation='goldShimmer 3s ease infinite';},420);
+    return;
+  }
+  // API由後端處理
+  setAskLoading(true);
+  hideExamples();
+  const sc=detect(q);
+  saveHist(q);
+  document.getElementById('landing').classList.add('gone');
+  showLoader();
+  try{
+    await renderScene(sc,q);
+    hideLoader();
+    setAskLoading(false);
+    document.getElementById('resultPage').classList.add('show');
+    window._setResultMode(true);
+  }catch(e){
+    hideLoader();
+    setAskLoading(false);
+    // 网络/超时错误：回到首页显示提示
+    document.getElementById('landing').classList.remove('gone');
+    setMsg('連接異常，請稍後重試','err');
+  }
+}
+function setAskLoading(on){
+  const btn=document.getElementById('askBtn');
+  btn.disabled=on;
+  btn.textContent=on?'…':'問天';
+  btn.style.opacity=on?'.5':'1';
+  btn.style.cursor=on?'not-allowed':'pointer';
+}
+
+function goBack(){
+  document.getElementById('resultPage').classList.remove('show','error-mode');
+  document.getElementById('landing').classList.remove('gone');
+  renderHist();
+  document.getElementById('rinner').innerHTML='';
+  document.getElementById('tabs').innerHTML='';
+  window._setResultMode(false);
+}
+
+
+// ══════════════════════════════════════════════════════
+//  多步生成引擎
+//  Step1: 意图分析 → Step2: 深度检索增强 → Step3: 最终生成
+// ══════════════════════════════════════════════════════
+
+// 进度显示
+function setProgress(stage, text){
+  const el=document.getElementById('ldtxt'); if(el) el.textContent=text;
+  const bar=document.getElementById('loader-progress-bar');
+  if(bar) bar.style.width=({1:25,2:60,3:90}[stage]||0)+'%';
+  ['lstep1','lstep2','lstep3'].forEach((id,i)=>{
+    const s=document.getElementById(id); if(!s) return;
+    s.className='lstep'+(i+1<stage?' done':i+1===stage?' active':'');
+  });
+}
+
+// Step 1：分析问题意图，提取关键概念
+async function step1_analyze(q){
+  setProgress(1, '解析問題意圖……');
+  const sys = `你是中華古典學術的問題分析師。
+用戶問了一個問題，你需要快速分析：
+1. 核心議題：這個問題的本質是什麼？（10字以內）
+2. 涉及領域：命理/養生/時事/易學/節氣/道家哲學（可多選）
+3. 情緒狀態：用戶現在的心理狀態（擔憂/困惑/求知/焦慮/探索）
+4. 關鍵概念：最相關的3-5個中醫或哲學概念（如：肝氣鬱結、否極泰來、無為而治）
+5. 典籍方向：最應該引用哪些典籍（如：黃帝內經·靈樞、道德經第十六章、推背圖第X象）
+
+JSON字段：topic、domains(數組)、mood、concepts(數組)、classics(數組)
+只輸出JSON。`;
+  const raw = await ask(sys, `用戶問：${q}`);
+  return parseJSON(raw) || {topic: q, domains: [], mood: '求知', concepts: [], classics: []};
+}
+
+// Step 2：基於意圖深度組裝典籍上下文
+function step2_buildContext(q, analysis, scene){
+  setProgress(2, '參閱典籍原文……');
+  
+  // 基礎RAG檢索
+  const baseCtx = retrieveClassics(q, scene);
+  
+  // 根據Step1分析的概念做二次檢索增強
+  const conceptCtx = [];
+  if(analysis.concepts && analysis.concepts.length > 0){
+    const conceptQuery = analysis.concepts.join(' ') + ' ' + q;
+    const extra = retrieveClassics(conceptQuery, 'ALL');
+    // 合併去重
+    const seen = new Set(baseCtx.map(x => x.content));
+    extra.forEach(x => {
+      if(!seen.has(x.content)){
+        seen.add(x.content);
+        conceptCtx.push(x);
+      }
+    });
+  }
+  
+  const allCtx = [...baseCtx, ...conceptCtx].slice(0, 12); // 最多12條
+  return formatContext(allCtx);
+}
+
+// Step 3：基於分析和典籍做最終深度生成
+async function step3_generate(q, analysis, ctx, scene, systemPrompt){
+  setProgress(3, '推演天機，整合回答……');
+  
+  // 把Step1的分析結果作為額外上下文注入
+  const analysisContext = `
+【問題分析】
+核心議題：${analysis.topic || q}
+用戶狀態：${analysis.mood || '求知'}
+關鍵概念：${(analysis.concepts || []).join('、') || '待定'}
+應參考典籍：${(analysis.classics || []).join('、') || '見下方'}
+`;
+  
+  const enhancedSys = systemPrompt + `\n\n${analysisContext}\n\n【典籍原文】\n${ctx}`;
+  return await ask(enhancedSys, `用戶問：${q}\n\n請基於以上分析和典籍原文，給出有深度、有溫度、有具體見解的回答。`);
+}
+
+// 主入口：調用後端 SSE API
+async function chainGenerate(q, scene, systemPrompt){
+  const sessionId = localStorage.getItem('shenshu_session') || crypto.randomUUID();
+  localStorage.setItem('shenshu_session', sessionId);
+
+  return new Promise((resolve, reject) => {
+    fetch('/api/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question:q,scene:scene,sessionId:sessionId,responseMode:responseMode})
+    }).then(res => {
+      if(!res.ok) return res.json().then(e => reject(new Error(e.error||'請求失敗')));
+      if(!res.body) throw new Error('服務器未返回可讀取的響應');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '', parsed = null, buffer = '';
+      function handleBlock(block){
+        let event = '';
+        const dataLines = [];
+        block.split(/\r?\n/).forEach(function(line){
+          if(line.startsWith('event:')) event = line.slice(6).trim();
+          else if(line.startsWith('data:')) dataLines.push(line.slice(5).trimStart());
+        });
+        if(!dataLines.length) return;
+        const data = JSON.parse(dataLines.join('\n'));
+        if(event==='progress'){
+          const el=document.getElementById('ldtxt');
+          if(el)el.textContent=data.text;
+          if(data.step) setProgress(data.step, data.text);
+        }
+        if(event==='delta') fullText += data.text;
+        if(event==='done'){fullText=data.raw||fullText;parsed=data.parsed;}
+        if(event==='error') throw new Error(data.message||'生成失敗');
+      }
+      function pump(){
+        return reader.read().then(({done, value}) => {
+          buffer += decoder.decode(value || new Uint8Array(), {stream:!done});
+          const blocks = buffer.split(/\r?\n\r?\n/);
+          buffer = blocks.pop() || '';
+          try{
+            blocks.forEach(handleBlock);
+            if(done && buffer.trim()) handleBlock(buffer);
+          }catch(e){
+            reject(e);
+            return;
+          }
+          if(done){ resolve({raw: fullText, parsed}); return; }
+          return pump();
+        });
+      }
+      return pump();
+    }).catch(reject);
+  });
+}
+
+async function ask(sys,user){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),30000);
+  try{
+    const r=await fetch('https://api.deepseek.com/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({model:'deepseek-chat',max_tokens:3000,temperature:.88,
+        messages:[{role:'system',content:sys},{role:'user',content:user}]}),
+      signal:controller.signal
+    });
+    clearTimeout(timer);
+    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API請求失敗');}
+    return (await r.json()).choices[0].message.content;
+  }catch(e){
+    clearTimeout(timer);
+    if(e.name==='AbortError') throw new Error('請求超時（30秒），請檢查網絡或稍後重試');
+    throw e;
+  }
+}
+
+// SSE流式輸出
+async function askStream(sys,user,el){
+  el.innerHTML='';
+  const cur=document.createElement('span');cur.className='cur';el.appendChild(cur);
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),45000);
+  try{
+    const r=await fetch('https://api.deepseek.com/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({model:'deepseek-chat',max_tokens:3000,temperature:.88,stream:true,
+        messages:[{role:'system',content:sys},{role:'user',content:user}]}),
+      signal:controller.signal
+    });
+    clearTimeout(timer);
+    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API請求失敗');}
+    const reader=r.body.getReader();
+    const dec=new TextDecoder();
+    let full='';
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      for(const line of dec.decode(value).split('\n')){
+        if(!line.startsWith('data:'))continue;
+        const d=line.slice(5).trim();
+        if(d==='[DONE]')break;
+        try{
+          const delta=JSON.parse(d).choices?.[0]?.delta?.content||'';
+          if(delta){full+=delta;el.insertBefore(document.createTextNode(delta),cur);}
+        }catch(e){}
+      }
+    }
+    cur.remove();
+    return full;
+  }catch(e){
+    clearTimeout(timer);cur.remove();
+    if(e.name==='AbortError')throw new Error('請求超時，請稍後重試');
+    throw e;
+  }
+}
+
+
+// 错误状态渲染
+function showErrorState(question, onRetry, err){
+  const resultPage = document.getElementById('resultPage');
+  const rinner = document.getElementById('rinner');
+  if(!rinner) return;
+
+  if(err) console.error('[天機錯誤]', err);
+
+  resultPage.classList.add('error-mode');
+  rinner.innerHTML = '';
+
+  const errMsg = err ? (err.message || String(err)) : '';
+  const el = document.createElement('div');
+  el.className = 'error-state';
+  el.innerHTML =
+    '<div class="error-icon">☯</div>'
+   +'<div class="error-title">天機推演未能完成</div>'
+   +'<div class="error-desc">'+escapeHTML(errMsg || '本次解讀生成異常，典籍浩瀚，偶有推演未竟之時')+'</div>'
+   +(question ? '<div class="error-question">「'+escapeHTML(question)+'」</div>' : '')
+   +'<button class="error-retry-btn" id="retryBtn">重新推演</button>'
+   +'<button class="error-back">← 返回修改問題</button>';
+
+  rinner.appendChild(el);
+
+  document.getElementById('retryBtn').addEventListener('click', function(){
+    resultPage.classList.remove('error-mode');
+    showErrorState._retrying = true;
+    onRetry && onRetry();
+  });
+  el.querySelector('.error-back').addEventListener('click', function(){
+    resultPage.classList.remove('error-mode');
+    goBack();
+  });
+}
+
+function parseJSON(raw){
+  try{
+    let s=raw.replace(/```json|```/g,'').trim();
+    const a=s.indexOf('{'),b=s.lastIndexOf('}');
+    if(a>-1&&b>-1)s=s.slice(a,b+1);
+    return JSON.parse(s);
+  }catch{return null;}
+}
+
+// 智能渲染：数组→编号卡片，字符串→流式文字
+function streamOrCards(el, data, delay){
+  // 空值检测：隐藏整张卡片
+  const isEmpty = !data || (Array.isArray(data) && data.length===0) || String(data).trim()==='';
+  if(isEmpty){
+    const card = el.closest('.card');
+    if(card) card.classList.add('empty-card');
+    return Promise.resolve();
+  }
+  if(Array.isArray(data) && data.length > 0){
+    // 过滤空条目
+    const items = data.filter(function(p){ return String(p).trim().length > 0; });
+    if(items.length === 0){
+      const card = el.closest('.card');
+      if(card) card.classList.add('empty-card');
+      return Promise.resolve();
+    }
+    return new Promise(function(res){
+      setTimeout(function(){
+        el.innerHTML = items.map(function(p,i){
+          return '<div class="action-item">'
+            +'<div class="action-num">'+(i+1)+'</div>'
+            +'<div class="action-text">'+escapeHTML(String(p).trim())+'</div>'
+            +'</div>';
+        }).join('');
+        res();
+      }, delay||0);
+    });
+  }
+  // 字符串：检测是否有序号，有则换行分段显示
+  const text = String(data||'').trim();
+  if(!text){
+    const card = el.closest('.card');
+    if(card) card.classList.add('empty-card');
+    return Promise.resolve();
+  }
+  // 检测数字序号（1. 2. 3. 或 一、二、三）
+  const hasNumbers = /[12345]\.|[一二三四五]、|第[一二三四五六][，、：:]/.test(text);
+  if(hasNumbers){
+    return new Promise(function(res){
+      setTimeout(function(){
+        // 在序号前插入换行分隔
+        const parts = text.split(/(?=[23456]\.)|(?=[二三四五六]、)|(?=第[二三四五六][，、：:])/).map(function(s){return s.trim();}).filter(Boolean);
+        if(parts.length >= 2){
+          el.innerHTML = parts.map(function(p,i){
+            return '<div class="action-item">'
+              +'<div class="action-num">'+(i+1)+'</div>'
+              +'<div class="action-text">'+escapeHTML(p.replace(/^[123456]\.\s*|^[一二三四五六]、\s*|^第[一二三四五六][，、：:]\s*/,'').trim())+'</div>'
+              +'</div>';
+          }).join('');
+        } else {
+          el.textContent = text;
+        }
+        res();
+      }, delay||0);
+    });
+  }
+  return stream(el, text, delay);
+}
+
+function stream(el,text,delay=0){
+  return new Promise(res=>{
+    el.innerHTML='';
+    const cur=document.createElement('span');cur.className='cur';el.appendChild(cur);
+    let i=0;
+    const spd=Math.max(14,Math.min(36,Math.floor(1500/Math.max(text.length,1))));
+    setTimeout(()=>{
+      const iv=setInterval(()=>{
+        if(i<text.length){el.insertBefore(document.createTextNode(text[i]),cur);i++;}
+        else{clearInterval(iv);cur.remove();res();}
+      },spd);
+    },delay);
+  });
+}
+
+function hexSVG(seed,color='#c9a84c'){
+  let h='<div class="hex3d">';
+  for(let i=5;i>=0;i--){
+    const yang=((seed*(i+3)*2654435761)>>>0)%2===1;
+    h+='<div class="hxl">';
+    if(yang)h+=`<div class="hxyang" style="width:64px;background:${color};box-shadow:0 0 8px ${color}99"></div>`;
+    else h+=`<div class="hxyin-l" style="width:27px;background:${color};box-shadow:0 0 6px ${color}88"></div><div class="hxgap"></div><div class="hxyin-r" style="width:27px;background:${color};box-shadow:0 0 6px ${color}88"></div>`;
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+
+const SCENE_EXAMPLES={
+  A:['今年事業運勢如何','我屬虎，婚姻何時到來','如何化解今年犯太歲'],
+  B:['失眠多夢怎麼調理','春季肝火旺該怎麼辦','長期久坐腰酸如何養護'],
+  C:['今年全球經濟形勢如何','如何看待當前地緣政治','AI發展對人類意味著什麼'],
+  D:['近期創業是否合適','這段感情該繼續嗎','面臨重要決策需要指引'],
+  E:['當前節氣該如何養生','冬至前後飲食注意什麼','夏季祛濕最有效的方法'],
+  F:['如何做到內心平靜','面對壓力如何看開','人生的意義是什麼']
+};
+
+function renderSceneExamples(scene){
+  const el=document.getElementById('sceneExamples');
+  if(!el) return;
+  const examples=SCENE_EXAMPLES[scene]||[];
+  el.innerHTML='';
+  examples.forEach(e=>{
+    const btn=document.createElement('button');
+    btn.className='ex-btn';
+    btn.textContent=e;
+    btn.onclick=()=>fillExample(btn);
+    el.appendChild(btn);
+  });
+  el.classList.remove('hidden');
+}
+
+function fillExample(btn){
+  const q=document.getElementById('question');
+  q.value=btn.textContent;
+  q.focus();
+}
+
+function hideExamples(){
+  const el=document.getElementById('sceneExamples');
+  if(el) el.classList.add('hidden');
+}
+
+const SCENE_LABELS={A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·羅盤',F:'道家·智慧'};
+let lastQ=''; let lastScene='A';
+
+function buildTabs(active){
+  const el=document.getElementById('tabs');el.innerHTML='';
+  Object.entries(SCENE_LABELS).forEach(([k,v])=>{
+    const b=document.createElement('button');b.className='tab'+(k===active?' on':'');b.textContent=v;
+    b.onclick=()=>{
+      el.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+      showLoader();renderScene(k,lastQ).then(hideLoader).catch(hideLoader);
+    };
+    el.appendChild(b);
+  });
+}
+
+function qEcho(q){
+  return `<div class="q-echo" style="position:relative">
+    <div class="ql">所問之事</div>
+    <div class="qt">${escapeHTML(q)}</div>
+  </div>`;
+}
+
+function addCopyBtn(cardEl, getText){
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = '複製';
+  btn.onclick = async()=>{
+    try{
+      await navigator.clipboard.writeText(getText());
+      btn.textContent = '✓ 已複製';
+      btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='複製';btn.classList.remove('copied');}, 2000);
+    }catch(e){
+      btn.textContent = '失敗';
+      setTimeout(()=>{btn.textContent='複製';}, 1500);
+    }
+  };
+  cardEl.style.position = 'relative';
+  cardEl.appendChild(btn);
+}
+
+async function renderScene(scene,q){
+  lastQ=q;lastScene=scene;buildTabs(scene);
+  const box=document.getElementById('rinner');box.innerHTML='';
+  if(window._highlightScene) window._highlightScene(scene);
+  try{
+    if(scene==='A')await sceneA(q,box);
+    else if(scene==='B')await sceneB(q,box);
+    else if(scene==='C')await sceneC(q,box);
+    else if(scene==='D')await sceneD(q,box);
+    else if(scene==='E')await sceneE(q,box);
+    else await sceneF(q,box);
+    // 复制按钮 + 建议卡片编号（只渲染JSON数组，不拆分）
+    box.querySelectorAll('.card').forEach(card=>{
+      const body=card.querySelector('.cbody, .rlist, .q-text');
+      if(body) addCopyBtn(card,function(){return body.innerText.trim();});
+      const lbl=card.querySelector('.clbl');
+      if(!lbl||!/建議|啟示|實踐|研判/i.test(lbl.textContent)) return;
+      card.classList.add('action-card');
+      const cb=card.querySelector('.cbody');
+      if(!cb) return;
+      const raw=cb.textContent.trim();
+      if(!raw) return;
+      // 只解析JSON数组，失败就原样展示
+      try{
+        const a=raw.indexOf('['),b=raw.lastIndexOf(']');
+        if(a>-1&&b>a){
+          const arr=JSON.parse(raw.slice(a,b+1));
+          if(Array.isArray(arr)&&arr.length>0){
+            cb.innerHTML=arr.map(function(p,i){
+              return '<div class="action-item">'
+                +'<div class="action-num">'+(i+1)+'</div>'
+                +'<div class="action-text">'+escapeHTML(String(p).trim())+'</div>'
+                +'</div>';
+            }).join('');
+          }
+        }
+      }catch(e){}
+      // 解析失败原样显示，不再尝试任何拆分
+    });
+  }catch(e){
+    showErrorState(lastQ, function(){ renderScene(scene, lastQ); }, e);
+  }
+}
+
+// ── A 推背圖 ──
+async function sceneA(q,box){
+  const ctx=formatContext(retrieveClassics(q,'A'));
+  box.innerHTML=`<div class="thA" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div style="text-align:center;margin-bottom:.4rem">
+      <div style="font-size:.58rem;letter-spacing:.5em;color:rgba(201,168,76,.75);margin-bottom:.15rem" id="aXiang">推背圖 · 天機推演</div>
+      <div style="font-family:'Ma Shan Zheng',cursive;font-size:1.25rem;color:#e8cc7a;letter-spacing:.2em;text-shadow:0 0 20px rgba(201,168,76,.55)" id="aTitle">觀天象，察人事</div>
+      ${hexSVG(q.length*13+7,'#c9a84c')}
+    </div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.05s"><div class="clbl">讖 曰</div><div class="cbody" id="aC1"></div></div>
+      <div class="card" style="animation-delay:.1s"><div class="clbl">頌 曰</div><div class="cbody" id="aC2"></div></div>
+      <div class="card" style="animation-delay:.15s"><div class="clbl">現代解讀</div><div class="cbody" id="aC3"></div></div>
+      <div class="card" style="animation-delay:.2s"><div class="clbl">給你的建議</div><div class="cbody" id="aC4"></div></div>
+    </div>
+  </div>`;
+  // ── 多步生成：Step1分析 + Step2增強檢索 + Step3生成 ──
+  const sys=`你是精通推背圖、奇門遁甲、六壬神課的命理學者，同時熟悉中國歷史與當代時事。你的解讀風格：引用原文後用古今對照的方式展開，語言既有古典韻味又通俗易懂，有溫度，有洞察，不說廢話套話。
+
+以下是推背圖原文（民間流傳版，非學術認定原本），請嚴格基於此原文引用，不可憑空捏造象號或謶語：
+
+
+【回答要求】
+- chen：直接引用上述原文中最契合的謶語，不可改動原文
+- song：直接引用對應頌語原文
+- jiedu：先解釋謶語的字面意思，再結合當前時代背景做深度解讀，至少150字，要有具體的時代分析，不能只說「否極泰來」這種空話
+- advice：針對用戶的具體問題給出有操作性的建議，分3-4個層次展開，每個建議要說清楚「為什麼」，至少120字
+- 禁止使用：「吉祥如意」「萬事順遂」「順應天時」這類空洞套語
+
+JSON字段：xiang(象號)、title(4-8字標題，要有意境)、chen、song、jiedu、advice。只輸出JSON。`;
+  const { raw: _rawA } = await chainGenerate(q, 'A', sys);
+  const d=parseJSON(_rawA);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  document.getElementById('aXiang').textContent='推背圖 · '+(d.xiang||'');
+  document.getElementById('aTitle').textContent=d.title||'天機隱現';
+  await Promise.all([stream(document.getElementById('aC1'),d.chen||''),stream(document.getElementById('aC2'),d.song||''),stream(document.getElementById('aC3'),d.jiedu||''),streamOrCards(document.getElementById('aC4'),d.advice||'')]);
+}
+
+// ── B 黃帝內經 ──
+async function sceneB(q,box){
+  const wxData=[{ch:'木',lb:'肝·膽',c:'#5ecf89'},{ch:'火',lb:'心·小腸',c:'#ff7060'},{ch:'土',lb:'脾·胃',c:'#c9a84c'},{ch:'金',lb:'肺·大腸',c:'#7baad4'},{ch:'水',lb:'腎·膀胱',c:'#5bc4d4'}];
+  box.innerHTML=`<div class="thB" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div class="sc-title"><h2 style="color:#7de8a8;text-shadow:0 0 15px rgba(94,207,137,.5)">黃帝內經 · 問診</h2><div class="sub">五行辨證 · 脏腑調和 · 天人合一</div></div>
+    <div class="wuxing">${wxData.map(w=>`<div class="wx" id="wx${w.ch}"><span class="wx-ch" style="color:${w.c}">${w.ch}</span><div class="wx-lb">${w.lb}</div><div class="wx-bar" style="background:${w.c}"></div></div>`).join('')}</div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.05s"><div class="clbl">辨證分析</div><div class="cbody" id="bDiag"></div></div>
+      <div class="card" style="animation-delay:.1s"><div class="clbl">經典原文</div><div class="cbody" id="bClassic" style="font-family:'Ma Shan Zheng',cursive;color:#7de8a8;line-height:2.1"></div></div>
+      <div class="card" style="animation-delay:.15s"><div class="clbl">調養建議</div><ul class="rlist" id="bRemedy"></ul></div>
+      <div class="card" style="animation-delay:.2s"><div class="clbl">日常實踐</div><div class="cbody" id="bPractice"></div></div>
+    </div>
+  </div>`;
+  const sys=`你是精通《黃帝內經》《傷寒論》《本草綱目》的中醫學者，同時懂得將古典醫學理論轉化為現代人可實踐的養生方法。你的風格：引經據典但不賣弄，分析透徹，建議具體可操作，像一個既有學識又有人情味的老中醫在和患者談話。
+
+以下是黃帝內經真實原文，請嚴格基於此回答，引用原文必須準確：
+
+
+【回答要求】
+- dominant：分析用戶問題涉及哪些臟腑和五行，給出1-2個最核心的
+- diagnosis：從陰陽五行、臟腑氣血角度做辨證分析，要說清楚病機（為什麼會這樣），至少120字，引用內經理論支撐你的判斷，不能只說「肝氣鬱結」這四個字就完了
+- classic：從上述原文中選取最貼切的一句，格式「《篇名》云：『原文』」，必須是原文中出現的，逐字準確
+- remedy：5條具體調養建議，每條要包含：①做什麼 ②為什麼這樣做（中醫原理）③怎麼做（具體操作），每條40字以上
+- practice：給出一套完整的日常作息方案，結合時辰養生，有早中晚的具體安排，至少150字
+
+JSON字段：dominant、diagnosis、classic、remedy(數組)、practice。只輸出JSON。`;
+  const { raw: _rawB } = await chainGenerate(q, 'B', sys);
+  const d=parseJSON(_rawB);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  (d.dominant||[]).forEach(w=>{const el=document.getElementById('wx'+w);if(el)el.classList.add('hi');});
+  const ul=document.getElementById('bRemedy');
+  (d.remedy||[]).forEach(r=>{const li=document.createElement('li');li.textContent=r;ul.appendChild(li);});
+  await Promise.all([stream(document.getElementById('bDiag'),d.diagnosis||''),stream(document.getElementById('bClassic'),d.classic||''),stream(document.getElementById('bPractice'),d.practice||'')]);
+  const disc=document.createElement('div');
+  disc.style.cssText='margin-top:1rem;padding:.5rem .8rem;border-top:1px solid rgba(201,168,76,.15);color:rgba(255,255,255,.3);font-size:.65rem;letter-spacing:.06em;line-height:1.7';
+  disc.textContent='⚠ 以上內容僅供養生參考，不能替代專業醫療診斷。如有急症或持續不適，請及時就醫。';
+  document.getElementById('rinner').appendChild(disc);
+}
+
+// ── C 時事天機 ──
+async function sceneC(q,box){
+  const ts=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'})+`·${getCurrentGanzhi().year}年（${getCurrentGanzhi().sx}年）`;
+  box.innerHTML=`<div class="thC" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div class="sc-title"><h2 style="color:#9dc4e8;text-shadow:0 0 15px rgba(123,170,212,.5)">時勢推演 · 大勢研判</h2><div class="sub" style="color:rgba(123,170,212,.6)">${ts}</div></div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.05s">
+        <div class="clbl">典籍印證</div>
+        ${hexSVG(q.length*7+19,'#7baad4')}
+        <div id="cXiang" style="font-family:'Ma Shan Zheng',cursive;font-size:.88rem;color:#9dc4e8;letter-spacing:.1em;margin:.25rem 0"></div>
+        <div class="cbody" id="cProphecy" style="font-family:'Ma Shan Zheng',cursive;color:#b8d8f0;line-height:2.1"></div>
+      </div>
+      <div class="card" style="animation-delay:.1s"><div class="clbl">時勢解讀</div><div class="cbody" id="cAnalysis"></div></div>
+      <div class="card s2" style="animation-delay:.15s">
+        <div class="clbl" style="text-align:center">綜合研判 · 給你的建議</div>
+        <div class="cbody" id="cVerdict" style="text-align:center;font-family:'Ma Shan Zheng',cursive;font-size:.98rem;color:#9dc4e8;line-height:2"></div>
+      </div>
+    </div>
+  </div>`;
+  const sys=`你是結合中國古典預言學與現代地緣政治、經濟、科技趨勢的跨學科分析師。你的分析方式：用推背圖的象辭作為視角切入，但分析內容是實實在在的當代研判，有數據感，有邏輯，有見地，不是神秘主義的空話。
+
+以下是推背圖原文（民間流傳版），請基於此選取最契合當前時勢的象：
+
+
+【回答要求】
+- xiang：選取與用戶問題最契合的一象，給出象號和名稱
+- prophecy：直接引用該象的謶語或頌語原文，30-50字，不可改動
+- analysis：這是核心，至少200字。分三個層次：
+  ①古今對照：說明為何這一象契合當前時勢，哪些具體事件與象辭呼應
+  ②深度分析：從地緣、經濟、科技、文化等維度展開當前大勢研判，要有具體的判斷而非泛泛而談
+  ③趨勢預判：基於當前格局，未來1-3年的關鍵變量和可能走向
+- verdict：針對用戶問題，給出3-4條有操作性的具體建議，不是「順勢而為」這種廢話，要說清楚具體怎麼做
+
+JSON字段：xiang、prophecy、analysis、verdict。只輸出JSON。`;
+  const { raw: _rawC } = await chainGenerate(q, 'C', sys);
+  const d=parseJSON(_rawC);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  document.getElementById('cXiang').textContent=d.xiang||'';
+  await Promise.all([stream(document.getElementById('cProphecy'),d.prophecy||''),stream(document.getElementById('cAnalysis'),d.analysis||''),streamOrCards(document.getElementById('cVerdict'),d.verdict||'')]);
+}
+
+// ── D 易經 ──
+const dLines=[];
+async function sceneD(q,box){
+  dLines.length=0;
+  box.innerHTML=`<div class="thD" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div class="sc-title"><h2 style="color:#c0b8ff;text-shadow:0 0 15px rgba(168,159,232,.55)">易經 · 起卦問道</h2><div class="sub" style="color:rgba(168,159,232,.5);animation:fade 2.5s ease infinite">點擊銅錢搖卦 · 或等待自動起卦</div></div>
+    <div class="coins">
+      <div class="coin" style="--fd:2.1s" onclick="flipCoin(this)">🪙</div>
+      <div class="coin" style="--fd:2.5s" onclick="flipCoin(this)">🪙</div>
+      <div class="coin" style="--fd:2.9s" onclick="flipCoin(this)">🪙</div>
+    </div>
+    <div class="hexd" id="hexD"></div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.05s"><div class="clbl">卦名</div><div class="cbody" id="dName" style="color:#c0b8ff;font-size:1rem;letter-spacing:.15em"></div></div>
+      <div class="card" style="animation-delay:.1s"><div class="clbl">卦辭解讀</div><div class="cbody" id="dDesc"></div></div>
+      <div class="card" style="animation-delay:.15s"><div class="clbl">爻辭解讀</div><div class="cbody" id="dYao"></div></div>
+      <div class="card" style="animation-delay:.2s"><div class="clbl">對你的啟示</div><div class="cbody" id="dAdv"></div></div>
+    </div>
+  </div>`;
+  for(let i=0;i<6;i++){await new Promise(r=>setTimeout(r,250));addHexLine(Math.random()>.5);}
+  const sys=`你是精研易經六十四卦、深諳象數義理的易學學者，同時擅長將卦象智慧轉化為現代人的處世指引。你的解讀風格：先還原古人的本意，再貫通到當代語境，有哲學深度，有人生溫度，讓人讀完有所觸動。
+
+以下是易經真實原文（卦辭、象辭、爻辭），請嚴格基於此回答：
+
+
+【回答要求】
+- guaName：選取最契合用戶問題的卦，格式「XX卦·象辭核心句」，必須引自原文象辭
+- guaDesc：先完整引用卦辭原文，再從「卦象」「卦義」「當代意義」三個角度展開解讀，至少150字。要說清楚這個卦為什麼契合用戶的處境
+- yao：選取最相關的一條爻辭，先引用原文，再解釋這條爻辭在用戶當前處境下的具體含義，至少80字
+- advice：分四個維度給出建議：①時機（現在是什麼時機，該進還是該退）②行動（具體該做什麼）③心態（應持何種心態）④禁忌（要避免什麼），每個維度2-3句，共計至少150字
+
+JSON字段：guaName、guaDesc、yao、advice。只輸出JSON。`;
+  const { raw: _rawD } = await chainGenerate(q, 'D', sys);
+  const d=parseJSON(_rawD);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  await Promise.all([stream(document.getElementById('dName'),d.guaName||'卦象'),stream(document.getElementById('dDesc'),d.guaDesc||''),stream(document.getElementById('dYao'),d.yao||''),streamOrCards(document.getElementById('dAdv'),d.advice||'')]);
+}
+function addHexLine(yang){
+  dLines.push(yang);
+  const c=document.getElementById('hexD');if(!c)return;
+  const row=document.createElement('div');row.className='hxrow';
+  if(yang){const s=document.createElement('div');s.className='hxseg';s.style.width='64px';row.appendChild(s);}
+  else{const s1=document.createElement('div');s1.className='hxseg';s1.style.width='27px';const g=document.createElement('div');g.className='hxgp';const s2=document.createElement('div');s2.className='hxseg';s2.style.width='27px';row.appendChild(s1);row.appendChild(g);row.appendChild(s2);}
+  c.appendChild(row);setTimeout(()=>row.classList.add('show'),50);
+}
+function flipCoin(el){el.classList.add('flip');setTimeout(()=>el.classList.remove('flip'),600);if(dLines.length<6)addHexLine(Math.random()>.5);}
+
+// ── E 節氣 ──
+async function sceneE(q,box){
+  const JQ=[[1,6,'小寒'],[1,20,'大寒'],[2,4,'立春'],[2,19,'雨水'],[3,6,'驚蟄'],[3,21,'春分'],[4,5,'清明'],[4,20,'穀雨'],[5,6,'立夏'],[5,21,'小滿'],[6,6,'芒種'],[6,21,'夏至'],[7,7,'小暑'],[7,23,'大暑'],[8,7,'立秋'],[8,23,'處暑'],[9,8,'白露'],[9,23,'秋分'],[10,8,'寒露'],[10,23,'霜降'],[11,7,'立冬'],[11,22,'小雪'],[12,7,'大雪'],[12,22,'冬至']];
+  const now=new Date();let curJQ='芒種';
+  for(let i=JQ.length-1;i>=0;i--){const[m,d,n]=JQ[i];if(now>=new Date(now.getFullYear(),m-1,d)){curJQ=n;break;}}
+  const h=now.getHours();
+  const SC=['子時','丑時','寅時','卯時','辰時','巳時','午時','未時','申時','酉時','戌時','亥時'];
+  const curSC=SC[Math.floor(((h+1)%24)/2)];
+  const jqData=getJieqiData(curJQ);
+  const ctx=formatContext(retrieveClassics(q,'E'));
+  const jqCtx=jqData?`【${curJQ}節氣原文】\n${jqData.yangsheng}\n內經：${jqData.neijing}\n時辰：${jqData.shichen}`:'';
+  const dots=JQ.map(([m,d,n],i)=>{const a=(i/24)*Math.PI*2-Math.PI/2,r=50,x=60+r*Math.cos(a),y=60+r*Math.sin(a);return`<circle cx="${x}" cy="${y}" r="${n===curJQ?3.5:1.8}" fill="${n===curJQ?'#6dcba0':'rgba(109,203,160,.38)'}"/>${n===curJQ?`<circle cx="${x}" cy="${y}" r="6.5" fill="none" stroke="#6dcba0" stroke-width="1" opacity=".45"/>`:''}`}).join('');
+  box.innerHTML=`<div class="thE" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:.4rem;flex:0 0 auto">
+      <div class="cmp-wrap" style="margin:0;flex-shrink:0">
+        <svg class="cmp-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="57" stroke="rgba(109,203,160,.18)" stroke-width="1" fill="none"/>
+          <circle cx="60" cy="60" r="40" stroke="rgba(109,203,160,.08)" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+          <circle cx="60" cy="60" r="18" stroke="rgba(109,203,160,.2)" stroke-width="1" fill="none"/>
+          ${dots}
+        </svg>
+        <div class="cmp-center"><div class="cmp-name">${curJQ}</div><div class="cmp-date">${now.toLocaleDateString('zh-TW',{month:'long',day:'numeric'})}</div></div>
+      </div>
+      <div>
+        <div style="font-family:'Ma Shan Zheng',cursive;font-size:1.2rem;color:#8de8b8;letter-spacing:.18em;text-shadow:0 0 15px rgba(109,203,160,.5)">節氣羅盤 · 天時養生</div>
+        <div style="font-size:.6rem;color:rgba(109,203,160,.6);letter-spacing:.18em;margin-top:.2rem">當前時辰：${curSC}</div>
+      </div>
+    </div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.05s"><div class="clbl">當前節氣養生</div><div class="cbody" id="eYS"></div></div>
+      <div class="card" style="animation-delay:.1s"><div class="clbl">時辰建議</div><div class="cbody" id="eSC"></div></div>
+      <div class="card" style="animation-delay:.15s"><div class="clbl">內經原文</div><div class="cbody" id="eCL" style="font-family:'Ma Shan Zheng',cursive;color:#8de8b8;line-height:2.1"></div></div>
+      <div class="card" style="animation-delay:.2s"><div class="clbl">具體建議</div><div class="cbody" id="eAD"></div></div>
+    </div>
+  </div>`;
+  const sys=`你是精通二十四節氣養生學、熟悉《黃帝內經》時辰醫學的中醫養生顧問。你的風格：把古老的節氣智慧轉化成現代人今天就能做的具體行動，語言溫暖親切，像朋友在聊天，不是教科書在說教。
+
+以下是當前節氣的真實養生原文和相關內經原文，請嚴格基於此回答：
+
+${jqCtx}
+
+
+【回答要求】
+- yangsheng：圍繞當前節氣的核心養生原則，從「天地之氣」「臟腑對應」「情志調攝」三個角度展開，至少150字。要說清楚為什麼這個節氣要這樣養生，不只是列舉建議
+- shichen：結合當前時辰，說明這個時辰對應哪條經絡、臟腑狀態如何、最適合做什麼、要避免什麼，至少80字，有中醫理論依據
+- classic：從上述原文中選取最貼切的一句，必須逐字準確，格式「《篇名》：『原文』」
+- advice：5條今天就能做的具體養生行動，每條格式：「【行動名稱】具體做法+為什麼這樣做」，每條50字以上，涵蓋飲食、起居、運動、情志、經絡五個維度
+
+JSON字段：yangsheng、shichen、classic、advice(換行分隔的字符串)。只輸出JSON。`;
+  // sceneE 用增强query做链式生成
+  const _qE = `節氣：${curJQ}，時辰：${curSC}，用戶問：${q}`;
+  const { raw: _rawE } = await chainGenerate(_qE, 'E', sys);
+  const d=parseJSON(_rawE);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  await Promise.all([stream(document.getElementById('eYS'),d.yangsheng||''),stream(document.getElementById('eSC'),d.shichen||''),stream(document.getElementById('eCL'),d.classic||''),streamOrCards(document.getElementById('eAD'),d.advice||'')]);
+}
+
+// ── F 道家智慧 ──
+async function sceneF(q,box){
+  const ctx=formatContext(retrieveClassics(q,'F'));
+  box.innerHTML=`<div class="thF" style="display:flex;flex-direction:column;height:100%">
+    ${qEcho(q)}
+    <div class="sc-title"><h2 style="color:#e8c060;text-shadow:0 0 15px rgba(212,168,67,.55)">道家智慧</h2><div class="sub" style="color:rgba(212,168,67,.55)">道德經 · 莊子 · 論語 · 孟子 · 孫子</div></div>
+    <div class="quote-big">
+      <div class="qmark">"</div>
+      <div class="q-src" id="fSrc">《道德經》</div>
+      <div class="q-text" id="fQuote"></div>
+      <div class="q-interp" id="fInterp"></div>
+    </div>
+    <div class="cgrid c2" style="flex:1;min-height:0">
+      <div class="card" style="animation-delay:.1s"><div class="clbl">針對你的問題</div><div class="cbody" id="fAna"></div></div>
+      <div class="card" style="animation-delay:.15s"><div class="clbl">古人的答案</div><div class="cbody" id="fAns" style="font-family:'Ma Shan Zheng',cursive;color:#ffd96a;font-size:.98rem"></div></div>
+      <div class="card s2" style="animation-delay:.2s"><div class="clbl">實踐之道</div><div class="cbody" id="fPra" style="font-size:.88rem"></div></div>
+    </div>
+  </div>`;
+  const sys=`你是精通道德經、莊子、論語、孟子、孫子兵法的中國哲學學者，同時是一位有生命智慧的人生導師。你的風格：引用原文後做深度闡發，既有哲學的縱深，又有現實的溫度，能幫人看清問題的本質，給出真正觸動人心的答案。不說「順其自然」「放下執念」這種廉價的心靈雞湯。
+
+以下是各典籍真實原文，請嚴格基於此引用，不可編造：
+
+
+【回答要求】
+- source：典籍出處，精確到篇章，如「《道德經》第十六章」或「《論語·顏淵》」
+- quote：從上述原文中選取最契合用戶問題的一句，必須逐字準確，20-50字
+- interp：先解釋這句話的字面含義，再說明古人寫這句話時的語境和深意，至少100字，要讓讀者真正理解這句話不是在說什麼表面道理
+- analysis：針對用戶的具體問題做深度分析，至少150字。要用典籍的智慧作為視角，但分析的是用戶的實際處境：問題的本質是什麼？古人是怎麼看待這類問題的？現代人容易在哪裡走偏？
+- answer：以「古人會怎麼說」的方式給出回答，語言可以帶一點文言韻味但必須易懂，至少80字，要有真正的洞見，不是套話
+- practice：從「立即可做」「本週可做」「長期堅持」三個時間維度各給1-2條具體建議，共至少120字
+
+JSON字段：source、quote、interp、analysis、answer、practice。只輸出JSON。`;
+  const { raw: _rawF } = await chainGenerate(q, 'F', sys);
+  const d=parseJSON(_rawF);
+  if(!d){showErrorState(lastQ, function(){renderScene(lastScene,lastQ);}, new Error("回答解析失敗，請重試"));return;}
+  document.getElementById('fSrc').textContent=d.source||'《道德經》';
+  await Promise.all([stream(document.getElementById('fQuote'),d.quote||''),stream(document.getElementById('fInterp'),d.interp||''),stream(document.getElementById('fAna'),d.analysis||''),stream(document.getElementById('fAns'),d.answer||''),streamOrCards(document.getElementById('fPra'),d.practice||'')]);
+}
+</script>
+</body>
+</html>
