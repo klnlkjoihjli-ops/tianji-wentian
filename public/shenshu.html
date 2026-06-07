@@ -1031,14 +1031,14 @@ body.real-sky .bgla{animation:none;opacity:.55}
       <button id="askBtn" onclick="handleAsk()" style="position:absolute;right:.85rem;bottom:.85rem;cursor:pointer;transition:all .25s;"></button>
     </div>
     <div class="pills fu">
-      <div class="pill" onmouseenter="renderSceneExamples('A')" onclick="sq('今年大勢走向如何，推背圖如何印證？')">推背 · 大勢</div>
-      <div class="pill" onmouseenter="renderSceneExamples('B')" onclick="sq('我最近失眠焦慮，黃帝內經怎麼說？')">內經 · 調養</div>
-      <div class="pill" onmouseenter="renderSceneExamples('C')" onclick="sq('今年全球局勢與中國機遇，典籍如何看？')">時事 · 天機</div>
-      <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="sq('用易經起一卦，問今年事業運勢')">易經 · 起卦</div>
-      <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="sq('現在是什麼節氣，如何養生調息？')">節氣 · 養生</div>
-      <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="sq('我面臨重要抉擇，道德經有什麼智慧？')">道家 · 智慧</div>
-      <div class="pill" onmouseenter="renderSceneExamples('G')" onclick="sq('如何做一個君子，論語有什麼修身之道？')">儒家 · 修身</div>
-      <div class="pill" onmouseenter="renderSceneExamples('H')" onclick="sq('面對職場競爭，孫子兵法有何謀略？')">謀略 · 兵法</div>
+      <div class="pill" onmouseenter="renderSceneExamples('A')" onclick="pinnedScene='A';sq('今年大勢走向如何，推背圖如何印證？')">推背 · 大勢</div>
+      <div class="pill" onmouseenter="renderSceneExamples('B')" onclick="pinnedScene='B';sq('我最近失眠焦慮，黃帝內經怎麼說？')">內經 · 調養</div>
+      <div class="pill" onmouseenter="renderSceneExamples('C')" onclick="pinnedScene='C';sq('今年全球局勢與中國機遇，典籍如何看？')">時事 · 天機</div>
+      <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用易經起一卦，問今年事業運勢')">易經 · 起卦</div>
+      <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="pinnedScene='E';sq('現在是什麼節氣，如何養生調息？')">節氣 · 養生</div>
+      <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('我面臨重要抉擇，道德經有什麼智慧？')">道家 · 智慧</div>
+      <div class="pill" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('如何做一個君子，論語有什麼修身之道？')">儒家 · 修身</div>
+      <div class="pill" onmouseenter="renderSceneExamples('H')" onclick="pinnedScene='H';sq('面對職場競爭，孫子兵法有何謀略？')">謀略 · 兵法</div>
     </div>
     <div id="sceneExamples" class="hidden fu"></div>
   </div>
@@ -2306,11 +2306,20 @@ document.getElementById('question').addEventListener('keydown',e=>{
 });
 
 function detect(q){
-  if(/失眠|焦慮|疲勞|養生|脏腑|調養|補氣|氣血|陰虛|陽虛|體質|中醫|睡眠|頭疼|肝|脾|肺|腎|心/.test(q)) return 'B';
-  if(/時事|局勢|全球|經濟|戰爭|科技|2025|2026|趨勢|AI|國際|機遇|政治|美國|外交|股市/.test(q)) return 'C';
+  // 兵法謀略優先（避免被「競爭」「戰爭」誤判為時事）
+  if(/孫子|六韜|三略|兵法|謀略|謀攻|奇正|虛實|用間|知彼知己|上兵伐謀|兵者/.test(q)) return 'H';
+  // 儒家修身
+  if(/論語|孔子|孟子|儒家|大學|中庸|修身|齊家|仁義|荀子|禮記|君子之道|德行/.test(q)) return 'G';
+  // 養生醫學
+  if(/失眠|焦慮|疲勞|養生|脏腑|調養|補氣|氣血|陰虛|陽虛|體質|中醫|睡眠|頭疼|肝火|脾虛|肺|腎虛|心火/.test(q)) return 'B';
+  // 時事天機
+  if(/時事|局勢|全球|經濟形勢|戰爭|科技|2025|2026|趨勢|AI|國際|地緣|政治|外交|股市/.test(q)) return 'C';
+  // 易經起卦
   if(/起卦|占卦|卦象|搖卦|易經問/.test(q)) return 'D';
+  // 節氣養生
   if(/節氣|時辰|羅盤|春分|夏至|秋分|冬至|立春|立夏|立秋|立冬|芒種|清明|節令/.test(q)) return 'E';
-  if(/道德經|莊子|論語|道家|儒家|孔子|老子|智慧|選擇|決策|困惑|迷茫|意義|人生/.test(q)) return 'F';
+  // 道家智慧
+  if(/道德經|莊子|道家|老子|無為|逍遙|智慧|選擇|決策|困惑|迷茫|意義|人生/.test(q)) return 'F';
   return 'A';
 }
 
@@ -2356,7 +2365,8 @@ async function handleAsk(){
   // API由後端處理
   setAskLoading(true);
   hideExamples();
-  const sc=detect(q);
+  const sc=pinnedScene||detect(q);
+  pinnedScene='';
   saveHist(q);
   document.getElementById('landing').classList.add('gone');
   showLoader();
@@ -2756,7 +2766,7 @@ function hideExamples(){
 }
 
 const SCENE_LABELS={A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·羅盤',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
-let lastQ=''; let lastScene='A';
+let lastQ=''; let lastScene='A'; let pinnedScene='';
 
 function buildTabs(active){
   const el=document.getElementById('tabs');el.innerHTML='';
