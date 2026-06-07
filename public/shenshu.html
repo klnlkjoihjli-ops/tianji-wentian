@@ -192,8 +192,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
 /* 天象与回答模式控制 */
 .experience-controls{
   position:fixed;top:1rem;left:1rem;z-index:210;
-  display:none;gap:.5rem;align-items:center;flex-wrap:wrap;
+  display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;
 }
+.sky-mode-group{display:none!important}
 .mode-group{
   display:flex;align-items:center;padding:.2rem;
   border:1px solid rgba(201,168,76,.24);border-radius:8px;
@@ -944,6 +945,128 @@ body.real-sky .bgla{animation:none;opacity:.55}
   padding:.32rem .75rem;border-radius:20px;font-size:.72rem;cursor:pointer;font-family:'Noto Serif SC',serif;
   letter-spacing:.04em;transition:all .2s;white-space:nowrap}
 .ex-btn:hover{background:rgba(201,168,76,.18);border-color:rgba(201,168,76,.6);color:rgba(201,168,76,1)}
+.more-classics{position:relative;margin-top:.55rem;text-align:center}
+.more-classics summary{
+  list-style:none;display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;
+  color:rgba(201,168,76,.62);font-size:.68rem;letter-spacing:.12em;
+}
+.more-classics summary::-webkit-details-marker{display:none}
+.more-classics summary::after{content:'＋';font-size:.72rem}
+.more-classics[open] summary::after{content:'－'}
+.more-classics-list{display:flex;justify-content:center;gap:.5rem;margin-top:.55rem}
+.hist-more{
+  border:0;background:transparent;color:rgba(201,168,76,.55);cursor:pointer;
+  font-family:'Noto Serif SC',serif;font-size:.66rem;letter-spacing:.1em;padding:.3rem .6rem;
+}
+
+/* 东方 AI 顾问统一结果层 */
+#rinner{
+  left:50%!important;right:auto!important;width:min(100%,1040px)!important;
+  transform:translateX(-50%);overflow-y:auto!important;overflow-x:hidden!important;
+  padding:3.5rem 1.25rem 2rem!important;
+}
+#rinner>div{flex:0 0 auto}
+.source-chip{
+  padding:.28rem .5rem;border-radius:4px;background:rgba(201,168,76,.09);
+  border:1px solid rgba(201,168,76,.18);font-size:.72rem;color:rgba(255,242,205,.75);
+}
+.confidence{font-size:.66rem;color:rgba(255,255,255,.45);margin-top:.4rem}
+.safety-notice{
+  margin-top:.7rem;padding-top:.6rem;border-top:1px solid rgba(255,255,255,.06);
+  color:rgba(255,255,255,.42);font-size:.68rem;line-height:1.7;
+}
+/* ══ 英雄结果层 ══ */
+.hero-frame{
+  margin:.25rem 0 .85rem;padding:1.1rem 1.2rem;
+  border:1px solid rgba(201,168,76,.25);border-radius:10px;
+  background:linear-gradient(135deg,rgba(22,15,7,.92),rgba(4,3,2,.9));
+  box-shadow:0 12px 40px rgba(0,0,0,.28);
+}
+.hero-scene-tag{
+  display:inline-block;background:rgba(201,168,76,.12);
+  border:1px solid rgba(201,168,76,.35);color:#c9a84c;
+  padding:.15rem .55rem;border-radius:2rem;
+  font-size:.7rem;letter-spacing:.1em;margin-bottom:.6rem;
+}
+.hero-quote{
+  font-size:1.08rem;color:#f3dfaa;line-height:1.8;
+  border-left:2px solid #c9a84c;padding-left:.85rem;
+  margin-bottom:.35rem;font-family:'Ma Shan Zheng',cursive;
+}
+.hero-source{font-size:.72rem;color:#777;margin-bottom:.9rem;padding-left:.9rem}
+.hero-conclusion{
+  font-size:.95rem;color:rgba(255,248,230,.88);
+  line-height:1.85;margin-bottom:.85rem;
+  font-family:'Noto Serif SC',serif;
+}
+.hero-actions{display:flex;flex-direction:column;gap:.38rem;margin-bottom:.85rem}
+.hero-action{
+  background:rgba(255,255,255,.035);
+  border-left:2px solid rgba(201,168,76,.45);
+  padding:.45rem .7rem;font-size:.83rem;
+  line-height:1.7;color:rgba(255,255,255,.78);
+  font-family:'Noto Serif SC',serif;
+}
+.hero-bottom-bar{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem}
+.hero-expand-btn{
+  margin-left:auto;background:transparent;border:1px solid #2a2a2a;
+  color:#555;font-size:.74rem;padding:.2rem .65rem;border-radius:2rem;
+  cursor:pointer;letter-spacing:.04em;font-family:'Noto Serif SC',serif;
+  transition:color .2s,border-color .2s;
+}
+.hero-expand-btn:hover{color:#c9a84c;border-color:rgba(201,168,76,.5)}
+.hero-expand-section{display:none;border-top:1px solid #1a1a1a;margin-top:.75rem;padding-top:.75rem}
+.hero-expand-section.open{display:block}
+.hero-field{margin-bottom:.7rem}
+.hero-field-label{
+  font-size:.67rem;color:#555;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:.22rem;
+}
+.hero-field-text{font-size:.85rem;color:#aaa;line-height:1.7;font-family:'Noto Serif SC',serif}
+.hero-field-divider{border:none;border-top:1px solid #181818;margin:.55rem 0}
+.feedback-row{
+  display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
+  padding-top:.6rem;border-top:1px solid rgba(255,255,255,.05);margin-top:.5rem;
+}
+.fb-label{font-size:.7rem;color:#444}
+.fb-btn{
+  background:transparent;border:1px solid #2a2a2a;color:#555;
+  font-size:.74rem;padding:.18rem .55rem;border-radius:2rem;cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.fb-btn:hover{color:#c9a84c;border-color:rgba(201,168,76,.5)}
+.fb-btn.helpful{color:#7de8a8;border-color:rgba(125,232,168,.4);pointer-events:none}
+.fb-btn.unhelpful{color:#e07070;border-color:rgba(224,112,96,.4);pointer-events:none}
+.fb-safety{font-size:.7rem;color:#444;font-style:italic;margin-left:auto}
+.cgrid{flex:none!important;min-height:auto!important;overflow:visible!important;grid-auto-rows:minmax(155px,auto)}
+.card{min-height:155px}
+.cbody,.rlist li{
+  font-family:'Noto Serif SC',serif!important;font-size:.94rem!important;
+  line-height:2!important;overflow:visible!important;
+}
+.quote-big .q-text,#aC1,#aC2,#cProphecy{font-family:'Ma Shan Zheng',cursive!important}
+
+@media(max-width:640px){
+  #landing{padding:1rem}
+  .experience-controls{top:.55rem;left:.55rem}
+  .mode-btn{min-height:32px;padding:.35rem .62rem}
+  .logo-zh{font-size:2.8rem!important}
+  .pills{gap:.4rem!important}
+  .pill{font-size:.68rem!important;padding:.36rem .7rem!important}
+  .hist-list .hist-item{max-width:44vw}
+  #sceneExamples{display:none}
+  #sundial,.bagua-labels{display:none!important}
+  #rinner{padding:3.4rem .9rem 1.5rem!important}
+  .hero-quote{font-size:1rem}
+  .hero-conclusion{font-size:.92rem}
+  .hero-action{font-size:.82rem}
+  .hero-expand-btn{margin-left:0}
+  .cbody,.rlist li{font-size:1rem!important;line-height:1.95!important}
+  .copy-btn{opacity:1!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+}
 /* ══ 登录页 ══ */
 #loginGate{
   position:fixed;inset:0;z-index:9999;
@@ -999,15 +1122,15 @@ body.real-sky .bgla{animation:none;opacity:.55}
 </div>
 <canvas id="c"></canvas>
 <div class="experience-controls">
-  <div class="mode-group" aria-label="天象模式">
+  <div class="mode-group sky-mode-group" aria-label="天象模式">
     <span class="mode-label">天象</span>
     <button class="mode-btn on" id="skyRealBtn" type="button" title="按當前時間定位象徵性天球" onclick="setSkyMode('real')">實時</button>
     <button class="mode-btn" id="skyDreamBtn" type="button" title="自由流動的沉浸動畫" onclick="setSkyMode('dream')">靈境</button>
   </div>
   <div class="mode-group" aria-label="回答深度">
     <span class="mode-label">解讀</span>
-    <button class="mode-btn" id="briefBtn" type="button" onclick="setResponseMode('brief')">簡要</button>
-    <button class="mode-btn on" id="deepBtn" type="button" onclick="setResponseMode('deep')">深度</button>
+    <button class="mode-btn on" id="briefBtn" type="button" onclick="setResponseMode('brief')">簡要</button>
+    <button class="mode-btn" id="deepBtn" type="button" onclick="setResponseMode('deep')">深度</button>
   </div>
 </div>
 <div id="celestialTip"></div>
@@ -1037,9 +1160,14 @@ body.real-sky .bgla{animation:none;opacity:.55}
       <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用易經起一卦，問今年事業運勢')">易經 · 起卦</div>
       <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="pinnedScene='E';sq('現在是什麼節氣，如何養生調息？')">節氣 · 養生</div>
       <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('我面臨重要抉擇，道德經有什麼智慧？')">道家 · 智慧</div>
-      <div class="pill" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('如何做一個君子，論語有什麼修身之道？')">儒家 · 修身</div>
-      <div class="pill" onmouseenter="renderSceneExamples('H')" onclick="pinnedScene='H';sq('面對職場競爭，孫子兵法有何謀略？')">謀略 · 兵法</div>
     </div>
+    <details class="more-classics fu">
+      <summary>更多典籍</summary>
+      <div class="more-classics-list">
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('如何做一個君子，論語有什麼修身之道？')">儒家 · 修身</button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('H')" onclick="pinnedScene='H';sq('面對職場競爭，孫子兵法有何謀略？')">謀略 · 兵法</button>
+      </div>
+    </details>
     <div id="sceneExamples" class="hidden fu"></div>
   </div>
 
@@ -1060,7 +1188,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
   <div id="ldtxt">解析問題意圖……</div>
   <div id="loader-progress"><div id="loader-progress-bar"></div></div>
   <div id="loader-steps"><span class="lstep" id="lstep1">起卦</span><span class="lstep-sep">→</span><span class="lstep" id="lstep2">推演</span><span class="lstep-sep">→</span><span class="lstep" id="lstep3">生成解讀</span></div>
-  <div id="loader-timer" style="font-size:.58rem;letter-spacing:.2em;color:rgba(255,255,255,.28);margin-top:.5rem;font-family:'Noto Serif SC',serif;">預計 60–90 秒</div>
+  <div id="loader-timer" style="font-size:.58rem;letter-spacing:.2em;color:rgba(255,255,255,.28);margin-top:.5rem;font-family:'Noto Serif SC',serif;">通常 10–20 秒完成</div>
 </div>
 
 <!-- ══ RESULT ══ -->
@@ -1618,8 +1746,14 @@ function getJieqiData(name) {
 // ══════════════════════════════════════
 (function(){
   const canvas = document.getElementById('c');
+  const lowPower = matchMedia('(prefers-reduced-motion: reduce)').matches
+    || innerWidth < 700
+    || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+  const bgStarCount = lowPower ? 2200 : 6000;
+  const nearStarCount = lowPower ? 80 : 200;
+  const dustCount = lowPower ? 900 : 3000;
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, lowPower ? 1.25 : 2));
   renderer.setSize(innerWidth, innerHeight);
 
   const scene = new THREE.Scene();
@@ -1628,9 +1762,9 @@ function getJieqiData(name) {
 
   // ── 背景星空（密集小星，模拟银河）──
   const bgGeo = new THREE.BufferGeometry();
-  const bgPos = new Float32Array(6000 * 3);
-  const bgCol = new Float32Array(6000 * 3);
-  for(let i = 0; i < 6000; i++){
+  const bgPos = new Float32Array(bgStarCount * 3);
+  const bgCol = new Float32Array(bgStarCount * 3);
+  for(let i = 0; i < bgStarCount; i++){
     bgPos[i*3]   = (Math.random() - .5) * 160;
     bgPos[i*3+1] = (Math.random() - .5) * 160;
     bgPos[i*3+2] = (Math.random() - .5) * 100 - 20;
@@ -1647,8 +1781,8 @@ function getJieqiData(name) {
 
   // ── 近景亮星 ──
   const nearGeo = new THREE.BufferGeometry();
-  const nearPos = new Float32Array(200 * 3);
-  for(let i = 0; i < 200; i++){
+  const nearPos = new Float32Array(nearStarCount * 3);
+  for(let i = 0; i < nearStarCount; i++){
     nearPos[i*3]   = (Math.random()-.5)*60;
     nearPos[i*3+1] = (Math.random()-.5)*60;
     nearPos[i*3+2] = (Math.random()-.5)*30 - 5;
@@ -1725,10 +1859,12 @@ function getJieqiData(name) {
     new THREE.Vector3(BEIDOU[1].x, BEIDOU[1].y, BEIDOU[1].z),
     new THREE.Vector3(0, 3.5, -2),
   ];
-  beidouGroup.add(new THREE.Line(
+  const polarPointer = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pointerPts),
-    new THREE.LineBasicMaterial({color:0x7baad4, transparent:true, opacity:.25, dashSize:.1, gapSize:.1})
-  ));
+    new THREE.LineDashedMaterial({color:0x7baad4, transparent:true, opacity:.25, dashSize:.1, gapSize:.1})
+  );
+  polarPointer.computeLineDistances();
+  beidouGroup.add(polarPointer);
 
   // ── 二十八宿·四象（真实分组）──
   // 东青龙7宿 南朱雀7宿 西白虎7宿 北玄武7宿
@@ -1887,9 +2023,9 @@ function getJieqiData(name) {
 
   // ── 结果页星尘 ──
   const dustGeo = new THREE.BufferGeometry();
-  const dustPos = new Float32Array(3000*3);
-  const dustCol = new Float32Array(3000*3);
-  for(let i = 0; i < 3000; i++){
+  const dustPos = new Float32Array(dustCount*3);
+  const dustCol = new Float32Array(dustCount*3);
+  for(let i = 0; i < dustCount; i++){
     const theta = Math.random()*Math.PI*2, phi = Math.random()*Math.PI;
     const r = 3 + Math.random()*8;
     dustPos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
@@ -2057,8 +2193,11 @@ function getJieqiData(name) {
     setTimeout(function(){tip.style.display='none';},2200);
   });
 
-  (function animate(){
+  let lastRender=0;
+  (function animate(now=0){
     requestAnimationFrame(animate);
+    if(lowPower && now-lastRender<33) return;
+    lastRender=now;
     const t = clock.getElapsedTime();
 
     if(typeof hunGroup!=='undefined'){hunGroup.rotation.y=t*.07;if(hunGroup.children[1])hunGroup.children[1].rotation.z=t*.04;}
@@ -2161,8 +2300,7 @@ function animateDivHex(){
 }
 
 // ══ APP LOGIC ══
-let apiKey='';
-let responseMode=localStorage.getItem('shenshu_response_mode')||'deep';
+let responseMode=localStorage.getItem('shenshu_response_mode')||'brief';
 
 function syncModeControls(){
   const sky=window._skyMode||localStorage.getItem('shenshu_sky_mode')||'real';
@@ -2214,6 +2352,7 @@ function getCurrentGanzhi(){
 // ══ 问答历史 ══
 const HIST_KEY = 'shenshu_hist';
 const HIST_MAX = 6;
+let historyExpanded = false;
 
 function saveHist(q){
   try{
@@ -2233,7 +2372,7 @@ function renderHist(){
     if(wrap)wrap.style.display='block';
     if(!ul)return;
     ul.innerHTML='';
-    list.forEach(function(q){
+    list.slice(0,historyExpanded?HIST_MAX:2).forEach(function(q){
       const btn=document.createElement('button');
       btn.className='hist-item';btn.type='button';
       btn.textContent=q;btn.title=q;
@@ -2246,28 +2385,20 @@ function renderHist(){
       });
       ul.appendChild(btn);
     });
+    if(list.length>2){
+      const more=document.createElement('button');
+      more.className='hist-more';more.type='button';
+      more.textContent=historyExpanded?'收起記錄':`查看其餘 ${list.length-2} 條`;
+      more.addEventListener('click',function(){
+        historyExpanded=!historyExpanded;
+        renderHist();
+      });
+      ul.appendChild(more);
+    }
   }catch(e){console.error('renderHist',e);}
 }
 
 
-function saveKey(){
-  const v=document.getElementById('apiKey').value.trim();
-  if(!v){setMsg('請輸入 API Key','err');return;}
-  if(!v.startsWith('sk-')){setMsg('格式不對，應以 sk- 開頭','err');return;}
-  apiKey=v;sessionStorage.setItem('dskey',v);
-  setMsg('✓ 已連接','ok');
-  setTimeout(()=>{
-    document.getElementById('apiWrap').classList.add('hidden');
-    document.getElementById('apiChip').style.display='flex';
-  },700);
-}
-function resetKey(){
-  document.getElementById('apiWrap').classList.remove('hidden');
-  document.getElementById('apiChip').style.display='none';
-  document.getElementById('apiKey').value='';
-  setMsg('','');
-  setTimeout(()=>document.getElementById('apiKey').focus(),150);
-}
 function setMsg(t,c){const e=document.getElementById('apiMsg');e.textContent=t;e.className=c||'';}
 function sq(q){
   document.getElementById('question').value=q;
@@ -2295,7 +2426,6 @@ window.addEventListener('load',()=>{
   setInterval(updateTimeDisplay,60000);
   syncModeControls();
   renderHist();
-  renderSceneExamples('A');
   document.getElementById('askBtn').textContent='問天';
   document.getElementById('question').addEventListener('input', function(){
     if(this.value.trim()) hideExamples();
@@ -2335,9 +2465,9 @@ function showLoader(){
     elapsed++;
     const el=document.getElementById('loader-timer');
     if(!el) return;
-    if(elapsed<60) el.textContent='預計約 '+(90-elapsed)+' 秒完成';
-    else if(elapsed<90) el.textContent='正在深度推演，請稍候…';
-    else el.textContent='典籍豐富，解讀較深，稍安勿躁…';
+    if(elapsed<15) el.textContent='正在整合典籍，約 '+Math.max(1,15-elapsed)+' 秒';
+    else if(elapsed<35) el.textContent='正在生成完整解讀，請稍候…';
+    else el.textContent='本次問題較深，仍在整理回答…';
   },1000);
 }
 function hideLoader(){
@@ -2351,7 +2481,7 @@ function hideLoader(){
   // 重置步骤
   ['lstep1','lstep2','lstep3'].forEach(function(id){const s=document.getElementById(id);if(s)s.className='lstep';});
   const timer=document.getElementById('loader-timer');
-  if(timer)timer.textContent='預計 30–60 秒';
+  if(timer)timer.textContent='通常 10–20 秒完成';
 }
 
 async function handleAsk(){
@@ -2418,68 +2548,10 @@ function setProgress(stage, text){
   });
 }
 
-// Step 1：分析问题意图，提取关键概念
-async function step1_analyze(q){
-  setProgress(1, '解析問題意圖……');
-  const sys = `你是中華古典學術的問題分析師。
-用戶問了一個問題，你需要快速分析：
-1. 核心議題：這個問題的本質是什麼？（10字以內）
-2. 涉及領域：命理/養生/時事/易學/節氣/道家哲學（可多選）
-3. 情緒狀態：用戶現在的心理狀態（擔憂/困惑/求知/焦慮/探索）
-4. 關鍵概念：最相關的3-5個中醫或哲學概念（如：肝氣鬱結、否極泰來、無為而治）
-5. 典籍方向：最應該引用哪些典籍（如：黃帝內經·靈樞、道德經第十六章、推背圖第X象）
-
-JSON字段：topic、domains(數組)、mood、concepts(數組)、classics(數組)
-只輸出JSON。`;
-  const raw = await ask(sys, `用戶問：${q}`);
-  return parseJSON(raw) || {topic: q, domains: [], mood: '求知', concepts: [], classics: []};
-}
-
-// Step 2：基於意圖深度組裝典籍上下文
-function step2_buildContext(q, analysis, scene){
-  setProgress(2, '參閱典籍原文……');
-  
-  // 基礎RAG檢索
-  const baseCtx = retrieveClassics(q, scene);
-  
-  // 根據Step1分析的概念做二次檢索增強
-  const conceptCtx = [];
-  if(analysis.concepts && analysis.concepts.length > 0){
-    const conceptQuery = analysis.concepts.join(' ') + ' ' + q;
-    const extra = retrieveClassics(conceptQuery, 'ALL');
-    // 合併去重
-    const seen = new Set(baseCtx.map(x => x.content));
-    extra.forEach(x => {
-      if(!seen.has(x.content)){
-        seen.add(x.content);
-        conceptCtx.push(x);
-      }
-    });
-  }
-  
-  const allCtx = [...baseCtx, ...conceptCtx].slice(0, 12); // 最多12條
-  return formatContext(allCtx);
-}
-
-// Step 3：基於分析和典籍做最終深度生成
-async function step3_generate(q, analysis, ctx, scene, systemPrompt){
-  setProgress(3, '推演天機，整合回答……');
-  
-  // 把Step1的分析結果作為額外上下文注入
-  const analysisContext = `
-【問題分析】
-核心議題：${analysis.topic || q}
-用戶狀態：${analysis.mood || '求知'}
-關鍵概念：${(analysis.concepts || []).join('、') || '待定'}
-應參考典籍：${(analysis.classics || []).join('、') || '見下方'}
-`;
-  
-  const enhancedSys = systemPrompt + `\n\n${analysisContext}\n\n【典籍原文】\n${ctx}`;
-  return await ask(enhancedSys, `用戶問：${q}\n\n請基於以上分析和典籍原文，給出有深度、有溫度、有具體見解的回答。`);
-}
-
 // 主入口：調用後端 SSE API
-async function chainGenerate(q, scene, systemPrompt){
+let lastAnswerMeta=null;
+
+async function chainGenerate(q, scene){
   const sessionId = localStorage.getItem('shenshu_session') || crypto.randomUUID();
   localStorage.setItem('shenshu_session', sessionId);
 
@@ -2490,7 +2562,10 @@ async function chainGenerate(q, scene, systemPrompt){
       headers: {'Content-Type': 'application/json', 'x-access-token': accessToken},
       body: JSON.stringify({question:q,scene:scene,sessionId:sessionId,responseMode:responseMode})
     }).then(res => {
-      if(!res.ok) return res.json().then(e => reject(new Error(e.error||'請求失敗')));
+      if(!res.ok) return res.json().then(e => {
+        if(res.status===401 && window.requireLogin) window.requireLogin();
+        reject(new Error(e.error||'請求失敗'));
+      });
       if(!res.body) throw new Error('服務器未返回可讀取的響應');
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -2510,7 +2585,11 @@ async function chainGenerate(q, scene, systemPrompt){
           if(data.step) setProgress(data.step, data.text);
         }
         if(event==='delta') fullText += data.text;
-        if(event==='done'){fullText=data.raw||fullText;parsed=data.parsed;}
+        if(event==='done'){
+          fullText=data.raw||fullText;
+          parsed=data.parsed;
+          lastAnswerMeta=data;
+        }
         if(event==='error') throw new Error(data.message||'生成失敗');
       }
       function pump(){
@@ -2525,7 +2604,7 @@ async function chainGenerate(q, scene, systemPrompt){
             reject(e);
             return;
           }
-          if(done){ resolve({raw: fullText, parsed}); return; }
+          if(done){ resolve(lastAnswerMeta||{raw:fullText,parsed}); return; }
           return pump();
         });
       }
@@ -2533,69 +2612,6 @@ async function chainGenerate(q, scene, systemPrompt){
     }).catch(reject);
   });
 }
-
-async function ask(sys,user){
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),30000);
-  try{
-    const r=await fetch('https://api.deepseek.com/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({model:'deepseek-chat',max_tokens:3000,temperature:.88,
-        messages:[{role:'system',content:sys},{role:'user',content:user}]}),
-      signal:controller.signal
-    });
-    clearTimeout(timer);
-    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API請求失敗');}
-    return (await r.json()).choices[0].message.content;
-  }catch(e){
-    clearTimeout(timer);
-    if(e.name==='AbortError') throw new Error('請求超時（30秒），請檢查網絡或稍後重試');
-    throw e;
-  }
-}
-
-// SSE流式輸出
-async function askStream(sys,user,el){
-  el.innerHTML='';
-  const cur=document.createElement('span');cur.className='cur';el.appendChild(cur);
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),45000);
-  try{
-    const r=await fetch('https://api.deepseek.com/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({model:'deepseek-chat',max_tokens:3000,temperature:.88,stream:true,
-        messages:[{role:'system',content:sys},{role:'user',content:user}]}),
-      signal:controller.signal
-    });
-    clearTimeout(timer);
-    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API請求失敗');}
-    const reader=r.body.getReader();
-    const dec=new TextDecoder();
-    let full='';
-    while(true){
-      const{done,value}=await reader.read();
-      if(done)break;
-      for(const line of dec.decode(value).split('\n')){
-        if(!line.startsWith('data:'))continue;
-        const d=line.slice(5).trim();
-        if(d==='[DONE]')break;
-        try{
-          const delta=JSON.parse(d).choices?.[0]?.delta?.content||'';
-          if(delta){full+=delta;el.insertBefore(document.createTextNode(delta),cur);}
-        }catch(e){}
-      }
-    }
-    cur.remove();
-    return full;
-  }catch(e){
-    clearTimeout(timer);cur.remove();
-    if(e.name==='AbortError')throw new Error('請求超時，請稍後重試');
-    throw e;
-  }
-}
-
 
 // 错误状态渲染
 function showErrorState(question, onRetry, err){
@@ -2787,6 +2803,77 @@ function qEcho(q){
   </div>`;
 }
 
+function renderAdvisorFrame(box,meta){
+  if(!box||!meta) return;
+  const advisor=meta.advisor||{};
+  const sources=Array.isArray(meta.sources)?meta.sources:[];
+  const frame=document.createElement('section');
+  frame.className='advisor-frame';
+  frame.setAttribute('aria-label','东方 AI 顾问摘要');
+  const grid=document.createElement('div');
+  grid.className='advisor-grid';
+
+  function addLayer(label,value,extraClass){
+    if(!value) return null;
+    const layer=document.createElement('div');
+    layer.className='advisor-layer'+(extraClass?' '+extraClass:'');
+    const heading=document.createElement('div');
+    heading.className='advisor-label';heading.textContent=label;
+    const content=document.createElement('div');
+    content.className='advisor-text'+(label==='一句結論'?' advisor-conclusion':'');
+    content.textContent=value;
+    layer.appendChild(heading);layer.appendChild(content);grid.appendChild(layer);
+    return content;
+  }
+
+  addLayer('一句結論',advisor.conclusion||'先看清问题，再决定下一步。');
+
+  const evidence=document.createElement('div');
+  evidence.className='advisor-layer';
+  const evidenceLabel=document.createElement('div');
+  evidenceLabel.className='advisor-label';evidenceLabel.textContent='典籍依據';
+  const chips=document.createElement('div');chips.className='advisor-sources';
+  if(sources.length){
+    sources.forEach(function(source){
+      const chip=document.createElement('span');chip.className='source-chip';
+      chip.textContent=`${source.source} · ${source.chapter}`;
+      chip.title=source.excerpt||'';
+      chips.appendChild(chip);
+    });
+  }else{
+    const chip=document.createElement('span');chip.className='source-chip';
+    chip.textContent='本次未檢索到可核驗原文';chips.appendChild(chip);
+  }
+  const confidence=document.createElement('div');confidence.className='confidence';
+  const confidenceText={high:'依據匹配度較高',medium:'依據匹配度中等',low:'依據較弱，請審慎參考',none:'缺少可核驗典籍依據'};
+  confidence.textContent=confidenceText[meta.confidence]||confidenceText.none;
+  evidence.appendChild(evidenceLabel);evidence.appendChild(chips);evidence.appendChild(confidence);
+  grid.appendChild(evidence);
+
+  addLayer('現代解釋',advisor.modernExplanation||'以下内容是基于典籍语境的现代转译。');
+
+  const actionLayer=document.createElement('div');actionLayer.className='advisor-layer action-layer';
+  const actionLabel=document.createElement('div');actionLabel.className='advisor-label';actionLabel.textContent='今日行動';
+  const actionList=document.createElement('div');actionList.className='advisor-actions';
+  const actionItems=Array.isArray(advisor.actions)?advisor.actions:[];
+  (actionItems.length?actionItems:['写下当前最需要解决的一件事，并完成最小的一步。']).forEach(function(item){
+    const action=document.createElement('div');action.className='advisor-action';action.textContent=item;
+    actionList.appendChild(action);
+  });
+  actionLayer.appendChild(actionLabel);actionLayer.appendChild(actionList);grid.appendChild(actionLayer);
+  frame.appendChild(grid);
+
+  if(meta.safetyNotice){
+    const notice=document.createElement('div');notice.className='safety-notice';
+    notice.textContent=meta.safetyNotice;frame.appendChild(notice);
+  }
+
+  const target=box.firstElementChild||box;
+  const echo=target.querySelector&&target.querySelector('.q-echo');
+  if(echo&&echo.parentNode) echo.parentNode.insertBefore(frame,echo.nextSibling);
+  else target.insertBefore(frame,target.firstChild);
+}
+
 function addCopyBtn(cardEl, getText){
   const btn = document.createElement('button');
   btn.className = 'copy-btn';
@@ -2809,6 +2896,7 @@ function addCopyBtn(cardEl, getText){
 async function renderScene(scene,q){
   lastQ=q;lastScene=scene;buildTabs(scene);
   const box=document.getElementById('rinner');box.innerHTML='';
+  lastAnswerMeta=null;
   if(window._highlightScene) window._highlightScene(scene);
   try{
     if(scene==='A')await sceneA(q,box);
@@ -2819,6 +2907,7 @@ async function renderScene(scene,q){
     else if(scene==='G')await sceneG(q,box);
     else if(scene==='H')await sceneH(q,box);
     else await sceneF(q,box);
+    renderAdvisorFrame(box,lastAnswerMeta);
     // 复制按钮 + 建议卡片编号（只渲染JSON数组，不拆分）
     box.querySelectorAll('.card').forEach(card=>{
       const body=card.querySelector('.cbody, .rlist, .q-text');
@@ -2925,10 +3014,6 @@ JSON字段：dominant、diagnosis、classic、remedy(數組)、practice。只輸
   const ul=document.getElementById('bRemedy');
   (d.remedy||[]).forEach(r=>{const li=document.createElement('li');li.textContent=r;ul.appendChild(li);});
   await Promise.all([stream(document.getElementById('bDiag'),d.diagnosis||''),stream(document.getElementById('bClassic'),d.classic||''),stream(document.getElementById('bPractice'),d.practice||'')]);
-  const disc=document.createElement('div');
-  disc.style.cssText='margin-top:1rem;padding:.5rem .8rem;border-top:1px solid rgba(201,168,76,.15);color:rgba(255,255,255,.3);font-size:.65rem;letter-spacing:.06em;line-height:1.7';
-  disc.textContent='⚠ 以上內容僅供養生參考，不能替代專業醫療診斷。如有急症或持續不適，請及時就醫。';
-  document.getElementById('rinner').appendChild(disc);
 }
 
 // ── C 時事天機 ──
@@ -3218,11 +3303,25 @@ JSON字段：source、quote、interp、analysis、answer、practice。只輸出J
   const btn = document.getElementById('lgBtn');
   const err = document.getElementById('lgErr');
 
-  // 已登录则直接隐藏
-  if(sessionStorage.getItem('tianji_auth')){
+  const storedToken=sessionStorage.getItem('tianji_auth');
+  const storedExpiry=Number(sessionStorage.getItem('tianji_auth_exp')||0);
+
+  window.requireLogin=function(){
+    sessionStorage.removeItem('tianji_auth');
+    sessionStorage.removeItem('tianji_auth_exp');
+    gate.classList.remove('hide');
+    gate.style.display='flex';
+    btn.disabled=false;btn.textContent='入 門';
+    err.textContent='登入已失效，請重新輸入密碼';
+    input.value='';input.focus();
+  };
+
+  if(storedToken && storedExpiry>Date.now()){
     gate.style.display='none';
     return;
   }
+  sessionStorage.removeItem('tianji_auth');
+  sessionStorage.removeItem('tianji_auth_exp');
 
   // 回车触发登录
   input.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
@@ -3239,8 +3338,9 @@ JSON字段：source、quote、interp、analysis、answer、practice。只輸出J
         body:JSON.stringify({password:pwd})
       });
       const data = await res.json();
-      if(res.ok && data.token){
+      if(res.ok && data.token && data.expiresAt){
         sessionStorage.setItem('tianji_auth', data.token);
+        sessionStorage.setItem('tianji_auth_exp', String(data.expiresAt));
         gate.classList.add('hide');
         setTimeout(()=>{ gate.style.display='none'; }, 500);
       } else {
