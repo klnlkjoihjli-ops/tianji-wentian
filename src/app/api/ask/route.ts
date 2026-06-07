@@ -66,6 +66,15 @@ function getCurrentDateContext(): string {
 }
 
 export async function POST(req: NextRequest) {
+  // 访问令牌校验
+  const accessToken = process.env.ACCESS_TOKEN
+  if (accessToken) {
+    const clientToken = req.headers.get('x-access-token')
+    if (clientToken !== accessToken) {
+      return Response.json({ error: '无访问权限' }, { status: 401 })
+    }
+  }
+
   if (isRateLimited(getClientId(req))) {
     return Response.json({ error: '请求过于频繁，请稍后再试' }, { status: 429 })
   }

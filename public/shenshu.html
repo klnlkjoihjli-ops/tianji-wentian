@@ -2406,9 +2406,10 @@ async function chainGenerate(q, scene, systemPrompt){
   localStorage.setItem('shenshu_session', sessionId);
 
   return new Promise((resolve, reject) => {
+    const accessToken = new URLSearchParams(window.location.search).get('t') || '';
     fetch('/api/ask', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-access-token': accessToken},
       body: JSON.stringify({question:q,scene:scene,sessionId:sessionId,responseMode:responseMode})
     }).then(res => {
       if(!res.ok) return res.json().then(e => reject(new Error(e.error||'請求失敗')));

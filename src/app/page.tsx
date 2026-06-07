@@ -1,10 +1,9 @@
-'use client'
-
 export default function HomePage() {
+  const token = process.env.ACCESS_TOKEN || ''
   return (
     <iframe
-      src="/shenshu.html?v=20260606-2"
-      title="神枢 · 问天"
+      src={`/shenshu.html?v=20260607&t=${token}`}
+      title="天機 · 問天"
       style={{
         position: 'fixed',
         inset: 0,
