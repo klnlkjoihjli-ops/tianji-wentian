@@ -37,6 +37,20 @@ const lieziJson: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/liezi.json'), 'utf8'))
 const meihuaJson: Array<{zhang:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/meihua.json'), 'utf8'))
+const hanfeiziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/hanfeizi.json'), 'utf8'))
+const huainanziJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/huainanzi.json'), 'utf8'))
+const sushuJson: Array<{zhang:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/sushu.json'), 'utf8'))
+const shennongJson: Array<{pin:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/shennong.json'), 'utf8'))
+const caigentanJson: Array<{bu:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/caigentan.json'), 'utf8'))
+const zengguangJson: Array<{lei:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/zengguangxianwen.json'), 'utf8'))
+const lvsichunqiuJson: Array<{pian:string, text:string, key:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/lvsichunqiu.json'), 'utf8'))
 
 const envPath = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envPath)) {
@@ -792,6 +806,76 @@ meihuaJson.forEach((x) => {
     chapter: x.zhang,
     content: x.text,
     scene: 'D',
+    keywords: x.key || [],
+  })
+})
+
+hanfeiziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '韩非子',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'C',
+    keywords: x.key || [],
+  })
+})
+
+huainanziJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '淮南子',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'F',
+    keywords: x.key || [],
+  })
+})
+
+sushuJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '素书',
+    chapter: x.zhang,
+    content: x.text,
+    scene: 'H',
+    keywords: x.key || [],
+  })
+})
+
+shennongJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '神农本草经',
+    chapter: x.pin,
+    content: x.text,
+    scene: 'B',
+    keywords: x.key || [],
+  })
+})
+
+caigentanJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '菜根谭',
+    chapter: x.bu,
+    content: x.text,
+    scene: 'F',
+    keywords: x.key || [],
+  })
+})
+
+zengguangJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '增广贤文',
+    chapter: x.lei,
+    content: x.text,
+    scene: 'G',
+    keywords: x.key || [],
+  })
+})
+
+lvsichunqiuJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: '吕氏春秋',
+    chapter: x.pian,
+    content: x.text,
+    scene: 'C',
     keywords: x.key || [],
   })
 })
