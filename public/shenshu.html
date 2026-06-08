@@ -1085,8 +1085,8 @@ body.real-sky .bgla{animation:none;opacity:.55}
 }
 .confidence{font-size:.66rem;color:rgba(255,255,255,.45);margin-top:.4rem}
 .safety-notice{
-  margin-top:.7rem;padding-top:.6rem;border-top:1px solid rgba(255,255,255,.06);
-  color:rgba(255,255,255,.42);font-size:.68rem;line-height:1.7;
+  margin-top:.7rem;padding-top:.6rem;border-top:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.58);font-size:.68rem;line-height:1.7;
 }
 /* ══ 英雄结果层 ══ */
 .hero-frame{
@@ -1182,7 +1182,8 @@ body.real-sky .bgla{animation:none;opacity:.55}
   border-left:2px solid var(--hero-accent);padding-left:1rem;
   margin-bottom:.35rem;font-family:'Ma Shan Zheng',cursive;
 }
-.hero-source{font-size:.72rem;color:#777;margin-bottom:.9rem;padding-left:.9rem}
+.hero-source{font-size:.72rem;color:#888;margin-bottom:.5rem;padding-left:.9rem}
+.hero-confidence{font-size:.64rem;color:rgba(255,255,255,.5);letter-spacing:.06em;margin-bottom:.8rem;padding-left:.9rem}
 .hero-conclusion{
   font-size:.95rem;color:rgba(255,248,230,.88);
   line-height:1.85;margin-bottom:.85rem;
@@ -1217,7 +1218,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
   display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
   padding-top:.6rem;border-top:1px solid rgba(255,255,255,.05);margin-top:.5rem;
 }
-.fb-label{font-size:.7rem;color:#444}
+.fb-label{font-size:.7rem;color:rgba(255,255,255,.55)}
 .fb-btn{
   background:transparent;border:1px solid #2a2a2a;color:#555;
   font-size:.74rem;padding:.18rem .55rem;border-radius:2rem;cursor:pointer;
@@ -1401,9 +1402,9 @@ body.real-sky .bgla{animation:none;opacity:.55}
     </section>
     <aside class="lg-entry">
       <div class="lg-box">
-        <div class="lg-label">持密令入門</div>
+        <label class="lg-label" for="lgInput">持密令入門</label>
         <div class="lg-box-note">進入後，可用自然語言提出你真正關心的問題</div>
-        <input type="password" id="lgInput" placeholder="輸入訪問密碼" autocomplete="current-password"/>
+        <input type="password" id="lgInput" placeholder="輸入訪問密碼" autocomplete="current-password" aria-label="訪問密碼"/>
         <button id="lgBtn" onclick="doLogin()">開 啟 天 機</button>
         <div class="lg-err" id="lgErr"></div>
         <div class="lg-privacy">傳統典籍的現代解讀 · 重要決策請結合專業意見</div>
@@ -2862,8 +2863,12 @@ function setAskLoading(on){
   if(!container)return;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const compact=innerWidth<700;
-  const count=compact?14:28;
-  const rings=[
+  const count=compact?10:28;
+  const rings=compact?[
+    {rx:.22,ry:.08,speed:.050,tilt:-.08},
+    {rx:.30,ry:.13,speed:-.036,tilt:.06},
+    {rx:.38,ry:.18,speed:.026,tilt:-.03},
+  ]:[
     {rx:.34,ry:.13,speed:.050,tilt:-.16},
     {rx:.43,ry:.20,speed:-.036,tilt:.12},
     {rx:.50,ry:.28,speed:.026,tilt:-.04},
@@ -2917,9 +2922,9 @@ function setAskLoading(on){
       const front=(depth+1)/2;
       const x=Math.sin(a)*vw*item.ring.rx;
       const y=(Math.sin(a*2+item.ringIndex*.9)*vh*item.ring.ry*.42)+(item.ring.tilt*vh);
-      const baseScale=.68+front*.68;
+      const baseScale=compact?(.52+front*.48):(.68+front*.68);
       const focus=Math.pow(Math.max(0,depth),6);
-      const scale=item.el===hovered?1.75:baseScale+focus*.42;
+      const scale=item.el===hovered?(compact?1.3:1.75):baseScale+focus*(compact?.28:.42);
       const opacity=.09+front*.48+focus*.35;
       const blur=(1-front)*1.8;
       item.el.style.zIndex=String(Math.round(front*100));
@@ -3233,19 +3238,25 @@ const SCENE_EXPAND_FIELDS = {
 };
 
 // 从 parsed 中取出引用和来源
-function getHeroQuoteSource(scene, d) {
+function getHeroQuoteSource(scene, d, sources) {
   if (!d) return {quote:'', source:''};
+  // sources[0] 作为通用兜底
+  const s0 = Array.isArray(sources) && sources[0];
+  const fallbackSource = s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '';
   const map = {
     A: {quote: d.chen||d.song||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
-    B: {quote: d.classic||'', source:'《黃帝內經》'},
+    B: {quote: d.classic||'', source: d.source ? '《'+d.source+'》' : (d.pian ? '《黃帝內經》· '+d.pian : '《黃帝內經》')},
     C: {quote: d.prophecy||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
-    D: {quote: d.guaName||'', source:'《易經》'},
-    E: {quote: d.classic||'', source:'《黃帝內經》'},
+    D: {quote: d.guaName||'', source: d.source ? '《'+d.source+'》' : '《易經》'},
+    E: {quote: d.classic||'', source: d.source ? '《'+d.source+'》' : (d.jieqi ? '節氣·'+d.jieqi : '《黃帝內經》')},
     F: {quote: d.quote||'', source: d.source||'《道德經》'},
     G: {quote: d.quote||'', source: d.source||'《論語》'},
     H: {quote: d.quote||'', source: d.pian ? '《孫子兵法》· '+d.pian : '《孫子兵法》'},
   };
-  return map[scene] || {quote:'', source:''};
+  const result = map[scene] || {quote:'', source:''};
+  // 若 source 为空，用 sources[0] 兜底
+  if (!result.source && fallbackSource) result.source = fallbackSource;
+  return result;
 }
 
 const SCENE_LABELS_MAP = {A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·養生',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
@@ -3256,7 +3267,7 @@ function renderHeroFrame(box, meta) {
   const sources = Array.isArray(meta.sources) ? meta.sources : [];
   const scene = meta.scene || 'A';
   const parsed = meta.parsed || {};
-  let {quote, source} = getHeroQuoteSource(scene, parsed);
+  let {quote, source} = getHeroQuoteSource(scene, parsed, sources);
   const actions = Array.isArray(advisor.actions) ? advisor.actions : [];
   const hasSummary = Boolean(quote || advisor.conclusion || actions.length);
   if (!hasSummary && sources.length) {
@@ -3285,6 +3296,20 @@ function renderHeroFrame(box, meta) {
     s.className = 'hero-source';
     s.textContent = source;
     frame.appendChild(s);
+  }
+
+  // confidence 可信度指示
+  const conf = meta.confidence;
+  if (conf) {
+    const confEl = document.createElement('div');
+    confEl.className = 'hero-confidence';
+    const confMap = { high:'典籍依據充分', medium:'典籍部分相關', low:'典籍依據有限' };
+    const confDot = { high:'#6dffb0', medium:'#e8cc7a', low:'#ff9966' };
+    const level = typeof conf === 'string' ? conf : (conf >= 0.7 ? 'high' : conf >= 0.4 ? 'medium' : 'low');
+    confEl.innerHTML = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' +
+      (confDot[level]||'#777') + ';margin-right:.4em;vertical-align:middle"></span>' +
+      (confMap[level] || level);
+    frame.appendChild(confEl);
   }
 
   // 一句结论
@@ -3356,7 +3381,26 @@ function renderHeroFrame(box, meta) {
       lbl.textContent = f.label;
       const txt = document.createElement('div');
       txt.className = 'hero-field-text';
-      txt.textContent = String(parsed[f.key]).trim();
+      const raw = parsed[f.key];
+      if (Array.isArray(raw)) {
+        // 数组：每条一行，加 · 前缀
+        raw.forEach(function(item) {
+          const li = document.createElement('div');
+          li.style.cssText = 'padding:.18rem 0;line-height:1.7';
+          li.textContent = (typeof item === 'object' ? JSON.stringify(item) : '· ' + String(item));
+          txt.appendChild(li);
+        });
+      } else if (raw && typeof raw === 'object') {
+        // 对象：key: value 逐行展示
+        Object.entries(raw).forEach(function([k,v]) {
+          const li = document.createElement('div');
+          li.style.cssText = 'padding:.18rem 0;line-height:1.7';
+          li.textContent = k + '：' + String(v);
+          txt.appendChild(li);
+        });
+      } else {
+        txt.textContent = raw != null ? String(raw).trim() : '';
+      }
       field.appendChild(lbl);
       field.appendChild(txt);
       expandSection.appendChild(field);
