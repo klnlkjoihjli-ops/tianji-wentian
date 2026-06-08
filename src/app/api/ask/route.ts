@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
 
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
-        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1300 : 3000)
+        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1300 : 1800)
 
         let fullText = ''
         for await (const chunk of chatStream) {

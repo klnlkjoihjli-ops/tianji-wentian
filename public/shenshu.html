@@ -3243,20 +3243,19 @@ function getHeroQuoteSource(scene, d, sources) {
   // sources[0] 作为通用兜底
   const s0 = Array.isArray(sources) && sources[0];
   const fallbackSource = s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '';
+  // RAG sources[0] 是实际检索到的典籍，优先级最高
+  const ragSource = s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '';
   const map = {
     A: {quote: d.chen||d.song||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
-    B: {quote: d.classic||'', source: d.source ? '《'+d.source+'》' : (d.pian ? '《黃帝內經》· '+d.pian : '《黃帝內經》')},
-    C: {quote: d.prophecy||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
-    D: {quote: d.guaName||'', source: d.source ? '《'+d.source+'》' : '《易經》'},
-    E: {quote: d.classic||'', source: d.source ? '《'+d.source+'》' : (d.jieqi ? '節氣·'+d.jieqi : '《黃帝內經》')},
-    F: {quote: d.quote||'', source: d.source||'《道德經》'},
-    G: {quote: d.quote||'', source: d.source||'《論語》'},
-    H: {quote: d.quote||'', source: d.pian ? '《孫子兵法》· '+d.pian : '《孫子兵法》'},
+    B: {quote: d.classic||'', source: ragSource || '《黃帝內經》'},
+    C: {quote: d.prophecy||d.quote||'', source: ragSource || (d.xiang ? '推背圖 · '+d.xiang : '推背圖')},
+    D: {quote: d.guaName||d.quote||'', source: ragSource || '《易經》'},
+    E: {quote: d.classic||d.quote||'', source: ragSource || '《黃帝內經》'},
+    F: {quote: d.quote||'', source: ragSource || d.source||'《道德經》'},
+    G: {quote: d.quote||'', source: ragSource || d.source||'《論語》'},
+    H: {quote: d.quote||'', source: ragSource || (d.pian ? '《孫子兵法》· '+d.pian : '《孫子兵法》')},
   };
-  const result = map[scene] || {quote:'', source:''};
-  // 若 source 为空，用 sources[0] 兜底
-  if (!result.source && fallbackSource) result.source = fallbackSource;
-  return result;
+  return map[scene] || {quote:'', source: ragSource};
 }
 
 const SCENE_LABELS_MAP = {A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·養生',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
@@ -3381,26 +3380,46 @@ function renderHeroFrame(box, meta) {
       lbl.textContent = f.label;
       const txt = document.createElement('div');
       txt.className = 'hero-field-text';
-      const raw = parsed[f.key];
-      if (Array.isArray(raw)) {
-        // 数组：每条一行，加 · 前缀
-        raw.forEach(function(item) {
-          const li = document.createElement('div');
-          li.style.cssText = 'padding:.18rem 0;line-height:1.7';
-          li.textContent = (typeof item === 'object' ? JSON.stringify(item) : '· ' + String(item));
-          txt.appendChild(li);
-        });
-      } else if (raw && typeof raw === 'object') {
-        // 对象：key: value 逐行展示
-        Object.entries(raw).forEach(function([k,v]) {
-          const li = document.createElement('div');
-          li.style.cssText = 'padding:.18rem 0;line-height:1.7';
-          li.textContent = k + '：' + String(v);
-          txt.appendChild(li);
-        });
-      } else {
-        txt.textContent = raw != null ? String(raw).trim() : '';
+      let raw = parsed[f.key];
+      // 若是 JSON 字符串，先尝试解析成真正的对象/数组
+      if (typeof raw === 'string') {
+        const trimmed = raw.trim();
+        if ((trimmed.startsWith('{') || trimmed.startsWith('[')) && trimmed.length < 2000) {
+          try { raw = JSON.parse(trimmed); } catch(e) {}
+        }
       }
+      function renderValue(val, container) {
+        if (Array.isArray(val)) {
+          val.forEach(function(item) {
+            const li = document.createElement('div');
+            li.style.cssText = 'padding:.2rem 0;line-height:1.75';
+            if (item && typeof item === 'object') {
+              // 数组里的对象：展开成 key: value
+              Object.entries(item).forEach(function([k,v]) {
+                const row = document.createElement('div');
+                row.style.cssText = 'padding:.1rem 0;line-height:1.7';
+                row.innerHTML = '<span style="color:rgba(201,168,76,.8);font-size:.7em">' + k + '</span>　' + String(v);
+                li.appendChild(row);
+              });
+            } else {
+              li.textContent = '· ' + String(item);
+            }
+            container.appendChild(li);
+          });
+        } else if (val && typeof val === 'object') {
+          // 对象：每个 key 作为小标题，value 作为正文
+          Object.entries(val).forEach(function([k,v]) {
+            const row = document.createElement('div');
+            row.style.cssText = 'padding:.25rem 0;line-height:1.75;border-bottom:1px solid rgba(255,255,255,.05)';
+            row.innerHTML = '<div style="font-size:.7em;color:rgba(201,168,76,.75);letter-spacing:.05em;margin-bottom:.2rem">' + k + '</div>' +
+                            '<div>' + String(v) + '</div>';
+            container.appendChild(row);
+          });
+        } else {
+          container.textContent = val != null ? String(val).trim() : '';
+        }
+      }
+      renderValue(raw, txt);
       field.appendChild(lbl);
       field.appendChild(txt);
       expandSection.appendChild(field);
