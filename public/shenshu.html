@@ -27,15 +27,69 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
 #resultPage.show{display:flex}
 .gone{opacity:0!important;pointer-events:none!important;transform:scale(1.05)!important}
 
-/* ══ FLOATING QUOTES ══ */
+/* ══ KNOWLEDGE PLANET ══ */
+#floatingQuotesBg{display:none!important}
 #floatingQuotes{
   position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;
+  perspective:900px;
 }
-.fq{
-  position:absolute;
-  pointer-events:none;
-  will-change:transform,opacity;
-  transform-origin:center center;
+.wisdom-planet{
+  position:absolute;left:50%;top:43%;width:min(43vw,520px);aspect-ratio:1;
+  transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 35% 28%,rgba(255,235,181,.18),transparent 9%),
+    radial-gradient(circle at 42% 38%,rgba(84,105,129,.22),transparent 28%),
+    radial-gradient(circle at 62% 62%,rgba(61,42,82,.28),transparent 40%),
+    radial-gradient(circle at 50% 48%,#15191c 0%,#090b0d 48%,#030405 76%);
+  border:1px solid rgba(214,183,105,.2);
+  box-shadow:
+    inset -45px -38px 80px rgba(0,0,0,.88),
+    inset 22px 16px 45px rgba(205,178,112,.08),
+    0 0 55px rgba(201,168,76,.12),
+    0 0 130px rgba(66,73,112,.1);
+  animation:planetBreathe 8s ease-in-out infinite;
+}
+.wisdom-planet::before{
+  content:'';position:absolute;inset:8%;border-radius:50%;
+  background:
+    repeating-radial-gradient(ellipse at center,transparent 0 17px,rgba(201,168,76,.08) 18px,transparent 19px 34px),
+    repeating-linear-gradient(96deg,transparent 0 34px,rgba(151,170,181,.045) 35px,transparent 36px 70px);
+  clip-path:circle(50%);animation:planetTexture 34s linear infinite;
+}
+.wisdom-planet::after{
+  content:'';position:absolute;inset:-5%;border-radius:50%;
+  border:1px solid rgba(201,168,76,.12);
+  box-shadow:0 0 30px rgba(201,168,76,.09),inset 0 0 28px rgba(107,126,155,.08);
+}
+.planet-meridian{
+  position:absolute;inset:12%;border:1px solid rgba(201,168,76,.09);
+  border-radius:50%;transform:rotateX(68deg);box-shadow:0 0 14px rgba(201,168,76,.05);
+}
+.planet-meridian.m2{transform:rotateY(67deg) rotateZ(22deg)}
+.planet-meridian.m3{inset:27%;transform:rotateX(70deg) rotateZ(-18deg)}
+@keyframes planetTexture{to{transform:rotate(360deg)}}
+@keyframes planetBreathe{50%{filter:brightness(1.12);box-shadow:inset -45px -38px 80px rgba(0,0,0,.88),inset 22px 16px 45px rgba(205,178,112,.1),0 0 70px rgba(201,168,76,.15),0 0 150px rgba(66,73,112,.12)}}
+.wisdom-quote{
+  position:absolute;left:50%;top:43%;z-index:1;
+  color:#cdbb88;font-family:'Ma Shan Zheng',cursive;
+  white-space:nowrap;letter-spacing:.08em;pointer-events:auto;cursor:default;
+  will-change:transform,opacity,filter;
+  transition:color .22s,text-shadow .22s,filter .22s;
+  user-select:none;
+}
+.wisdom-quote.is-front{color:#f2dfaa;text-shadow:0 0 12px rgba(201,168,76,.48)}
+.wisdom-quote:hover,.wisdom-quote.is-hovered{
+  color:#fff0bd!important;text-shadow:0 0 10px #fff4cf,0 0 28px rgba(201,168,76,.8)!important;
+  filter:brightness(1.25)!important;
+}
+.orbit-guide{
+  position:absolute;left:50%;top:43%;border:1px solid rgba(201,168,76,.055);
+  border-radius:50%;transform:translate(-50%,-50%) rotate(-8deg);pointer-events:none;
+}
+@media(max-width:700px){
+  .wisdom-planet{top:39%;width:105vw;opacity:.72}
+  .wisdom-quote{top:39%}
+  .orbit-guide{top:39%}
 }
 
 /* ══ LANDING ══ */
@@ -49,7 +103,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
     rgba(40,60,160,.06) 60%,
     transparent 72%);
   border-radius:50%;
-  animation:eyePulse 5s ease infinite;
+  animation:eyePulse 5s ease infinite;opacity:.35;
   filter:blur(2px);
 }
 @keyframes eyePulse{
@@ -247,12 +301,14 @@ body.real-sky .bgla{animation:none;opacity:.55}
 #loader{
   position:fixed;inset:0;z-index:50;
   display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;
+  background:radial-gradient(circle at center,rgba(18,18,21,.28),rgba(0,0,0,.76) 48%,rgba(0,0,0,.92));
+  backdrop-filter:blur(4px);
 }
 #loader.on{display:flex}
 
-/* 起卦动画 */
+/* 知识星球推演动画 */
 .divination-anim{
-  position:relative;width:120px;height:120px;
+  position:relative;width:170px;height:170px;
   display:flex;align-items:center;justify-content:center;
 }
 .div-ring{
@@ -260,19 +316,48 @@ body.real-sky .bgla{animation:none;opacity:.55}
   animation:ringRotate linear infinite;
 }
 .div-ring:nth-child(1){
-  width:120px;height:120px;border-color:rgba(201,168,76,.6);
-  animation-duration:8s;
-  box-shadow:0 0 10px rgba(201,168,76,.3),inset 0 0 10px rgba(201,168,76,.1);
+  width:168px;height:118px;border-color:rgba(201,168,76,.34);
+  animation-duration:12s;transform:rotate(-18deg);
+  box-shadow:0 0 14px rgba(201,168,76,.09);
 }
 .div-ring:nth-child(2){
-  width:90px;height:90px;border-color:rgba(120,80,200,.5);
-  animation-duration:6s;animation-direction:reverse;
-  box-shadow:0 0 8px rgba(120,80,200,.3);
+  width:142px;height:142px;border-color:rgba(113,129,164,.26);
+  animation-duration:9s;animation-direction:reverse;
+  transform:rotate(58deg) scaleY(.55);
 }
 .div-ring:nth-child(3){
-  width:60px;height:60px;border-color:rgba(201,168,76,.4);
-  animation-duration:4s;
-  box-shadow:0 0 6px rgba(201,168,76,.2);
+  width:108px;height:154px;border-color:rgba(201,168,76,.2);
+  animation-duration:15s;transform:rotate(24deg);
+}
+.loader-core{
+  width:84px;height:84px;border-radius:50%;position:relative;z-index:1;
+  background:
+    radial-gradient(circle at 35% 28%,rgba(255,236,184,.25),transparent 10%),
+    radial-gradient(circle at 46% 42%,rgba(83,101,127,.3),transparent 38%),
+    radial-gradient(circle at 50% 50%,#171b1e,#050607 72%);
+  border:1px solid rgba(201,168,76,.28);
+  box-shadow:inset -15px -13px 28px rgba(0,0,0,.9),0 0 28px rgba(201,168,76,.16);
+  animation:loaderCore 3.2s ease-in-out infinite;
+}
+.loader-core::before{
+  content:'';position:absolute;inset:12%;border-radius:50%;
+  background:repeating-linear-gradient(96deg,transparent 0 10px,rgba(201,168,76,.08) 11px,transparent 12px 22px);
+  animation:planetTexture 16s linear infinite;
+}
+.loader-oracle{
+  position:absolute;left:50%;top:50%;width:245px;height:245px;
+  transform:translate(-50%,-50%);animation:ringRotate 24s linear infinite;
+}
+.loader-oracle span{
+  position:absolute;color:rgba(224,204,150,.52);
+  font-family:'Ma Shan Zheng',cursive;font-size:.7rem;letter-spacing:.12em;
+}
+.loader-oracle span:nth-child(1){left:50%;top:0;transform:translateX(-50%)}
+.loader-oracle span:nth-child(2){right:-4%;top:49%;transform:translateY(-50%) rotate(90deg)}
+.loader-oracle span:nth-child(3){left:50%;bottom:0;transform:translateX(-50%) rotate(180deg)}
+.loader-oracle span:nth-child(4){left:-4%;top:49%;transform:translateY(-50%) rotate(-90deg)}
+@keyframes loaderCore{
+  50%{transform:scale(1.07);filter:brightness(1.18);box-shadow:inset -15px -13px 28px rgba(0,0,0,.9),0 0 42px rgba(201,168,76,.22)}
 }
 @keyframes ringRotate{to{transform:rotate(360deg)}}
 .div-center{
@@ -285,7 +370,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
 .div-hex{
   display:flex;flex-direction:column;align-items:center;gap:4px;
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  display:none;
 }
 .dh-line{
   display:flex;align-items:center;justify-content:center;gap:4px;
@@ -673,6 +758,21 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
 /* ── 结果页背景遮罩 ── */
 #resultPage::before{content:'';position:absolute;inset:0;z-index:0;background:rgba(5,3,2,.52);backdrop-filter:blur(1.5px);pointer-events:none;}
+#resultPage::after{
+  content:'';position:absolute;z-index:0;pointer-events:none;
+  width:min(62vw,760px);aspect-ratio:1;left:50%;top:48%;transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:
+    repeating-radial-gradient(ellipse at center,transparent 0 31px,rgba(201,168,76,.025) 32px,transparent 33px 64px),
+    radial-gradient(circle at 38% 30%,rgba(203,180,121,.04),transparent 12%),
+    radial-gradient(circle at center,rgba(37,42,48,.24),rgba(5,6,8,.08) 58%,transparent 72%);
+  border:1px solid rgba(201,168,76,.035);
+  box-shadow:0 0 90px rgba(201,168,76,.035),inset -60px -45px 110px rgba(0,0,0,.38);
+  animation:resultPlanet 30s linear infinite;
+}
+@keyframes resultPlanet{
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
 #rinner{position:relative;z-index:1;}
 .topbar{position:absolute;z-index:2;}
 
@@ -695,8 +795,8 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
 /* 1. 结果页背景大幅压暗 */
 #resultPage::before{
-  background:rgba(3,2,1,.72)!important;
-  backdrop-filter:blur(3px)!important;
+  background:rgba(2,2,3,.78)!important;
+  backdrop-filter:blur(2px)!important;
 }
 
 /* 2. 正文行宽缩短、行高提升 */
@@ -1158,6 +1258,9 @@ body.real-sky .bgla{animation:none;opacity:.55}
   .hero-expand-btn{margin-left:0}
   .cbody,.rlist li{font-size:1rem!important;line-height:1.95!important}
   .copy-btn{opacity:1!important}
+  .divination-anim{width:145px;height:145px}
+  .loader-oracle{width:205px;height:205px}
+  #resultPage::after{width:120vw;opacity:.65}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
@@ -1235,6 +1338,11 @@ body.real-sky .bgla{animation:none;opacity:.55}
 <!-- ══ LANDING ══ -->
 <div id="landing">
   <div id="floatingQuotes"></div>
+  <div class="wisdom-planet" aria-hidden="true">
+    <span class="planet-meridian"></span>
+    <span class="planet-meridian m2"></span>
+    <span class="planet-meridian m3"></span>
+  </div>
   <div class="god-eye"></div>
   <div class="bagua-labels" id="baguaLabels"></div>
 
@@ -1280,6 +1388,10 @@ body.real-sky .bgla{animation:none;opacity:.55}
     <div class="div-ring"></div>
     <div class="div-ring"></div>
     <div class="div-ring"></div>
+    <div class="loader-core"></div>
+    <div class="loader-oracle" aria-hidden="true">
+      <span>觀象</span><span>索典</span><span>明理</span><span>成言</span>
+    </div>
     <div class="div-hex" id="divHex"></div>
   </div>
   <div id="ldtxt">解析問題意圖……</div>
@@ -1906,7 +2018,7 @@ function getJieqiData(name) {
 
   // 星点
   BEIDOU.forEach((star, i) => {
-    const size = (4 - star.mag) * 0.06 + 0.08;
+    const size = (4 - star.mag) * 0.012 + 0.022;
     const geo = new THREE.SphereGeometry(size, 8, 8);
     const mat = new THREE.MeshBasicMaterial({
       color: star.color, transparent:true, opacity:.75
@@ -1917,9 +2029,9 @@ function getJieqiData(name) {
     beidouGroup.add(mesh);
 
     // 星名标签（用发光点代替文字）
-    const glowGeo = new THREE.SphereGeometry(size * 3.5, 8, 8);
+    const glowGeo = new THREE.SphereGeometry(size * 1.35, 8, 8);
     const glowMat = new THREE.MeshBasicMaterial({
-      color: star.color, transparent:true, opacity:.08
+      color: star.color, transparent:true, opacity:.018
     });
     const glow = new THREE.Mesh(glowGeo, glowMat);
     glow.position.copy(mesh.position);
@@ -1937,15 +2049,15 @@ function getJieqiData(name) {
   ));
 
   // 北极星
-  const polarGeo = new THREE.SphereGeometry(.12, 12, 12);
+  const polarGeo = new THREE.SphereGeometry(.042, 10, 10);
   const polarMat = new THREE.MeshBasicMaterial({color:0xeef4ff, transparent:true, opacity:.65});
   const polarStar = new THREE.Mesh(polarGeo, polarMat);
   polarStar.position.set(0, 6.5, -2);
   scene.add(polarStar);
   // 北极星光晕
   const polarGlow = new THREE.Mesh(
-    new THREE.SphereGeometry(.45, 12, 12),
-    new THREE.MeshBasicMaterial({color:0xaaddff, transparent:true, opacity:.07})
+    new THREE.SphereGeometry(.22, 12, 12),
+    new THREE.MeshBasicMaterial({color:0xaaddff, transparent:true, opacity:.022})
   );
   polarGlow.position.set(0, 6.5, -2);
   scene.add(polarGlow);
@@ -1985,7 +2097,7 @@ function getJieqiData(name) {
       const x = Math.cos(angle) * r;
       const y = Math.sin(angle) * r * .7; // 压扁成椭圆更像星图
 
-      const starGeo = new THREE.SphereGeometry(.06, 6, 6);
+      const starGeo = new THREE.SphereGeometry(.025, 6, 6);
       const starMat = new THREE.MeshBasicMaterial({
         color: fang.color, transparent:true, opacity:.45
       });
@@ -1996,8 +2108,8 @@ function getJieqiData(name) {
 
       // 小光晕
       const haloMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(.16, 6, 6),
-        new THREE.MeshBasicMaterial({color: fang.color, transparent:true, opacity:.05})
+        new THREE.SphereGeometry(.082, 6, 6),
+        new THREE.MeshBasicMaterial({color: fang.color, transparent:true, opacity:.012})
       );
       haloMesh.position.copy(star.position);
       xiuGroup.add(haloMesh);
@@ -2041,12 +2153,12 @@ function getJieqiData(name) {
   // 外环
   baguaGroup.add(new THREE.Mesh(
     new THREE.TorusGeometry(1.8, .006, 8, 100),
-    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.22})
+    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.075})
   ));
   // 内环
   baguaGroup.add(new THREE.Mesh(
     new THREE.TorusGeometry(1.2, .004, 8, 80),
-    new THREE.MeshBasicMaterial({color:0x9966ff, transparent:true, opacity:.14})
+    new THREE.MeshBasicMaterial({color:0x9966ff, transparent:true, opacity:.05})
   ));
   // 八条辐射线
   for(let i = 0; i < 8; i++){
@@ -2057,7 +2169,7 @@ function getJieqiData(name) {
     ];
     baguaGroup.add(new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({color:0xc9a84c, transparent:true, opacity:.09})
+      new THREE.LineBasicMaterial({color:0xc9a84c, transparent:true, opacity:.035})
     ));
   }
   // 八卦爻（八个方位）
@@ -2074,7 +2186,7 @@ function getJieqiData(name) {
             new THREE.Vector3(cx-.16, ly, 0),
             new THREE.Vector3(cx+.16, ly, 0),
           ]),
-          new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.35})
+          new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.12})
         ));
       } else {
         [-.07, .07].forEach(ox => {
@@ -2083,7 +2195,7 @@ function getJieqiData(name) {
               new THREE.Vector3(cx+ox-.08, ly, 0),
               new THREE.Vector3(cx+ox+.02, ly, 0),
             ]),
-            new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.22})
+            new THREE.LineBasicMaterial({color:0xe8cc7a, transparent:true, opacity:.08})
           ));
         });
       }
@@ -2092,7 +2204,7 @@ function getJieqiData(name) {
   // 太极圆心
   baguaGroup.add(new THREE.Mesh(
     new THREE.CircleGeometry(.22, 32),
-    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.18})
+    new THREE.MeshBasicMaterial({color:0xc9a84c, transparent:true, opacity:.06})
   ));
   // 放大八卦，包住输入框
   baguaGroup.scale.set(2.4, 2.4, 2.4);
@@ -2107,12 +2219,12 @@ function getJieqiData(name) {
   ];
   const planetMeshes = WUXING_PLANETS.map(p => {
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(.07, 8, 8),
-      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.9})
+      new THREE.SphereGeometry(.035, 8, 8),
+      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.62})
     );
     const glow = new THREE.Mesh(
-      new THREE.SphereGeometry(.16, 8, 8),
-      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.06})
+      new THREE.SphereGeometry(.065, 8, 8),
+      new THREE.MeshBasicMaterial({color: p.color, transparent:true, opacity:.025})
     );
     mesh.userData = p;
     scene.add(mesh);
@@ -2144,8 +2256,10 @@ function getJieqiData(name) {
   window._highlightScene = function(scene){
     // 重置所有星宿亮度
     xiuGroup.children.forEach(c => {
-      if(c.material) c.material.opacity = c.geometry.type === 'SphereGeometry' ?
-        (c.geometry.parameters.radius > .1 ? .08 : .8) : .08;
+      if(!c.material) return;
+      if(c.userData && c.userData.xiu) c.material.opacity = .45;
+      else if(c.geometry && c.geometry.type === 'SphereGeometry') c.material.opacity = .012;
+      else c.material.opacity = .06;
     });
     // 根据场景高亮对应四象
     const sceneMap = {
@@ -2161,9 +2275,7 @@ function getJieqiData(name) {
       let count = 0;
       xiuGroup.children.forEach(c => {
         if(c.userData && c.userData.fang === SIFANG[targetFang].name){
-          if(c.material){
-            c.material.opacity = c.geometry.parameters?.radius > .1 ? .35 : .95;
-          }
+          if(c.material) c.material.opacity = .88;
           count++;
         }
       });
@@ -2172,9 +2284,9 @@ function getJieqiData(name) {
     const planetMap = {'B':'木星','C':'火星','E':'水星','A':'土星','D':'木星','F':'金星','G':'木星','H':'火星'};
     const targetPlanet = planetMap[scene];
     planetMeshes.forEach(p => {
-      p.mesh.material.opacity = p.name === targetPlanet ? 1 : .9;
-      p.glow.material.opacity = p.name === targetPlanet ? .35 : .1;
-      p.glow.scale.setScalar(p.name === targetPlanet ? 1.8 : 1);
+      p.mesh.material.opacity = p.name === targetPlanet ? .85 : .48;
+      p.glow.material.opacity = p.name === targetPlanet ? .08 : .018;
+      p.glow.scale.setScalar(p.name === targetPlanet ? 1.25 : 1);
     });
   };
 
@@ -2189,18 +2301,18 @@ function getJieqiData(name) {
   const hunGroup = new THREE.Group();
   hunGroup.position.set(0,-.3,-.5);
   scene.add(hunGroup);
-  hunGroup.add(new THREE.Mesh(new THREE.TorusGeometry(1.15,.014,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.32})));
-  const huangHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.010,8,80),new THREE.MeshBasicMaterial({color:0xe8cc7a,transparent:true,opacity:.25}));
+  hunGroup.add(new THREE.Mesh(new THREE.TorusGeometry(1.15,.008,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.085})));
+  const huangHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.007,8,80),new THREE.MeshBasicMaterial({color:0xe8cc7a,transparent:true,opacity:.065}));
   huangHuan.rotation.x=0.41;hunGroup.add(huangHuan);
-  const zwHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.008,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.20}));
+  const zwHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.006,8,80),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.055}));
   zwHuan.rotation.y=Math.PI/2;hunGroup.add(zwHuan);
-  const dpHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.008,8,80),new THREE.MeshBasicMaterial({color:0x9966ff,transparent:true,opacity:.16}));
+  const dpHuan=new THREE.Mesh(new THREE.TorusGeometry(1.15,.006,8,80),new THREE.MeshBasicMaterial({color:0x9966ff,transparent:true,opacity:.045}));
   dpHuan.rotation.x=Math.PI/2;hunGroup.add(dpHuan);
-  hunGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,2.5,8),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.28})));
-  const kuiG=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1.6,6),new THREE.MeshBasicMaterial({color:0xffd4a0,transparent:true,opacity:.32}));
+  hunGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,2.5,8),new THREE.MeshBasicMaterial({color:0xc9a84c,transparent:true,opacity:.07})));
+  const kuiG=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,1.6,6),new THREE.MeshBasicMaterial({color:0xffd4a0,transparent:true,opacity:.07}));
   kuiG.rotation.z=Math.PI/2;hunGroup.add(kuiG);
   // 放大浑天仪，与八卦同幅
-  hunGroup.scale.set(2.6, 2.6, 2.6);
+  hunGroup.scale.set(2.15, 2.15, 2.15);
 
   // ── 日晷 ──
   (function(){
@@ -2241,24 +2353,29 @@ function getJieqiData(name) {
     updateSundial();setInterval(updateSundial,60000);
   })();
 
+  const baguaBaseOpacity = baguaGroup.children.map(c => c.material ? c.material.opacity : null);
+  const beidouBaseOpacity = beidouGroup.children.map(c => c.material ? c.material.opacity : null);
+  let resultFadeIv = null;
+
   window._setResultMode = function(on){
     inResult=on;
     var sd=document.getElementById('sundial');if(sd)sd.style.opacity=on?'0':'1';
     const tgt = on ? .7 : 0, step = on ? .018 : -.025;
-    const iv = setInterval(() => {
+    if(resultFadeIv) clearInterval(resultFadeIv);
+    resultFadeIv = setInterval(() => {
       dust.material.opacity += step;
       if((step>0 && dust.material.opacity>=tgt)||(step<0 && dust.material.opacity<=tgt)){
-        dust.material.opacity = tgt; clearInterval(iv);
+        dust.material.opacity = tgt; clearInterval(resultFadeIv); resultFadeIv=null;
       }
     }, 16);
-    // 八卦环结果页淡化
-    baguaGroup.children.forEach(c => {
-      if(c.material) c.material.opacity *= on ? .35 : 1;
+    // 始终从基准值计算，避免多次进出结果页后透明度累乘。
+    baguaGroup.children.forEach((c,i) => {
+      if(c.material && baguaBaseOpacity[i] !== null) c.material.opacity = baguaBaseOpacity[i] * (on ? .22 : 1);
     });
-    // 北斗七星保持可见
-    beidouGroup.children.forEach(c => {
-      if(c.material) c.material.opacity *= on ? .5 : 1;
+    beidouGroup.children.forEach((c,i) => {
+      if(c.material && beidouBaseOpacity[i] !== null) c.material.opacity = beidouBaseOpacity[i] * (on ? .3 : 1);
     });
+    if(!on) window._highlightScene(null);
   };
 
   const clock = new THREE.Clock();
@@ -2333,7 +2450,7 @@ function getJieqiData(name) {
       // 八卦环旋转
       baguaGroup.rotation.z = realMode ? skyAngle / 8 + elapsedReal * .00003 : t * .12;
       baguaGroup.rotation.x = my * .05 + Math.sin(t*.35) * .03;
-      baguaGroup.scale.setScalar(1 + Math.sin(t*.9)*.03);
+      baguaGroup.scale.setScalar(2.4 * (1 + Math.sin(t*.9)*.018));
       // 视差
       cam.position.x += (mx*.5 - cam.position.x) * .04;
       cam.position.y += (my*.3 - cam.position.y) * .04;
@@ -2558,7 +2675,6 @@ const LD=['解析問題意圖……','參閱典籍原文……','推演天機…
 let ldIv2;
 function showLoader(){
   document.getElementById('loader').classList.add('on');
-  animateDivHex();
   let i=0;ldIv2=setInterval(()=>{document.getElementById('ldtxt').textContent=LD[++i%LD.length];},1400);
   // 倒计时
   let elapsed=0;
@@ -2599,6 +2715,7 @@ async function handleAsk(){
   const sc=pinnedScene||detect(q);
   pinnedScene='';
   saveHist(q);
+  if(window._setWisdomPaused) window._setWisdomPaused(true);
   document.body.classList.add('answer-view');
   document.getElementById('landing').classList.add('gone');
   showLoader();
@@ -2614,6 +2731,7 @@ async function handleAsk(){
     // 网络/超时错误：回到首页显示提示
     document.body.classList.remove('answer-view');
     document.getElementById('landing').classList.remove('gone');
+    if(window._setWisdomPaused) window._setWisdomPaused(false);
     setMsg('連接異常，請稍後重試','err');
   }
 }
@@ -2625,8 +2743,8 @@ function setAskLoading(on){
   btn.style.cursor=on?'not-allowed':'pointer';
 }
 
-// ── 浮動名言 ──
-(function initFloatingQuotes(){
+// ── 環星名言 ──
+(function initWisdomOrbit(){
   const QUOTES=[
     '道可道，非常道','上善若水','知人者智，自知者明','天行健，君子以自強不息',
     '無為而無不為','曲則全，枉則直','知足者富','為學日益，為道日損',
@@ -2648,72 +2766,87 @@ function setAskLoading(on){
     '謀定而後動','靜者生焉','時來天地皆同力',
   ];
 
-  // 向兩個容器都填充：登入前（floatingQuotesBg）和登入後（floatingQuotes）
-  const containers=[
-    document.getElementById('floatingQuotesBg'),
-    document.getElementById('floatingQuotes')
-  ].filter(Boolean);
-  if(!containers.length)return;
+  const container=document.getElementById('floatingQuotes');
+  if(!container)return;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const compact=innerWidth<700;
+  const count=compact?14:28;
+  const rings=[
+    {rx:.34,ry:.13,speed:.050,tilt:-.16},
+    {rx:.43,ry:.20,speed:-.036,tilt:.12},
+    {rx:.50,ry:.28,speed:.026,tilt:-.04},
+  ];
+  const items=[];
+  let paused=reduced;
+  let externallyPaused=false;
+  let hovered=null;
+  let phase=0;
 
-  const vw=window.innerWidth, vh=window.innerHeight;
-  const count=Math.min(36, Math.floor(vw*vh/16000)+10);
-
-  // 為每條名言生成獨立 keyframe + 掛載元素
-  const styleEl=document.createElement('style');
-  let css='';
+  rings.forEach(function(ring,ri){
+    const guide=document.createElement('div');
+    guide.className='orbit-guide';
+    guide.style.width=(ring.rx*200)+'vw';
+    guide.style.height=(ring.ry*200)+'vh';
+    guide.style.opacity=String(.7-ri*.16);
+    container.appendChild(guide);
+  });
 
   for(let i=0;i<count;i++){
-    const q=QUOTES[i%QUOTES.length];
-    const id='fq'+i;
-
-    let x,y,att=0;
-    do{ x=4+Math.random()*88; y=4+Math.random()*88; att++; }
-    while(att<15 && x>28&&x<72&&y>25&&y<75);
-
-    const rot=((Math.random()-0.5)*28).toFixed(1);
-    const rot2=((Math.random()-0.5)*28).toFixed(1);
-    const rot3=((Math.random()-0.5)*28).toFixed(1);
-    const s0=(0.78+Math.random()*0.3).toFixed(2);
-    const s1=(parseFloat(s0)+0.15+Math.random()*0.25).toFixed(2);
-    const op=(0.18+Math.random()*0.28).toFixed(2);
-    const dur=(10+Math.random()*16).toFixed(1);
-    const delay=(Math.random()*-16).toFixed(1);
-    const dyA=(-(6+Math.random()*18)).toFixed(0);
-    const dyB=((4+Math.random()*12)).toFixed(0);
-    const fs=(0.72+Math.random()*0.72).toFixed(2);
-    const vertical=q.length<=6&&Math.random()>.5;
-
-    css+=`@keyframes ${id}{
-      0%  {opacity:0;transform:rotate(${rot}deg) scale(${s0}) translateY(0);}
-      18% {opacity:${op};}
-      45% {opacity:${op};transform:rotate(${rot2}deg) scale(${s1}) translateY(${dyA}px);}
-      78% {opacity:${op};transform:rotate(${rot3}deg) scale(${s0}) translateY(${dyB}px);}
-      92% {opacity:0;}
-      100%{opacity:0;transform:rotate(${rot}deg) scale(${s0}) translateY(0);}
-    }\n`;
-
+    const ringIndex=i%rings.length;
+    const ring=rings[ringIndex];
     const el=document.createElement('span');
-    el.textContent=q;
-    el.style.cssText=`
-      position:absolute;left:${x}%;top:${y}%;
-      font-family:'Ma Shan Zheng',cursive;
-      font-size:${fs}rem;
-      color:rgba(201,168,76,1);
-      pointer-events:none;white-space:nowrap;
-      ${vertical?'writing-mode:vertical-rl;':''}
-      animation:${id} ${dur}s ${delay}s infinite ease-in-out;
-    `;
-    // 每個容器都克隆一份相同的元素
-    containers.forEach((c,ci)=>{
-      const node=ci===0?el:el.cloneNode(true);
-      c.appendChild(node);
+    el.className='wisdom-quote';
+    el.textContent=QUOTES[(i*7+ringIndex*3)%QUOTES.length];
+    el.style.fontSize=(compact?.72:.76+(i%4)*.07)+'rem';
+    el.addEventListener('mouseenter',function(){
+      paused=true;hovered=el;el.classList.add('is-hovered');
+    });
+    el.addEventListener('mouseleave',function(){
+      hovered=null;el.classList.remove('is-hovered');paused=reduced||externallyPaused;
+    });
+    container.appendChild(el);
+    items.push({
+      el,ring,ringIndex,
+      angle:(i/count)*Math.PI*2+(ringIndex*.73),
+      offset:(i%5-.2)*.018,
     });
   }
-  styleEl.textContent=css;
-  document.head.appendChild(styleEl);
+
+  let last=performance.now();
+  function render(now){
+    requestAnimationFrame(render);
+    const dt=Math.min((now-last)/1000,.05);last=now;
+    if(!paused)phase+=dt;
+    const vw=innerWidth,vh=innerHeight;
+    items.forEach(function(item){
+      if(!paused)item.angle+=item.ring.speed*dt;
+      const a=item.angle+phase*item.offset;
+      const depth=Math.cos(a);
+      const front=(depth+1)/2;
+      const x=Math.sin(a)*vw*item.ring.rx;
+      const y=(Math.sin(a*2+item.ringIndex*.9)*vh*item.ring.ry*.42)+(item.ring.tilt*vh);
+      const baseScale=.68+front*.68;
+      const focus=Math.pow(Math.max(0,depth),6);
+      const scale=item.el===hovered?1.75:baseScale+focus*.42;
+      const opacity=.09+front*.48+focus*.35;
+      const blur=(1-front)*1.8;
+      item.el.style.zIndex=String(Math.round(front*100));
+      item.el.style.opacity=String(opacity);
+      item.el.style.filter=`blur(${blur.toFixed(2)}px)`;
+      item.el.style.transform=`translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) scale(${scale.toFixed(3)})`;
+      item.el.classList.toggle('is-front',focus>.35);
+    });
+  }
+  window._setWisdomPaused=function(on){
+    externallyPaused=Boolean(on);
+    paused=reduced||externallyPaused||Boolean(hovered);
+  };
+  requestAnimationFrame(render);
 })();
 
 function goBack(){
+  if(window._highlightScene) window._highlightScene(null);
+  if(window._setWisdomPaused) window._setWisdomPaused(false);
   document.body.classList.remove('answer-view');
   document.getElementById('resultPage').classList.remove('show','error-mode');
   document.getElementById('landing').classList.remove('gone');
