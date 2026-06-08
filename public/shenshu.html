@@ -3238,13 +3238,15 @@ const SCENE_EXPAND_FIELDS = {
 };
 
 // 从 parsed 中取出引用和来源
-function getHeroQuoteSource(scene, d, sources) {
+function getHeroQuoteSource(scene, d, sources, matchedSource) {
   if (!d) return {quote:'', source:''};
-  // sources[0] 作为通用兜底
+  // matchedSource: 服务端根据 AI 实际引用文字匹配到的典籍，最精确
+  const ms = matchedSource && matchedSource.source
+    ? '《' + matchedSource.source + '》' + (matchedSource.chapter ? ' · ' + matchedSource.chapter : '')
+    : null;
+  // sources[0] 作为次优兜底（相似度最高的检索结果）
   const s0 = Array.isArray(sources) && sources[0];
-  const fallbackSource = s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '';
-  // RAG sources[0] 是实际检索到的典籍，优先级最高
-  const ragSource = s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '';
+  const ragSource = ms || (s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '');
   const map = {
     A: {quote: d.chen||d.song||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
     B: {quote: d.classic||'', source: ragSource || '《黃帝內經》'},
@@ -3266,7 +3268,7 @@ function renderHeroFrame(box, meta) {
   const sources = Array.isArray(meta.sources) ? meta.sources : [];
   const scene = meta.scene || 'A';
   const parsed = meta.parsed || {};
-  let {quote, source} = getHeroQuoteSource(scene, parsed, sources);
+  let {quote, source} = getHeroQuoteSource(scene, parsed, sources, meta.matchedSource);
   const actions = Array.isArray(advisor.actions) ? advisor.actions : [];
   const hasSummary = Boolean(quote || advisor.conclusion || actions.length);
   if (!hasSummary && sources.length) {

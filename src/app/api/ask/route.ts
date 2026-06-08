@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { analyzeQuestion, searchClassics, formatClassicsContext, saveConversation, getRecentHistory } from '@/lib/rag/retrieval'
+import { searchClassics, formatClassicsContext, saveConversation, getRecentHistory } from '@/lib/rag/retrieval'
 import { streamChat } from '@/lib/deepseek'
 import { SCENE_PROMPTS, detectScene } from '@/lib/prompts'
 import { verifyAccessToken } from '@/lib/auth'
@@ -206,11 +206,11 @@ export async function POST(req: NextRequest) {
 
       try {
         send('progress', { step: 1, text: '理解问题并查阅典籍……' })
-        const [analysis, results, historyContext] = await Promise.all([
-          analyzeQuestion(question),
+        const [results, historyContext] = await Promise.all([
           searchClassics(question, EMPTY_ANALYSIS, scene, 8),
           sessionId ? getRecentHistory(sessionId) : Promise.resolve(''),
         ])
+        const analysis = EMPTY_ANALYSIS
         send('analysis', analysis)
 
         send('progress', { step: 2, text: '参阅典籍原文……' })
@@ -269,12 +269,37 @@ export async function POST(req: NextRequest) {
           // 解析失败也把原文发出去
         }
 
+        // 找出 AI 实际引用的典籍来源（匹配 classic/quote/chen/song 字段与检索结果）
+        let matchedSource: { source: string; chapter: string } | null = null
+        if (parsed && results.length) {
+          const quoteText = String(
+            parsed.classic || parsed.quote || parsed.chen || parsed.song || ''
+          ).trim().slice(0, 60)
+          if (quoteText.length >= 4) {
+            let bestScore = 0
+            for (const r of results) {
+              // count overlapping characters (simplified similarity)
+              let score = 0
+              for (const ch of quoteText) {
+                if (r.content.includes(ch)) score++
+              }
+              const ratio = score / quoteText.length
+              if (ratio > bestScore) {
+                bestScore = ratio
+                matchedSource = { source: r.source, chapter: r.chapter }
+              }
+            }
+            if (bestScore < 0.3) matchedSource = null  // not confident enough
+          }
+        }
+
         send('done', {
           scene,
           raw: fullText,
           parsed,
           advisor: buildAdvisor(parsed),
           sources,
+          matchedSource,
           confidence,
           safetyNotice,
         })
