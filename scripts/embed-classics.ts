@@ -519,7 +519,7 @@ CLASSICS.daodejing.forEach((x: any) => {
     source: '道德经',
     chapter: `第${x.zhang}章`,
     content: x.text,
-    scene: 'F',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -530,7 +530,7 @@ CLASSICS.zhuangzi.forEach((x: any) => {
     source: '庄子',
     chapter: `${x.pian}`,
     content: x.text,
-    scene: 'F',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -552,7 +552,7 @@ CLASSICS.mengzi.forEach((x: any) => {
     source: '孟子',
     chapter: x.pian,
     content: x.text,
-    scene: 'F',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -607,7 +607,7 @@ CLASSICS.lunyu.forEach((x: any) => {
     source: '论语',
     chapter: `${x.pian}`,
     content: x.text,
-    scene: 'F',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -662,7 +662,7 @@ lunyuJson.forEach((x) => {
     source: '论语',
     chapter: x.pian,
     content: x.text,
-    scene: 'G',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -673,7 +673,7 @@ zhuangziJson.forEach((x) => {
     source: '庄子',
     chapter: x.pian,
     content: x.text,
-    scene: 'F',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -855,7 +855,7 @@ caigentanJson.forEach((x) => {
     source: '菜根谭',
     chapter: x.bu,
     content: x.text,
-    scene: 'F',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
@@ -865,7 +865,7 @@ zengguangJson.forEach((x) => {
     source: '增广贤文',
     chapter: x.lei,
     content: x.text,
-    scene: 'G',
+    scene: 'ALL',
     keywords: x.key || [],
   })
 })
