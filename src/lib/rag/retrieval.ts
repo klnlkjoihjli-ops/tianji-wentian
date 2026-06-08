@@ -86,10 +86,11 @@ export async function searchClassics(
 // ══════════════════════════════════════════════
 export function formatClassicsContext(results: ClassicResult[]): string {
   if (!results.length) return '（未检索到相关典籍）'
-  
+
   return results
     .sort((a, b) => b.similarity - a.similarity)
-    .map(r => `【${r.source}·${r.chapter}】（相关度${Math.round(r.similarity * 100)}%）\n${r.content}`)
+    .slice(0, 5)  // 只取相关度最高的5条，减少输入 token
+    .map(r => `【${r.source}·${r.chapter}】\n${r.content.slice(0, 120)}`)
     .join('\n\n')
 }
 

@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
           ? '只能引用【典籍原文】中出现的文字和篇章；不得补造、拼接或把现代解释写成原文。'
           : '本次没有检索到足够典籍依据。不得生成直接引文；引用字段填写“本次未检索到可核验原文”，并明确降低判断强度。'
         const classicRefInstruction = results.length
-          ? '\n另外必须返回 classicRef 字段：值为你实际引用的那条原文所属的【典籍名称+篇章】，格式为”书名·篇章”（例如”金匮要略·百合狐惑阴阳毒病证治第三”）。只能从【典籍原文】里选，不得捏造。'
+          ? '\n必须返回 classicRef 字段：你实际引用的典籍，格式”书名·篇章”，只能来自上方原文。'
           : ''
         const responseInstruction = responseMode === 'brief'
           ? `【回答模式：简要，优先级最高】忽略前文所有”至少多少字”和长篇展开要求。保留场景既定字段，但每个旧字段压缩到30-90字；额外返回 conclusion（25-50字）、modernExplanation（80-140字）、actions（严格3条数组，每条30-60字）。整个JSON控制在900个中文字以内，确保JSON完整闭合。直接、清晰、避免重复。${trustInstruction}${classicRefInstruction}`
