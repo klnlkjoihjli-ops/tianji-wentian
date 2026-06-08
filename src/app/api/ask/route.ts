@@ -238,9 +238,12 @@ export async function POST(req: NextRequest) {
         const trustInstruction = results.length
           ? '只能引用【典籍原文】中出现的文字和篇章；不得补造、拼接或把现代解释写成原文。'
           : '本次没有检索到足够典籍依据。不得生成直接引文；引用字段填写“本次未检索到可核验原文”，并明确降低判断强度。'
+        const classicRefInstruction = results.length
+          ? '\n另外必须返回 classicRef 字段：值为你实际引用的那条原文所属的【典籍名称+篇章】，格式为”书名·篇章”（例如”金匮要略·百合狐惑阴阳毒病证治第三”）。只能从【典籍原文】里选，不得捏造。'
+          : ''
         const responseInstruction = responseMode === 'brief'
-          ? `【回答模式：简要，优先级最高】忽略前文所有“至少多少字”和长篇展开要求。保留场景既定字段，但每个旧字段压缩到30-90字；额外返回 conclusion（25-50字）、modernExplanation（80-140字）、actions（严格3条数组，每条30-60字）。整个JSON控制在900个中文字以内，确保JSON完整闭合。直接、清晰、避免重复。${trustInstruction}`
-          : `【回答模式：深度】保留场景既定字段，并额外返回 conclusion（30-70字）、modernExplanation（150-260字）、actions（3-5条数组）。充分展开但避免重复。${trustInstruction}`
+          ? `【回答模式：简要，优先级最高】忽略前文所有”至少多少字”和长篇展开要求。保留场景既定字段，但每个旧字段压缩到30-90字；额外返回 conclusion（25-50字）、modernExplanation（80-140字）、actions（严格3条数组，每条30-60字）。整个JSON控制在900个中文字以内，确保JSON完整闭合。直接、清晰、避免重复。${trustInstruction}${classicRefInstruction}`
+          : `【回答模式：深度】保留场景既定字段，并额外返回 conclusion（30-70字）、modernExplanation（100-180字）、actions（3-5条数组）。充分展开但避免重复。${trustInstruction}${classicRefInstruction}`
         const historySection = historyContext
           ? `\n\n【本次会话历史，供追问参考】\n${historyContext}`
           : ''
@@ -248,7 +251,7 @@ export async function POST(req: NextRequest) {
 
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
-        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1300 : 1800)
+        const chatStream = await streamChat(systemPrompt, userMsg, 1300)
 
         let fullText = ''
         for await (const chunk of chatStream) {
@@ -269,27 +272,28 @@ export async function POST(req: NextRequest) {
           // 解析失败也把原文发出去
         }
 
-        // 找出 AI 实际引用的典籍来源（匹配 classic/quote/chen/song 字段与检索结果）
+        // 用 AI 输出的 classicRef 字段匹配检索结果，获取精确来源
         let matchedSource: { source: string; chapter: string } | null = null
         if (parsed && results.length) {
-          const quoteText = String(
-            parsed.classic || parsed.quote || parsed.chen || parsed.song || ''
-          ).trim().slice(0, 60)
-          if (quoteText.length >= 4) {
-            let bestScore = 0
-            for (const r of results) {
-              // count overlapping characters (simplified similarity)
-              let score = 0
-              for (const ch of quoteText) {
-                if (r.content.includes(ch)) score++
-              }
-              const ratio = score / quoteText.length
-              if (ratio > bestScore) {
-                bestScore = ratio
-                matchedSource = { source: r.source, chapter: r.chapter }
-              }
+          const ref = String(parsed.classicRef || '').trim()
+          if (ref.length >= 2) {
+            // classicRef 格式如 "金匮要略·百合狐惑阴阳毒病证治第三"，按·分割
+            const dotIdx = ref.indexOf('·')
+            const refSource = dotIdx > 0 ? ref.slice(0, dotIdx).trim() : ref
+            const refChapter = dotIdx > 0 ? ref.slice(dotIdx + 1).trim() : ''
+            // 在 RAG 结果中找最匹配的条目
+            const hit = results.find(r =>
+              r.source.includes(refSource) || refSource.includes(r.source)
+            )
+            if (hit) {
+              // 优先用 AI 指定的章节，找不到对应条目则用 hit 自己的章节
+              const chapterHit = refChapter
+                ? results.find(r => r.source === hit.source && r.chapter.includes(refChapter))
+                : null
+              matchedSource = chapterHit
+                ? { source: chapterHit.source, chapter: chapterHit.chapter }
+                : { source: hit.source, chapter: refChapter || hit.chapter }
             }
-            if (bestScore < 0.3) matchedSource = null  // not confident enough
           }
         }
 

@@ -2972,8 +2972,14 @@ function setProgress(stage, text){
 
 // 主入口：調用後端 SSE API
 let lastAnswerMeta=null;
+let _askAbortController=null;  // 防止并发请求
 
 async function chainGenerate(q, scene){
+  // 取消上一次未完成的请求
+  if(_askAbortController){ _askAbortController.abort(); }
+  _askAbortController = new AbortController();
+  const signal = _askAbortController.signal;
+
   const sessionId = localStorage.getItem('shenshu_session') || crypto.randomUUID();
   localStorage.setItem('shenshu_session', sessionId);
 
@@ -2982,7 +2988,8 @@ async function chainGenerate(q, scene){
     fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'x-access-token': accessToken},
-      body: JSON.stringify({question:q,scene:scene,sessionId:sessionId,responseMode:responseMode})
+      body: JSON.stringify({question:q,scene:scene,sessionId:sessionId,responseMode:responseMode}),
+      signal: signal
     }).then(res => {
       if(!res.ok) return res.json().then(e => {
         if(res.status===401 && window.requireLogin) window.requireLogin();
