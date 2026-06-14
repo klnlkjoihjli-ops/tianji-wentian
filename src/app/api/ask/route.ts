@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { searchClassics, formatClassicsContext, saveConversation, getRecentHistory, lastSearchDebug } from '@/lib/rag/retrieval'
+import { searchClassics, formatClassicsContext, saveConversation, getRecentHistory } from '@/lib/rag/retrieval'
 import { streamChat } from '@/lib/deepseek'
 import { SCENE_PROMPTS, detectScene } from '@/lib/prompts'
 import { verifyAccessToken } from '@/lib/auth'
@@ -275,13 +275,6 @@ export async function POST(req: NextRequest) {
         const safetyNotice = getSafetyNotice(scene)
         send('classics', {
           count: results.length,
-          build: 'sceneD-merge-v3',
-          _dbg: {
-            total: results.length,
-            yi: results.filter(r => r.source === '易经').length,
-            firstSrc: results[0]?.source,
-            inner: lastSearchDebug,
-          },
           sources,
           confidence,
         })
