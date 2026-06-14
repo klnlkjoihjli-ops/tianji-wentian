@@ -87,12 +87,19 @@ export async function searchClassics(
   }
 
   const results = (data as ClassicResult[]) || []
-  lastSearchDebug = { scene, fetchCount, raw: results.length, code: 'retrieval-v4' }
-  if (!isYijing) return results.slice(0, count)
+  if (!isYijing) {
+    lastSearchDebug = { scene, fetchCount, raw: results.length, code: 'retrieval-v5' }
+    return results.slice(0, count)
+  }
 
   // 起卦：优先保留相似度最高的易经卦辞，再用其他典籍补足，保证“起卦”能引到真卦
   const yijing = results.filter(r => r.source === '易经')
   const others = results.filter(r => r.source !== '易经')
+  lastSearchDebug = {
+    scene, fetchCount, raw: results.length, code: 'retrieval-v5',
+    yijingCount: yijing.length,
+    rawSources: results.slice(0, 6).map(r => r.source),
+  }
   const yiQuota = Math.min(yijing.length, Math.max(count - 2, 4))
   const merged = [...yijing.slice(0, yiQuota), ...others].slice(0, count)
   return merged.length ? merged : results.slice(0, count)
