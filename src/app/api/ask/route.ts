@@ -307,21 +307,24 @@ export async function POST(req: NextRequest) {
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
         const maxTokens = responseMode === 'brief' ? 1300 : 2400
+        // 一次生成是否“可用”：非空、且长度足以构成完整 JSON（截断/空都判为不可用）
+        const isUsable = (t: string) => t.trim().length >= 200 && t.includes('}')
         let fullText = ''
-        // 偶发：模型对某些密集典籍上下文（尤其起卦的卦辞）会返回空结果且无报错。
-        // 这里最多重试 2 次，确保用户拿到完整回答。
-        for (let attempt = 0; attempt < 3 && !fullText.trim(); attempt++) {
+        // 偶发：模型对密集的卦辞上下文会返回空或被截断的结果且无报错。
+        // 最多重试 2 次。前端最终以 done 事件的 parsed 渲染，重试期间的流式文本仅作视觉效果。
+        for (let attempt = 0; attempt < 3 && !isUsable(fullText); attempt++) {
+          if (attempt > 0) send('progress', { step: 3, text: '正在重新生成……' })
           const chatStream = await streamChat(systemPrompt, userMsg, maxTokens)
+          let attemptText = ''
           for await (const chunk of chatStream) {
             const delta = chunk.choices[0]?.delta?.content ?? ''
             if (delta) {
-              fullText += delta
-              send('delta', { text: delta })
+              attemptText += delta
+              if (attempt === 0) send('delta', { text: delta })
             }
           }
-          if (!fullText.trim() && attempt < 2) {
-            send('progress', { step: 3, text: '正在重新生成……' })
-          }
+          // 保留最完整的一次结果
+          if (attemptText.trim().length > fullText.trim().length) fullText = attemptText
         }
 
         // 解析 JSON 结果
