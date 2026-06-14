@@ -275,6 +275,7 @@ export async function POST(req: NextRequest) {
         const safetyNotice = getSafetyNotice(scene)
         send('classics', {
           count: results.length,
+          build: 'sceneD-merge-v3',
           sources,
           confidence,
         })
