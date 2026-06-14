@@ -86,11 +86,16 @@ export async function searchClassics(
   const results = (data as ClassicResult[]) || []
   if (!isYijing) return results.slice(0, count)
 
-  // 起卦：优先保留相似度最高的易经卦辞，再用其他典籍补足，保证“起卦”能引到真卦
+  // 起卦：优先保留易经卦辞。其中先放真正的六十四卦，再放系辞/说卦等传文，
+  // 避免 AI 把“系辞”当成卦名（如杜撰“变通卦”）。最后用其他典籍补足。
+  const isCommentary = (chapter: string) => /系辞|说卦|序卦|杂卦|文言|彖传|象传/.test(chapter)
   const yijing = results.filter(r => r.source === '易经')
+  const hexagrams = yijing.filter(r => !isCommentary(r.chapter))
+  const commentary = yijing.filter(r => isCommentary(r.chapter))
   const others = results.filter(r => r.source !== '易经')
-  const yiQuota = Math.min(yijing.length, Math.max(count - 2, 4))
-  const merged = [...yijing.slice(0, yiQuota), ...others].slice(0, count)
+  const yiOrdered = [...hexagrams, ...commentary]
+  const yiQuota = Math.min(yiOrdered.length, Math.max(count - 2, 4))
+  const merged = [...yiOrdered.slice(0, yiQuota), ...others].slice(0, count)
   return merged.length ? merged : results.slice(0, count)
 }
 
@@ -100,11 +105,11 @@ export async function searchClassics(
 export function formatClassicsContext(results: ClassicResult[]): string {
   if (!results.length) return '（未检索到相关典籍）'
 
-  // 注意：不要用 results.sort() —— Array.sort 会原地修改入参数组，
-  // 破坏 searchClassics 为起卦场景特意排好的“易经优先”顺序。这里用副本。
-  return [...results]
-    .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 5)  // 只取相关度最高的5条，减少输入 token
+  // 直接按 searchClassics 给定的顺序取前 5 条，不再重排：
+  // 普通场景 results 已按相似度排好；起卦场景已把易经卦辞排在最前，
+  // 这样 AI 上下文才会真正包含卦辞，而不是被高相似度的通俗典籍挤掉。
+  return results
+    .slice(0, 5)
     .map(r => `【${r.source}·${r.chapter}】\n${r.content.slice(0, 120)}`)
     .join('\n\n')
 }
