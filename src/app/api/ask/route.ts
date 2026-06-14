@@ -127,6 +127,61 @@ function actions(value: unknown): string[] {
     .slice(0, 3)
 }
 
+// 修复被截断的 JSON：闭合未结束的字符串、补齐缺失的 } 和 ]
+function repairTruncatedJson(text: string): Record<string, unknown> | null {
+  if (!text || text[0] !== '{') return null
+  // 先尝试逐步从末尾回退到最后一个完整的键值对再闭合
+  let s = text.trim()
+  // 去掉末尾不完整的片段（最后一个逗号之后的残缺内容）
+  const stack: string[] = []
+  let inStr = false
+  let escaped = false
+  let lastSafe = -1 // 最后一个安全可截断点（完整 value 后）
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) {
+      if (escaped) { escaped = false }
+      else if (ch === '\\') { escaped = true }
+      else if (ch === '"') { inStr = false }
+      continue
+    }
+    if (ch === '"') { inStr = true }
+    else if (ch === '{' || ch === '[') { stack.push(ch) }
+    else if (ch === '}' || ch === ']') { stack.pop() }
+    else if (ch === ',' && stack.length === 1) { lastSafe = i } // 顶层对象内的分隔点
+  }
+  // 如果字符串在中途结束，回退到最后一个安全分隔点
+  if (inStr && lastSafe > 0) {
+    s = s.slice(0, lastSafe)
+  }
+  // 重新统计需要补齐的闭合符号
+  const open: string[] = []
+  inStr = false; escaped = false
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) {
+      if (escaped) escaped = false
+      else if (ch === '\\') escaped = true
+      else if (ch === '"') inStr = false
+      continue
+    }
+    if (ch === '"') inStr = true
+    else if (ch === '{' || ch === '[') open.push(ch)
+    else if (ch === '}' || ch === ']') open.pop()
+  }
+  if (inStr) s += '"' // 闭合未结束的字符串
+  while (open.length) {
+    const c = open.pop()
+    s += c === '{' ? '}' : ']'
+  }
+  try {
+    const obj = JSON.parse(s)
+    return obj && typeof obj === 'object' ? obj : null
+  } catch {
+    return null
+  }
+}
+
 function buildAdvisor(parsed: Record<string, unknown> | null) {
   if (!parsed) return null
   const actionList = actions(parsed.actions)
@@ -251,7 +306,7 @@ export async function POST(req: NextRequest) {
 
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
-        const chatStream = await streamChat(systemPrompt, userMsg, 1300)
+        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1300 : 2400)
 
         let fullText = ''
         for await (const chunk of chatStream) {
@@ -264,12 +319,14 @@ export async function POST(req: NextRequest) {
 
         // 解析 JSON 结果
         let parsed: Record<string, unknown> | null = null
+        const cleaned = fullText.replace(/```json|```/g, '').trim()
+        const startIdx = cleaned.indexOf('{')
         try {
-          const s = fullText.replace(/```json|```/g, '').trim()
-          const a = s.indexOf('{'), b = s.lastIndexOf('}')
-          parsed = JSON.parse(s.slice(a, b + 1))
+          const a = startIdx, b = cleaned.lastIndexOf('}')
+          parsed = JSON.parse(cleaned.slice(a, b + 1))
         } catch {
-          // 解析失败也把原文发出去
+          // 解析失败：尝试修复被截断的 JSON（token 用尽导致未闭合）
+          parsed = repairTruncatedJson(cleaned.slice(startIdx >= 0 ? startIdx : 0))
         }
 
         // 用 AI 输出的 classicRef 字段匹配检索结果，获取精确来源

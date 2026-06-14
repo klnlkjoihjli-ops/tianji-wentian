@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return {
+      // 根路径直接服务 shenshu.html，去掉 iframe 套壳（消除黑屏/滚动条不确定性）
+      beforeFiles: [
+        { source: '/', destination: '/shenshu.html' },
+      ],
+    }
+  },
   async headers() {
     return [
       {

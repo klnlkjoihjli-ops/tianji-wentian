@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>天機 · 問天</title>
+<meta name="description" content="叩問蒼天，典籍應答。以推背圖·黃帝內經·易經·道德經·莊子·孫子兵法為依據，AI 陪你把問題看得更深。">
+<meta property="og:title" content="天機 · 問天">
+<meta property="og:description" content="叩問蒼天，典籍應答。東方典籍 AI 顧問——看清局勢、安頓內心、調養身心、輔助決策。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="天機 · 問天">
+<meta name="twitter:description" content="以推背圖·黃帝內經·易經·道德經等典籍為依據的 AI 顧問，陪你把問題看得更深。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=ZCOOL+QingKe+HuangYou&family=Noto+Serif+SC:wght@300;400;600;700&family=Ma+Shan+Zheng&display=swap">
@@ -1274,8 +1282,12 @@ body.real-sky .bgla{animation:none;opacity:.55}
     radial-gradient(circle at 72% 38%,rgba(201,168,76,.09),transparent 24%),
     linear-gradient(135deg,#020304 0%,#090706 52%,#020202 100%);
   display:flex;align-items:center;justify-content:center;
-  padding:clamp(1.25rem,4vw,4rem);overflow:auto;transition:opacity .5s;
+  padding:clamp(1.25rem,4vw,4rem);overflow-y:auto;overflow-x:hidden;transition:opacity .5s;
+  scrollbar-width:thin;scrollbar-color:rgba(201,168,76,.25) transparent;
 }
+#loginGate::-webkit-scrollbar{width:6px}
+#loginGate::-webkit-scrollbar-track{background:transparent}
+#loginGate::-webkit-scrollbar-thumb{background:rgba(201,168,76,.22);border-radius:3px}
 #loginGate.hide{opacity:0;pointer-events:none;}
 #loginGate::before,#loginGate::after{
   content:'';position:absolute;pointer-events:none;border-radius:50%;
@@ -3610,12 +3622,23 @@ async function sceneF(q,box){
   const btn = document.getElementById('lgBtn');
   const err = document.getElementById('lgErr');
 
+  // 登录层显示时，把底层应用设为 inert（不可聚焦、对辅助技术隐藏）
+  function setAppInert(on){
+    ['landing','loader','resultPage'].forEach(function(id){
+      const el=document.getElementById(id);
+      if(!el)return;
+      if(on){ el.setAttribute('inert',''); el.setAttribute('aria-hidden','true'); }
+      else{ el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
+    });
+  }
+
   const storedToken=sessionStorage.getItem('tianji_auth');
   const storedExpiry=Number(sessionStorage.getItem('tianji_auth_exp')||0);
 
   window.requireLogin=function(){
     sessionStorage.removeItem('tianji_auth');
     sessionStorage.removeItem('tianji_auth_exp');
+    setAppInert(true);
     gate.classList.remove('hide');
     gate.style.display='flex';
     btn.disabled=false;btn.textContent='入 門';
@@ -3625,8 +3648,10 @@ async function sceneF(q,box){
 
   if(storedToken && storedExpiry>Date.now()){
     gate.style.display='none';
+    setAppInert(false);
     return;
   }
+  setAppInert(true);
   sessionStorage.removeItem('tianji_auth');
   sessionStorage.removeItem('tianji_auth_exp');
 
@@ -3649,6 +3674,7 @@ async function sceneF(q,box){
         sessionStorage.setItem('tianji_auth', data.token);
         sessionStorage.setItem('tianji_auth_exp', String(data.expiresAt));
         gate.classList.add('hide');
+        setAppInert(false);
         setTimeout(()=>{ gate.style.display='none'; }, 500);
       } else {
         err.textContent = data.error || '密碼不正確';
