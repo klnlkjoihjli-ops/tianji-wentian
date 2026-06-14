@@ -47,6 +47,9 @@ JSON格式，只输出JSON。`
 // ══════════════════════════════════════════════
 //  Step 2：向量语义检索典籍
 // ══════════════════════════════════════════════
+// 调试：记录最近一次检索的内部状态（仅用于排查部署一致性）
+export let lastSearchDebug: Record<string, unknown> = {}
+
 export async function searchClassics(
   q: string,
   analysis: AnalysisResult,
@@ -84,6 +87,7 @@ export async function searchClassics(
   }
 
   const results = (data as ClassicResult[]) || []
+  lastSearchDebug = { scene, fetchCount, raw: results.length, code: 'retrieval-v4' }
   if (!isYijing) return results.slice(0, count)
 
   // 起卦：优先保留相似度最高的易经卦辞，再用其他典籍补足，保证“起卦”能引到真卦
