@@ -47,6 +47,32 @@ JSON格式，只输出JSON。`
 // ══════════════════════════════════════════════
 //  Step 2：向量语义检索典籍
 // ══════════════════════════════════════════════
+
+// 六十四卦（通行本顺序），用于“起卦”——卦辞文字古奥，语义检索无法稳定命中，
+// 传统起卦本就是依问题与时机“起”出一卦再解读，而非按相似度找卦。
+const HEXAGRAMS_64 = [
+  '乾为天', '坤为地', '水雷屯', '山水蒙', '水天需', '天水讼', '地水师', '水地比',
+  '风天小畜', '天泽履', '地天泰', '天地否', '天火同人', '火天大有', '地山谦', '雷地豫',
+  '泽雷随', '山风蛊', '地泽临', '风地观', '火雷噬嗑', '山火贲', '山地剥', '地雷复',
+  '天雷无妄', '山天大畜', '山雷颐', '泽风大过', '坎为水', '离为火', '泽山咸', '雷风恒',
+  '天山遁', '雷天大壮', '火地晋', '地火明夷', '风火家人', '火泽睽', '水山蹇', '雷水解',
+  '山泽损', '风雷益', '泽天夬', '天风姤', '泽地萃', '地风升', '泽水困', '水风井',
+  '泽火革', '火风鼎', '震为雷', '艮为山', '风山渐', '雷泽归妹', '雷火丰', '火山旅',
+  '巽为风', '兑为泽', '风水涣', '水泽节', '风泽中孚', '雷山小过', '水火既济', '火水未济',
+]
+
+// 依问题文字 + 当日日期起卦：同一问题当天得同一卦，隔日可变（呼应“时机”）。
+function castHexagram(question: string): string {
+  let h = 2166136261
+  for (const ch of question) {
+    h ^= ch.charCodeAt(0)
+    h = Math.imul(h, 16777619)
+  }
+  const day = Math.floor(Date.now() / 86_400_000)
+  h = (h ^ day) >>> 0
+  return HEXAGRAMS_64[h % 64]
+}
+
 export async function searchClassics(
   q: string,
   analysis: AnalysisResult,
@@ -62,19 +88,31 @@ export async function searchClassics(
     ...(analysis.classics || []),
   ].join(' ')
 
+  // 起卦场景：不做语义检索，直接为问题“起”出一卦，取该卦原文交给 AI 解读。
+  // 卦辞古奥，语义检索无法稳定命中真卦；传统起卦本也不靠相似度，而是依问题与时机起卦。
+  if (scene === 'D') {
+    const castName = castHexagram(q)
+    const { data, error } = await supabase
+      .from('classics')
+      .select('id, source, chapter, content, scene, keywords')
+      .eq('source', '易经')
+      .eq('chapter', castName)
+      .limit(1)
+    if (error) {
+      console.error('起卦失败:', error)
+      return []
+    }
+    return ((data as ClassicResult[]) || []).map(r => ({ ...r, similarity: 1 }))
+  }
+
   // 生成查询向量
   const queryEmbedding = await embed(queryText)
-
-  // 易经起卦场景：通俗典籍（论语/道德经等 ALL 标签）语言更贴近现代提问，
-  // 会把古奥的卦辞挤到很靠后。这里拉大候选集，确保真正的易经卦辞优先出现。
-  const isYijing = scene === 'D'
-  const fetchCount = isYijing ? Math.max(count * 6, 48) : count
 
   // 向量检索
   const { data, error } = await supabase.rpc('search_classics', {
     query_embedding: queryEmbedding,
     scene_filter: scene === 'ALL' ? 'ALL' : scene,
-    match_count: fetchCount,
+    match_count: count,
     match_threshold: 0.45,
   })
 
@@ -83,22 +121,7 @@ export async function searchClassics(
     return []
   }
 
-  const results = (data as ClassicResult[]) || []
-  if (!isYijing) return results.slice(0, count)
-
-  // 起卦：优先保留易经卦辞。其中先放真正的六十四卦，再放系辞/说卦等传文，
-  // 避免 AI 把“系辞”当成卦名（如杜撰“变通卦”）。最后用其他典籍补足。
-  const isCommentary = (chapter: string) => /系辞|说卦|序卦|杂卦|文言|彖传|象传/.test(chapter)
-  const yijing = results.filter(r => r.source === '易经')
-  const hexagrams = yijing.filter(r => !isCommentary(r.chapter))
-  const commentary = yijing.filter(r => isCommentary(r.chapter))
-  const others = results.filter(r => r.source !== '易经')
-  const yiOrdered = [...hexagrams, ...commentary]
-  // 起卦上下文以易经为准：易经条目足够时只用易经，避免 AI 掺入论语等并自创卦名；
-  // 仅当检索到的易经太少时，才用其他典籍补足。
-  if (yiOrdered.length >= 3) return yiOrdered.slice(0, count)
-  const merged = [...yiOrdered, ...others].slice(0, count)
-  return merged.length ? merged : results.slice(0, count)
+  return ((data as ClassicResult[]) || []).slice(0, count)
 }
 
 // ══════════════════════════════════════════════
