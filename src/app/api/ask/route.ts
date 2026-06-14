@@ -276,6 +276,11 @@ export async function POST(req: NextRequest) {
         send('classics', {
           count: results.length,
           build: 'sceneD-merge-v3',
+          _dbg: {
+            total: results.length,
+            yi: results.filter(r => r.source === '易经').length,
+            firstSrc: results[0]?.source,
+          },
           sources,
           confidence,
         })
