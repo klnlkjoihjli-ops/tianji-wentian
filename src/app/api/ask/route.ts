@@ -306,14 +306,21 @@ export async function POST(req: NextRequest) {
 
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
-        const chatStream = await streamChat(systemPrompt, userMsg, responseMode === 'brief' ? 1300 : 2400)
-
+        const maxTokens = responseMode === 'brief' ? 1300 : 2400
         let fullText = ''
-        for await (const chunk of chatStream) {
-          const delta = chunk.choices[0]?.delta?.content ?? ''
-          if (delta) {
-            fullText += delta
-            send('delta', { text: delta })
+        // 偶发：模型对某些密集典籍上下文（尤其起卦的卦辞）会返回空结果且无报错。
+        // 这里最多重试 2 次，确保用户拿到完整回答。
+        for (let attempt = 0; attempt < 3 && !fullText.trim(); attempt++) {
+          const chatStream = await streamChat(systemPrompt, userMsg, maxTokens)
+          for await (const chunk of chatStream) {
+            const delta = chunk.choices[0]?.delta?.content ?? ''
+            if (delta) {
+              fullText += delta
+              send('delta', { text: delta })
+            }
+          }
+          if (!fullText.trim() && attempt < 2) {
+            send('progress', { step: 3, text: '正在重新生成……' })
           }
         }
 
