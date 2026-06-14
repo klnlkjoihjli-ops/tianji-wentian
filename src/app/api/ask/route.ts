@@ -332,7 +332,8 @@ export async function POST(req: NextRequest) {
         // 用 AI 输出的 classicRef 字段匹配检索结果，获取精确来源
         let matchedSource: { source: string; chapter: string } | null = null
         if (parsed && results.length) {
-          const ref = String(parsed.classicRef || '').trim()
+          // 清理书名号、引号等装饰字符，避免解析出 "《论语" / "先进》" 这类残留
+          const ref = String(parsed.classicRef || '').replace(/[《》〈〉「」『』“”"\s]/g, '').trim()
           if (ref.length >= 2) {
             // classicRef 格式如 "金匮要略·百合狐惑阴阳毒病证治第三"，按·分割
             const dotIdx = ref.indexOf('·')
@@ -343,13 +344,14 @@ export async function POST(req: NextRequest) {
               r.source.includes(refSource) || refSource.includes(r.source)
             )
             if (hit) {
-              // 优先用 AI 指定的章节，找不到对应条目则用 hit 自己的章节
+              // 优先用 AI 指定的章节匹配到的真实条目；匹配不到则回退到 hit 自己的真实章节，
+              // 不直接采信 AI 的章节文本（可能含错别字或多余字符）
               const chapterHit = refChapter
-                ? results.find(r => r.source === hit.source && r.chapter.includes(refChapter))
+                ? results.find(r => r.source === hit.source && (r.chapter.includes(refChapter) || refChapter.includes(r.chapter)))
                 : null
               matchedSource = chapterHit
                 ? { source: chapterHit.source, chapter: chapterHit.chapter }
-                : { source: hit.source, chapter: refChapter || hit.chapter }
+                : { source: hit.source, chapter: hit.chapter }
             }
           }
         }
