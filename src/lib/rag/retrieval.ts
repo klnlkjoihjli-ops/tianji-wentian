@@ -102,7 +102,9 @@ export async function searchClassics(
   }
   const yiQuota = Math.min(yijing.length, Math.max(count - 2, 4))
   const merged = [...yijing.slice(0, yiQuota), ...others].slice(0, count)
-  return merged.length ? merged : results.slice(0, count)
+  const out = merged.length ? merged : results.slice(0, count)
+  lastSearchDebug = { ...lastSearchDebug, code: 'retrieval-v6', returnedFirst: out[0]?.source, yiQuota }
+  return out
 }
 
 // ══════════════════════════════════════════════
