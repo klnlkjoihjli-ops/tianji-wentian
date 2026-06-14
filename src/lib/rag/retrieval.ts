@@ -94,8 +94,10 @@ export async function searchClassics(
   const commentary = yijing.filter(r => isCommentary(r.chapter))
   const others = results.filter(r => r.source !== '易经')
   const yiOrdered = [...hexagrams, ...commentary]
-  const yiQuota = Math.min(yiOrdered.length, Math.max(count - 2, 4))
-  const merged = [...yiOrdered.slice(0, yiQuota), ...others].slice(0, count)
+  // 起卦上下文以易经为准：易经条目足够时只用易经，避免 AI 掺入论语等并自创卦名；
+  // 仅当检索到的易经太少时，才用其他典籍补足。
+  if (yiOrdered.length >= 3) return yiOrdered.slice(0, count)
+  const merged = [...yiOrdered, ...others].slice(0, count)
   return merged.length ? merged : results.slice(0, count)
 }
 
