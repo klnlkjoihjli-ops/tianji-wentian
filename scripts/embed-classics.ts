@@ -51,6 +51,8 @@ const zengguangJson: Array<{lei:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/zengguangxianwen.json'), 'utf8'))
 const lvsichunqiuJson: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/lvsichunqiu.json'), 'utf8'))
+const yijingMissingJson: Array<{source:string, chapter:string, content:string, keywords:string[]}> =
+  JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/yijing-missing.json'), 'utf8'))
 
 const envPath = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envPath)) {
@@ -81,6 +83,8 @@ async function embed(text: string, retries = 3): Promise<number[]> {
       const res = await zhipu.embeddings.create({
         model: 'embedding-3',
         input: text.slice(0, 2000),
+        dimensions: 512,
+        encoding_format: 'float',
       })
       return res.data[0].embedding
     } catch (e) {
@@ -587,6 +591,17 @@ CLASSICS.xici.forEach((x: any) => {
     content: x.text,
     scene: 'D',
     keywords: x.key || [],
+  })
+})
+
+// 易经补全卦（凑齐 64 卦，已是最终格式）
+yijingMissingJson.forEach((x) => {
+  ALL_CLASSICS.push({
+    source: x.source,
+    chapter: x.chapter,
+    content: x.content,
+    scene: 'D',
+    keywords: x.keywords || [],
   })
 })
 

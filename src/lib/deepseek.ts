@@ -14,6 +14,10 @@ export async function embed(text: string): Promise<number[]> {
   const res = await zhipu.embeddings.create({
     model: 'embedding-3',
     input: text.slice(0, 2000),
+    // 必须显式指定：OpenAI SDK 默认用 base64 编码，智谱返回会被错误解码成全零向量；
+    // float 编码 + dimensions:512 与库内 vector(512) 列保持一致。
+    dimensions: 512,
+    encoding_format: 'float',
   })
   return res.data[0].embedding
 }
