@@ -65,11 +65,16 @@ export async function searchClassics(
   // 生成查询向量
   const queryEmbedding = await embed(queryText)
 
+  // 易经起卦场景：通俗典籍（论语/道德经等 ALL 标签）语言更贴近现代提问，
+  // 会把古奥的卦辞挤到很靠后。这里拉大候选集，确保真正的易经卦辞优先出现。
+  const isYijing = scene === 'D'
+  const fetchCount = isYijing ? Math.max(count * 6, 48) : count
+
   // 向量检索
   const { data, error } = await supabase.rpc('search_classics', {
     query_embedding: queryEmbedding,
     scene_filter: scene === 'ALL' ? 'ALL' : scene,
-    match_count: count,
+    match_count: fetchCount,
     match_threshold: 0.45,
   })
 
@@ -78,7 +83,15 @@ export async function searchClassics(
     return []
   }
 
-  return (data as ClassicResult[]) || []
+  const results = (data as ClassicResult[]) || []
+  if (!isYijing) return results.slice(0, count)
+
+  // 起卦：优先保留相似度最高的易经卦辞，再用其他典籍补足，保证“起卦”能引到真卦
+  const yijing = results.filter(r => r.source === '易经')
+  const others = results.filter(r => r.source !== '易经')
+  const yiQuota = Math.min(yijing.length, Math.max(count - 2, 4))
+  const merged = [...yijing.slice(0, yiQuota), ...others].slice(0, count)
+  return merged.length ? merged : results.slice(0, count)
 }
 
 // ══════════════════════════════════════════════
