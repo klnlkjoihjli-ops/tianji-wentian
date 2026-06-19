@@ -60,6 +60,11 @@ const finalFormatExtras: Array<{file:string, scene:string}> = [
   { file: 'yinfujing.json', scene: 'F' },
   { file: 'yanshijiaxun.json', scene: 'G' },
   { file: 'cantongqi.json', scene: 'F' },
+  { file: 'qingjingjing.json', scene: 'F' },
+  { file: 'ganyingpian.json', scene: 'F' },
+  { file: 'baopuzi.json', scene: 'F' },
+  { file: 'zuowanglun.json', scene: 'F' },
+  { file: 'huangtingjing.json', scene: 'F' },
 ]
 
 const envPath = path.join(process.cwd(), '.env.local')
