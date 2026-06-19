@@ -93,6 +93,23 @@ function bianGua(name: string, yao: number): string {
   return LINES_TO_NAME[lines.join('')] || name
 }
 
+// 小六壬六宫（自大安起）。按问题 + 月/日/时辰三步掐课，落宫即为本课。
+const LIUREN_PALACES = ['大安', '留连', '速喜', '赤口', '小吉', '空亡']
+function castXiaoLiuren(question: string): { palace: string; path: string[] } {
+  let base = 2166136261
+  for (const ch of question) { base ^= ch.charCodeAt(0); base = Math.imul(base, 16777619) }
+  base = (base >>> 0) % 6
+  // 取中国标准时间的月、日、时辰（呼应起课讲究的“时机”）
+  const sh = new Date(Date.now() + 8 * 3600 * 1000)
+  const month = sh.getUTCMonth() + 1
+  const day = sh.getUTCDate()
+  const hourBranch = Math.floor(((sh.getUTCHours() + 1) % 24) / 2) + 1 // 子时=1..亥时=12
+  const p1 = (base + month) % 6        // 月宫
+  const p2 = (p1 + day) % 6            // 日宫
+  const p3 = (p2 + hourBranch) % 6     // 时宫（本课）
+  return { palace: LIUREN_PALACES[p3], path: [LIUREN_PALACES[p1], LIUREN_PALACES[p2], LIUREN_PALACES[p3]] }
+}
+
 // 依问题文字 + 当日日期起卦：返回本卦与动爻（1..6）。同一问题当天结果一致，隔日可变。
 function castGua(question: string): { ben: string; yao: number } {
   let h = 2166136261
@@ -141,23 +158,34 @@ export async function searchClassics(
     const rows = (data as ClassicResult[]) || []
     const benRow = rows.find(r => r.chapter === ben)
     const bianRow = rows.find(r => r.chapter === bian)
-    // 取两条核心梅花断卦心法，引导象数推理
+    // 取核心梅花断卦心法，引导象数推理
     const { data: mh } = await supabase
       .from('classics')
       .select('id, source, chapter, content, scene, keywords')
       .eq('source', '梅花易数')
       .in('chapter', ['体用生克', '动爻为枢'])
-    // 合成“起卦结果”说明，放在最前，告诉 AI 本卦/动爻/变卦的关系
+    // 同时起一课小六壬，作为快速印证
+    const lr = castXiaoLiuren(q)
+    const { data: lrData } = await supabase
+      .from('classics')
+      .select('id, source, chapter, content, scene, keywords')
+      .eq('source', '小六壬')
+      .eq('chapter', lr.palace)
+      .limit(1)
+    const lrRow = ((lrData as ClassicResult[]) || [])[0]
+    // 合成“起卦结果”说明，放在最前，告诉 AI 本卦/动爻/变卦 与 小六壬课
     const summary: ClassicResult = {
       id: -1, source: '起卦', scene: 'D', similarity: 1, keywords: [],
       chapter: '本次起卦结果',
-      content: `本卦：${ben}（看当前情势）。动爻：第${yao}爻（变化的关键，应重点参看本卦此爻的爻辞）。`
+      content: `易经本卦：${ben}（看当前情势）。动爻：第${yao}爻（变化的关键，应重点参看本卦此爻的爻辞）。`
         + (bianRow ? `变卦：${bian}（事态发展的趋向）。` : '本卦六爻无动，以卦辞与象辞为主。')
-        + '解读时：先以本卦定当前格局，再就第' + yao + '爻爻辞看转折关键，最后以变卦看走向；可参以梅花易数体用生克之理。',
+        + `小六壬得「${lr.palace}」课（${lr.path.join('→')}），作快速吉凶印证。`
+        + '解读时：先以本卦定当前格局，再就第' + yao + '爻爻辞看转折关键，以变卦看走向，最后用小六壬课断作一句吉凶印证；可参以梅花易数体用生克之理。',
     }
     const out: ClassicResult[] = [summary]
     if (benRow) out.push({ ...benRow, chapter: benRow.chapter + '（本卦）', similarity: 1 })
     if (bianRow) out.push({ ...bianRow, chapter: bianRow.chapter + '（变卦）', similarity: 1 })
+    if (lrRow) out.push({ ...lrRow, similarity: 1 })
     for (const m of (mh as ClassicResult[]) || []) out.push({ ...m, similarity: 1 })
     return out
   }
@@ -191,9 +219,9 @@ export function formatClassicsContext(results: ClassicResult[]): string {
   // 普通场景 results 已按相似度排好；起卦场景已把本卦/变卦排在最前。
   // 起卦相关条目（起卦说明、易经卦辞、梅花心法）需保留较完整内容，
   // 否则动爻的爻辞会被截断，AI 无法据此解读。
-  const fullSources = new Set(['起卦', '易经', '梅花易数'])
+  const fullSources = new Set(['起卦', '易经', '梅花易数', '小六壬'])
   return results
-    .slice(0, 5)
+    .slice(0, 6)
     .map(r => {
       const limit = fullSources.has(r.source) ? 400 : 120
       return `【${r.source}·${r.chapter}】\n${r.content.slice(0, limit)}`

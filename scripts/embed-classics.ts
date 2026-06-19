@@ -65,6 +65,8 @@ const finalFormatExtras: Array<{file:string, scene:string}> = [
   { file: 'baopuzi.json', scene: 'F' },
   { file: 'zuowanglun.json', scene: 'F' },
   { file: 'huangtingjing.json', scene: 'F' },
+  { file: 'meihua-extra.json', scene: 'D' },
+  { file: 'xiaoliuren.json', scene: 'D' },
 ]
 
 const envPath = path.join(process.cwd(), '.env.local')
