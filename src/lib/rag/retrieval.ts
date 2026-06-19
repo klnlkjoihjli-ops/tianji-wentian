@@ -158,12 +158,29 @@ export async function searchClassics(
     const rows = (data as ClassicResult[]) || []
     const benRow = rows.find(r => r.chapter === ben)
     const bianRow = rows.find(r => r.chapter === bian)
-    // 取核心梅花断卦心法，引导象数推理
-    const { data: mh } = await supabase
-      .from('classics')
-      .select('id, source, chapter, content, scene, keywords')
-      .eq('source', '梅花易数')
-      .in('chapter', ['体用生克', '动爻为枢'])
+    // 按问题相关性，捞 2 条义理/断法心法（梅花、六爻、序卦/杂卦/文言等），
+    // 排除易经卦辞本身（卦由掐课而来，不靠检索），让解读带上相关的术数义理。
+    let interp: ClassicResult[] = []
+    try {
+      const qEmb = await embed(queryText)
+      const { data: hits } = await supabase.rpc('search_classics', {
+        query_embedding: qEmb, scene_filter: 'D', match_count: 12, match_threshold: 0.3,
+      })
+      // 只保留术数义理/断法层：六爻、梅花、以及易传（系辞/说卦/序卦/杂卦/文言）；
+      // 排除卦辞本身与论语/增广贤文等通用典籍，专注于断卦的义理参考。
+      const isInterp = (r: ClassicResult) =>
+        r.source === '六爻' || r.source === '梅花易数'
+        || (r.source === '易经' && /系辞|说卦|序卦|杂卦|文言/.test(r.chapter))
+      interp = ((hits as ClassicResult[]) || []).filter(isInterp).slice(0, 2)
+    } catch { /* 检索失败不影响起卦主体 */ }
+    // 兜底：若没捞到义理，则给一条核心梅花心法
+    if (!interp.length) {
+      const { data: mh } = await supabase
+        .from('classics')
+        .select('id, source, chapter, content, scene, keywords')
+        .eq('source', '梅花易数').eq('chapter', '体用生克').limit(1)
+      interp = (mh as ClassicResult[]) || []
+    }
     // 同时起一课小六壬，作为快速印证
     const lr = castXiaoLiuren(q)
     const { data: lrData } = await supabase
@@ -186,7 +203,7 @@ export async function searchClassics(
     if (benRow) out.push({ ...benRow, chapter: benRow.chapter + '（本卦）', similarity: 1 })
     if (bianRow) out.push({ ...bianRow, chapter: bianRow.chapter + '（变卦）', similarity: 1 })
     if (lrRow) out.push({ ...lrRow, similarity: 1 })
-    for (const m of (mh as ClassicResult[]) || []) out.push({ ...m, similarity: 1 })
+    for (const m of interp) out.push({ ...m, similarity: 1 })
     return out
   }
 
