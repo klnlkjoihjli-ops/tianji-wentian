@@ -12,3 +12,7 @@ out/
 tsconfig.tsbuildinfo
 .vercel
 .vercel
+
+# dev artifacts
+.superpowers/
+docs/review-issues.md
