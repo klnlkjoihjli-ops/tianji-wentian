@@ -16,3 +16,6 @@ tsconfig.tsbuildinfo
 # dev artifacts
 .superpowers/
 docs/review-issues.md
+
+# local backups
+backups/

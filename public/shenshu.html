@@ -733,17 +733,32 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
 
 /* ── 首页输入区优化 ── */
-.q-box{background:rgba(18,12,5,.88)!important;border-color:rgba(201,168,76,.42)!important;border-radius:12px!important;}
+.q-wrap{max-width:680px!important;}
+.ask-intro{
+  margin:0 auto .75rem;text-align:center;color:rgba(245,232,200,.76);
+  font-size:.82rem;line-height:1.8;letter-spacing:.08em;text-shadow:0 0 12px rgba(0,0,0,.45);
+}
+.ask-intro strong{color:#f4d98a;font-weight:400;}
+.ask-intro span{display:block;color:rgba(255,255,255,.42);font-size:.68rem;letter-spacing:.1em;}
+.q-box{background:rgba(18,12,5,.88)!important;border-color:rgba(201,168,76,.42)!important;border-radius:12px!important;box-shadow:0 16px 45px rgba(0,0,0,.28)!important;}
 .q-box:focus-within{background:rgba(25,17,8,.92)!important;border-color:rgba(201,168,76,.72)!important;box-shadow:0 0 0 2px rgba(201,168,76,.1),0 0 40px rgba(201,168,76,.15)!important;}
 #question{color:#f0e4cc!important;font-family:'Noto Serif SC',serif!important;font-size:1rem!important;}
 #question::placeholder{color:rgba(201,168,76,.4)!important;font-style:italic;}
 #askBtn{width:52px!important;height:52px!important;border-radius:50%!important;background:linear-gradient(135deg,rgba(201,168,76,.55),rgba(201,168,76,.35))!important;border:1.5px solid rgba(201,168,76,.85)!important;color:rgba(255,240,200,.9)!important;box-shadow:0 0 15px rgba(201,168,76,.25)!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:.72rem!important;letter-spacing:.05em!important;line-height:1.2!important;text-align:center!important;overflow:hidden!important;}
 #askBtn:hover{background:linear-gradient(135deg,rgba(201,168,76,.85),rgba(201,168,76,.65))!important;box-shadow:0 0 30px rgba(201,168,76,.6)!important;transform:scale(1.08)!important;color:#fff!important;}
+.q-hint{display:flex;justify-content:space-between;gap:.8rem;margin:.55rem .15rem 0;color:rgba(255,255,255,.36);font-size:.64rem;letter-spacing:.08em}
+.q-hint b{color:rgba(201,168,76,.64);font-weight:400}
 
 /* ── 快捷标签 ── */
-.pills{gap:.55rem!important;margin-top:1rem!important;}
-.pill{background:rgba(10,7,3,.72)!important;border:1px solid rgba(201,168,76,.28)!important;color:rgba(245,232,200,.78)!important;font-size:.76rem!important;padding:.4rem 1rem!important;border-radius:6px!important;letter-spacing:.06em!important;}
+.category-guide{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin:1.05rem .2rem .55rem;color:rgba(255,255,255,.42);font-size:.68rem;letter-spacing:.1em}
+.category-guide span{color:rgba(201,168,76,.72);font-size:.76rem;letter-spacing:.16em}
+.category-guide em{font-style:normal}
+.pills{gap:.55rem!important;margin-top:0!important;}
+.pill{background:rgba(10,7,3,.72)!important;border:1px solid rgba(201,168,76,.24)!important;color:rgba(245,232,200,.78)!important;font-size:.76rem!important;padding:.52rem .82rem!important;border-radius:10px!important;letter-spacing:.04em!important;min-width:112px;text-align:left;}
+.pill-title{display:block;color:rgba(245,232,200,.88);font-size:.76rem;line-height:1.25;white-space:nowrap}
+.pill-desc{display:block;margin-top:.18rem;color:rgba(255,255,255,.42);font-size:.58rem;line-height:1.25;letter-spacing:.06em;white-space:nowrap}
 .pill:hover{border-color:rgba(201,168,76,.65)!important;color:#fff!important;background:rgba(201,168,76,.18)!important;transform:translateY(-2px)!important;}
+.pill:hover .pill-desc{color:rgba(255,255,255,.66)}
 .pill:active{transform:scale(.96)!important;}
 
 /* ── 历史记录 ── */
@@ -1074,7 +1089,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
 .more-classics summary::-webkit-details-marker{display:none}
 .more-classics summary::after{content:'＋';font-size:.72rem}
 .more-classics[open] summary::after{content:'－'}
-.more-classics-list{display:flex;justify-content:center;gap:.5rem;margin-top:.55rem}
+.more-classics-list{display:flex;justify-content:center;gap:.5rem;margin-top:.55rem;flex-wrap:wrap}
 .hist-more{
   border:0;background:transparent;color:rgba(201,168,76,.55);cursor:pointer;
   font-family:'Noto Serif SC',serif;font-size:.66rem;letter-spacing:.1em;padding:.3rem .6rem;
@@ -1249,8 +1264,16 @@ body.real-sky .bgla{animation:none;opacity:.55}
   .experience-controls{top:.55rem;left:.55rem}
   .mode-btn{min-height:32px;padding:.35rem .62rem}
   .logo-zh{font-size:2.8rem!important}
+  .ask-intro{font-size:.74rem;margin-bottom:.55rem}
+  .ask-intro span{font-size:.6rem}
+  .q-hint{display:block;text-align:center;font-size:.58rem}
+  .q-hint span:last-child{display:none}
+  .category-guide{display:block;text-align:center;margin:.85rem .2rem .45rem;font-size:.6rem}
+  .category-guide span{display:block;margin-bottom:.18rem;font-size:.68rem}
   .pills{gap:.4rem!important}
-  .pill{font-size:.68rem!important;padding:.36rem .7rem!important}
+  .pill{font-size:.68rem!important;padding:.42rem .58rem!important;min-width:0;text-align:center}
+  .pill-title{font-size:.68rem}
+  .pill-desc{display:none}
   .hist-list .hist-item{max-width:44vw}
   #sceneExamples{display:none}
   #sundial,.bagua-labels{display:none!important}
@@ -1458,24 +1481,35 @@ body.real-sky .bgla{animation:none;opacity:.55}
   <div id="apiChip" style="display:none"></div>
   <div class="api-wrap" id="apiWrap" style="display:none"><div class="api-row"></div><div id="apiMsg"></div></div>
 
-  <div class="q-wrap fu" style="width:100%;max-width:600px;position:relative;z-index:1;">
+  <div class="q-wrap fu" style="width:100%;max-width:680px;position:relative;z-index:1;">
+    <div class="ask-intro">
+      <strong>直接把你的問題寫下來</strong>
+      <span>不必先選分類；下方只是快捷方向，系統會自動判斷該查哪類典籍。</span>
+    </div>
     <div class="q-box" style="position:relative;backdrop-filter:blur(24px);overflow:hidden;">
-      <textarea id="question" placeholder="請問天機……&#10;今年大勢如何？失眠怎麼調養？易經如何解讀我的困境？" rows="3" style="padding:1.2rem 5.5rem 1.2rem 1.5rem;min-height:76px;"></textarea>
+      <textarea id="question" placeholder="例如：我下半年事業該進還是該守？&#10;也可以問：睡眠怎麼調養、如何做選擇、用易經起一卦。" rows="3" style="padding:1.2rem 5.5rem 1.2rem 1.5rem;min-height:76px;"></textarea>
       <button id="askBtn" onclick="handleAsk()" style="position:absolute;right:.85rem;bottom:.85rem;cursor:pointer;transition:all .25s;"></button>
     </div>
+    <div class="q-hint"><span><b>Enter</b> 發送，Shift + Enter 換行</span><span>回答會整理為：一句結論 · 典籍依據 · 現代解釋 · 今日行動</span></div>
+    <div class="category-guide"><span>可選方向</span><em>想快速套入場景時再點，不點也可以</em></div>
     <div class="pills fu">
-      <div class="pill" onmouseenter="renderSceneExamples('A')" onclick="pinnedScene='A';sq('今年大勢走向如何，推背圖如何印證？')">推背 · 大勢</div>
-      <div class="pill" onmouseenter="renderSceneExamples('B')" onclick="pinnedScene='B';sq('我最近失眠焦慮，黃帝內經怎麼說？')">內經 · 調養</div>
-      <div class="pill" onmouseenter="renderSceneExamples('C')" onclick="pinnedScene='C';sq('今年全球局勢與中國機遇，典籍如何看？')">時事 · 天機</div>
-      <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用易經起一卦，問今年事業運勢')">易經 · 起卦</div>
-      <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="pinnedScene='E';sq('現在是什麼節氣，如何養生調息？')">節氣 · 養生</div>
-      <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('我面臨重要抉擇，道德經有什麼智慧？')">道家 · 智慧</div>
+      <div class="pill" onmouseenter="renderSceneExamples('A')" onclick="pinnedScene='A';sq('今年大勢走向如何，推背圖如何印證？')"><span class="pill-title">推背 · 大勢</span><span class="pill-desc">看趨勢與階段</span></div>
+      <div class="pill" onmouseenter="renderSceneExamples('B')" onclick="pinnedScene='B';sq('我最近失眠焦慮，黃帝內經怎麼說？')"><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></div>
+      <div class="pill" onmouseenter="renderSceneExamples('C')" onclick="pinnedScene='C';sq('今年全球局勢與中國機遇，典籍如何看？')"><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></div>
+      <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用易經起一卦，問今年事業運勢')"><span class="pill-title">易經 · 起卦</span><span class="pill-desc">取捨進退決策</span></div>
+      <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="pinnedScene='E';sq('現在是什麼節氣，如何養生調息？')"><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></div>
+      <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('我面臨重要抉擇，道德經有什麼智慧？')"><span class="pill-title">道家 · 智慧</span><span class="pill-desc">困惑選擇心法</span></div>
     </div>
     <details class="more-classics fu">
-      <summary>更多典籍</summary>
+      <summary>更多典籍方向</summary>
       <div class="more-classics-list">
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('如何做一個君子，論語有什麼修身之道？')">儒家 · 修身</button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('H')" onclick="pinnedScene='H';sq('面對職場競爭，孫子兵法有何謀略？')">謀略 · 兵法</button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('如何做一個君子，論語有什麼修身之道？')"><span class="pill-title">儒家 · 修身</span><span class="pill-desc">做人做事邊界</span></button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('H')" onclick="pinnedScene='H';sq('面對職場競爭，孫子兵法有何謀略？')"><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">競爭談判策略</span></button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用周易起一卦，問我眼前選擇如何取捨？')"><span class="pill-title">易傳 · 義理</span><span class="pill-desc">卦象背後道理</span></button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用梅花易數和六爻看，我現在的事業變化應注意什麼？')"><span class="pill-title">梅花 · 六爻</span><span class="pill-desc">變化關鍵線索</span></button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用小六壬速斷，今天這件事宜進還是宜守？')"><span class="pill-title">小六壬 · 速斷</span><span class="pill-desc">快速判斷宜忌</span></button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('清靜經和道家典籍如何看待內心不安？')"><span class="pill-title">道教 · 清修</span><span class="pill-desc">安頓內心秩序</span></button>
+        <button class="pill" type="button" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('孟子和荀子如何看人的修養與選擇？')"><span class="pill-title">諸子 · 百家</span><span class="pill-desc">多家思想對照</span></button>
       </div>
     </details>
     <div id="sceneExamples" class="hidden fu"></div>
@@ -2766,10 +2800,10 @@ function detect(q){
   if(/論語|孔子|孟子|儒家|大學|中庸|修身|齊家|仁義|荀子|禮記|君子之道|德行/.test(q)) return 'G';
   // 養生醫學
   if(/失眠|焦慮|疲勞|養生|脏腑|調養|補氣|氣血|陰虛|陽虛|體質|中醫|睡眠|頭疼|肝火|脾虛|肺|腎虛|心火/.test(q)) return 'B';
+  // 易經起卦：明確說起卦、算卦、周易、六爻時，優先於時事/年份詞
+  if(/易經|易经|周易|起卦|算卦|算一卦|求卦|問卦|问卦|卜卦|占一卦|占卦|占問|占问|卦象|卦辭|卦辞|爻辭|爻辞|動爻|动爻|變卦|变卦|搖卦|摇卦|六爻|梅花易數|梅花易数|小六壬/.test(q)) return 'D';
   // 時事天機
   if(/時事|局勢|全球|經濟形勢|戰爭|科技|2025|2026|趨勢|AI|國際|地緣|政治|外交|股市/.test(q)) return 'C';
-  // 易經起卦
-  if(/起卦|占卦|卦象|搖卦|易經問/.test(q)) return 'D';
   // 節氣養生
   if(/節氣|時辰|羅盤|春分|夏至|秋分|冬至|立春|立夏|立秋|立冬|芒種|清明|節令/.test(q)) return 'E';
   // 道家智慧
@@ -2818,7 +2852,8 @@ async function handleAsk(){
   // API由後端處理
   setAskLoading(true);
   hideExamples();
-  const sc=pinnedScene||detect(q);
+  const forcedScene=pinnedScene;
+  const sc=forcedScene||detect(q);
   pinnedScene='';
   saveHist(q);
   if(window._setWisdomPaused) window._setWisdomPaused(true);
@@ -2826,7 +2861,7 @@ async function handleAsk(){
   document.getElementById('landing').classList.add('gone');
   showLoader();
   try{
-    await renderScene(sc,q);
+    await renderScene(sc,q,Boolean(forcedScene));
     hideLoader();
     setAskLoading(false);
     document.getElementById('resultPage').classList.add('show');
@@ -2992,6 +3027,7 @@ function cancelAsk(){
 // 主入口：調用後端 SSE API
 let lastAnswerMeta=null;
 let _askAbortController=null;  // 防止并发请求
+let forceSceneForCurrentAsk=false;
 
 async function chainGenerate(q, scene){
   // 取消上一次未完成的请求
@@ -3004,10 +3040,12 @@ async function chainGenerate(q, scene){
 
   return new Promise((resolve, reject) => {
     const accessToken = sessionStorage.getItem('tianji_auth') || '';
+    const payload={question:q,sessionId:sessionId,responseMode:responseMode};
+    if(forceSceneForCurrentAsk) payload.scene=scene;
     fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'x-access-token': accessToken},
-      body: JSON.stringify({question:q,scene:scene,sessionId:sessionId,responseMode:responseMode}),
+      body: JSON.stringify(payload),
       signal: signal
     }).then(res => {
       if(!res.ok) return res.json().then(e => {
@@ -3519,7 +3557,8 @@ function addCopyBtn(cardEl, getText){
   cardEl.appendChild(btn);
 }
 
-async function renderScene(scene,q){
+async function renderScene(scene,q,forceScene){
+  forceSceneForCurrentAsk=Boolean(forceScene);
   lastQ=q;lastScene=scene;buildTabs(scene);
   const box=document.getElementById('rinner');box.innerHTML='';
   lastAnswerMeta=null;
@@ -3535,7 +3574,7 @@ async function renderScene(scene,q){
     else await sceneF(q,box);
     renderHeroFrame(box,lastAnswerMeta);
   }catch(e){
-    showErrorState(lastQ, function(){ renderScene(scene, lastQ); }, e);
+    showErrorState(lastQ, function(){ renderScene(scene, lastQ, forceScene); }, e);
   }
 }
 
