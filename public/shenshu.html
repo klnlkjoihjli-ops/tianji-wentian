@@ -760,6 +760,17 @@ body.real-sky .bgla{animation:none;opacity:.55}
 .pill:hover{border-color:rgba(201,168,76,.65)!important;color:#fff!important;background:rgba(201,168,76,.18)!important;transform:translateY(-2px)!important;}
 .pill:hover .pill-desc{color:rgba(255,255,255,.66)}
 .pill:active{transform:scale(.96)!important;}
+.pill.pill-on{border-color:rgba(201,168,76,.95)!important;background:linear-gradient(135deg,rgba(201,168,76,.32),rgba(201,168,76,.16))!important;box-shadow:0 0 18px rgba(201,168,76,.35)!important;color:#fff!important;}
+.pill.pill-on .pill-title{color:#fff4d8}
+.pill.pill-on .pill-desc{color:rgba(255,255,255,.7)}
+.step-label{display:flex;align-items:center;gap:.5rem;margin:1.15rem .2rem .55rem;color:rgba(201,168,76,.78);font-size:.76rem;letter-spacing:.14em}
+.step-label.step2{margin-top:1.5rem}
+.step-label i{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid rgba(201,168,76,.55);font-size:.62rem;font-style:normal;color:rgba(201,168,76,.9)}
+.step-label em{font-style:normal;color:rgba(255,255,255,.36);font-size:.66rem;letter-spacing:.08em}
+.selected-dir-note{margin:0 .2rem .5rem;font-size:.7rem;letter-spacing:.06em;color:rgba(255,255,255,.55)}
+.selected-dir-note b{color:#f4d98a;font-weight:400}
+.selected-dir-note a{color:rgba(201,168,76,.8);cursor:pointer;text-decoration:underline;text-underline-offset:2px;margin-left:.3rem}
+.selected-dir-note a:hover{color:#fff}
 
 /* ── 历史记录 ── */
 .hist-wrap{width:100%;max-width:600px;margin-top:.8rem;position:relative;z-index:1;}
@@ -1483,35 +1494,37 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
   <div class="q-wrap fu" style="width:100%;max-width:680px;position:relative;z-index:1;">
     <div class="ask-intro">
-      <strong>直接把你的問題寫下來</strong>
-      <span>不必先選分類；下方只是快捷方向，系統會自動判斷該查哪類典籍。</span>
+      <strong>先選一個方向，再問你的問題</strong>
+      <span>不同方向用不同典籍與方法解讀；不確定就直接在下方描述，系統會自動判斷。</span>
     </div>
-    <div class="q-box" style="position:relative;backdrop-filter:blur(24px);overflow:hidden;">
-      <textarea id="question" placeholder="例如：我下半年事業該進還是該守？&#10;也可以問：睡眠怎麼調養、如何做選擇、用易經起一卦。" rows="3" style="padding:1.2rem 5.5rem 1.2rem 1.5rem;min-height:76px;"></textarea>
-      <button id="askBtn" onclick="handleAsk()" style="position:absolute;right:.85rem;bottom:.85rem;cursor:pointer;transition:all .25s;"></button>
-    </div>
-    <div class="q-hint"><span><b>Enter</b> 發送，Shift + Enter 換行</span><span>回答會整理為：一句結論 · 典籍依據 · 現代解釋 · 今日行動</span></div>
-    <div class="category-guide"><span>可選方向</span><em>想快速套入場景時再點，不點也可以</em></div>
+    <div class="step-label"><i>1</i> 選擇方向<em>（可選）</em></div>
     <div class="pills fu">
-      <div class="pill" onmouseenter="renderSceneExamples('A')" onclick="pinnedScene='A';sq('今年大勢走向如何，推背圖如何印證？')"><span class="pill-title">推背 · 大勢</span><span class="pill-desc">看趨勢與階段</span></div>
-      <div class="pill" onmouseenter="renderSceneExamples('B')" onclick="pinnedScene='B';sq('我最近失眠焦慮，黃帝內經怎麼說？')"><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></div>
-      <div class="pill" onmouseenter="renderSceneExamples('C')" onclick="pinnedScene='C';sq('今年全球局勢與中國機遇，典籍如何看？')"><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></div>
-      <div class="pill" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用易經起一卦，問今年事業運勢')"><span class="pill-title">易經 · 起卦</span><span class="pill-desc">取捨進退決策</span></div>
-      <div class="pill" onmouseenter="renderSceneExamples('E')" onclick="pinnedScene='E';sq('現在是什麼節氣，如何養生調息？')"><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></div>
-      <div class="pill" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('我面臨重要抉擇，道德經有什麼智慧？')"><span class="pill-title">道家 · 智慧</span><span class="pill-desc">困惑選擇心法</span></div>
+      <div class="pill" data-scene="A" onclick="selectDirection('A',this)"><span class="pill-title">推背 · 大勢</span><span class="pill-desc">看趨勢與階段</span></div>
+      <div class="pill" data-scene="B" onclick="selectDirection('B',this)"><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></div>
+      <div class="pill" data-scene="C" onclick="selectDirection('C',this)"><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></div>
+      <div class="pill" data-scene="D" onclick="selectDirection('D',this)"><span class="pill-title">易經 · 起卦</span><span class="pill-desc">取捨進退決策</span></div>
+      <div class="pill" data-scene="E" onclick="selectDirection('E',this)"><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></div>
+      <div class="pill" data-scene="F" onclick="selectDirection('F',this)"><span class="pill-title">道家 · 智慧</span><span class="pill-desc">困惑選擇心法</span></div>
     </div>
     <details class="more-classics fu">
       <summary>更多典籍方向</summary>
       <div class="more-classics-list">
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('如何做一個君子，論語有什麼修身之道？')"><span class="pill-title">儒家 · 修身</span><span class="pill-desc">做人做事邊界</span></button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('H')" onclick="pinnedScene='H';sq('面對職場競爭，孫子兵法有何謀略？')"><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">競爭談判策略</span></button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用周易起一卦，問我眼前選擇如何取捨？')"><span class="pill-title">易傳 · 義理</span><span class="pill-desc">卦象背後道理</span></button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用梅花易數和六爻看，我現在的事業變化應注意什麼？')"><span class="pill-title">梅花 · 六爻</span><span class="pill-desc">變化關鍵線索</span></button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('D')" onclick="pinnedScene='D';sq('用小六壬速斷，今天這件事宜進還是宜守？')"><span class="pill-title">小六壬 · 速斷</span><span class="pill-desc">快速判斷宜忌</span></button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('F')" onclick="pinnedScene='F';sq('清靜經和道家典籍如何看待內心不安？')"><span class="pill-title">道教 · 清修</span><span class="pill-desc">安頓內心秩序</span></button>
-        <button class="pill" type="button" onmouseenter="renderSceneExamples('G')" onclick="pinnedScene='G';sq('孟子和荀子如何看人的修養與選擇？')"><span class="pill-title">諸子 · 百家</span><span class="pill-desc">多家思想對照</span></button>
+        <button class="pill" type="button" data-scene="G" onclick="selectDirection('G',this)"><span class="pill-title">儒家 · 修身</span><span class="pill-desc">做人做事邊界</span></button>
+        <button class="pill" type="button" data-scene="H" onclick="selectDirection('H',this)"><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">競爭談判策略</span></button>
+        <button class="pill" type="button" data-scene="D" onclick="selectDirection('D',this)"><span class="pill-title">易傳 · 義理</span><span class="pill-desc">卦象背後道理</span></button>
+        <button class="pill" type="button" data-scene="D" onclick="selectDirection('D',this)"><span class="pill-title">梅花 · 六爻</span><span class="pill-desc">變化關鍵線索</span></button>
+        <button class="pill" type="button" data-scene="D" onclick="selectDirection('D',this)"><span class="pill-title">小六壬 · 速斷</span><span class="pill-desc">快速判斷宜忌</span></button>
+        <button class="pill" type="button" data-scene="F" onclick="selectDirection('F',this)"><span class="pill-title">道教 · 清修</span><span class="pill-desc">安頓內心秩序</span></button>
+        <button class="pill" type="button" data-scene="G" onclick="selectDirection('G',this)"><span class="pill-title">諸子 · 百家</span><span class="pill-desc">多家思想對照</span></button>
       </div>
     </details>
+    <div class="step-label step2"><i>2</i> 寫下你的問題</div>
+    <div id="selectedDirNote" class="selected-dir-note" style="display:none"></div>
+    <div class="q-box" style="position:relative;backdrop-filter:blur(24px);overflow:hidden;">
+      <textarea id="question" placeholder="未選方向也可以——直接描述你的問題，例如：我下半年事業該進還是該守？" rows="3" style="padding:1.2rem 5.5rem 1.2rem 1.5rem;min-height:76px;"></textarea>
+      <button id="askBtn" onclick="handleAsk()" style="position:absolute;right:.85rem;bottom:.85rem;cursor:pointer;transition:all .25s;"></button>
+    </div>
+    <div class="q-hint"><span><b>Enter</b> 發送，Shift + Enter 換行</span><span>回答會整理為：一句結論 · 典籍依據 · 現代解釋 · 今日行動</span></div>
     <div id="sceneExamples" class="hidden fu"></div>
   </div>
 
@@ -2764,6 +2777,40 @@ function sq(q){
   handleAsk();
 }
 
+const DEFAULT_PLACEHOLDER='未選方向也可以——直接描述你的問題，例如：我下半年事業該進還是該守？';
+const SCENE_PLACEHOLDERS={
+  A:'寫下你想看的運勢或時勢，例如：今年事業走向如何？',
+  B:'描述你的身體或作息困擾，例如：長期失眠多夢怎麼調養？',
+  C:'寫下你關注的時勢話題，例如：今年經濟形勢怎麼看？',
+  D:'寫下你要占問的事，例如：這段感情該不該繼續？',
+  E:'問當下節氣養生，例如：現在該如何順時調息？',
+  F:'寫下你的困惑或抉擇，例如：面對壓力如何看開？',
+  G:'問修身做人之道，例如：如何在職場保持原則？',
+  H:'寫下你面臨的競爭或博弈，例如：談判中如何占得先機？'
+};
+// 选优先：点方向 = 钉住场景 + 换提示语 + 出示例，不自动提交
+function selectDirection(scene,el){
+  const q=document.getElementById('question');
+  if(pinnedScene===scene){ clearDirection(); return; } // 再点一次取消
+  pinnedScene=scene;
+  document.querySelectorAll('#landing .pill').forEach(p=>p.classList.remove('pill-on'));
+  if(el) el.classList.add('pill-on');
+  if(q) q.placeholder=SCENE_PLACEHOLDERS[scene]||DEFAULT_PLACEHOLDER;
+  const note=document.getElementById('selectedDirNote');
+  if(note){ note.innerHTML='已選方向：<b>'+(SCENE_LABELS[scene]||scene)+'</b><a onclick="clearDirection()">改為自動判斷</a>'; note.style.display='block'; }
+  renderSceneExamples(scene);
+  if(q) q.focus();
+}
+function clearDirection(){
+  pinnedScene='';
+  document.querySelectorAll('#landing .pill').forEach(p=>p.classList.remove('pill-on'));
+  const q=document.getElementById('question');
+  if(q) q.placeholder=DEFAULT_PLACEHOLDER;
+  const note=document.getElementById('selectedDirNote');
+  if(note) note.style.display='none';
+  hideExamples();
+}
+
 function escapeHTML(value){
   return String(value ?? '').replace(/[&<>"']/g,function(ch){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
@@ -2999,6 +3046,7 @@ function goBack(){
   document.getElementById('rinner').innerHTML='';
   document.getElementById('tabs').innerHTML='';
   window._setResultMode(false);
+  if(typeof clearDirection==='function') clearDirection();
 }
 
 
