@@ -145,7 +145,8 @@ export async function searchClassics(
   if (scene === 'D') {
     const { ben, yao } = castGua(q)
     const bian = bianGua(ben, yao)
-    const names = ben === bian ? [ben] : [ben, bian]
+    // 取本卦、变卦的卦爻辞，以及本卦的彖传（判词，深化义理）
+    const names = Array.from(new Set([ben, bian, ben + '·彖传']))
     const { data, error } = await supabase
       .from('classics')
       .select('id, source, chapter, content, scene, keywords')
@@ -158,6 +159,7 @@ export async function searchClassics(
     const rows = (data as ClassicResult[]) || []
     const benRow = rows.find(r => r.chapter === ben)
     const bianRow = rows.find(r => r.chapter === bian)
+    const tuanRow = rows.find(r => r.chapter === ben + '·彖传')
     // 按问题相关性，捞 2 条义理/断法心法（梅花、六爻、序卦/杂卦/文言等），
     // 排除易经卦辞本身（卦由掐课而来，不靠检索），让解读带上相关的术数义理。
     let interp: ClassicResult[] = []
@@ -201,6 +203,7 @@ export async function searchClassics(
     }
     const out: ClassicResult[] = [summary]
     if (benRow) out.push({ ...benRow, chapter: benRow.chapter + '（本卦）', similarity: 1 })
+    if (tuanRow) out.push({ ...tuanRow, similarity: 1 })
     if (bianRow) out.push({ ...bianRow, chapter: bianRow.chapter + '（变卦）', similarity: 1 })
     if (lrRow) out.push({ ...lrRow, similarity: 1 })
     for (const m of interp) out.push({ ...m, similarity: 1 })
@@ -238,7 +241,7 @@ export function formatClassicsContext(results: ClassicResult[]): string {
   // 否则动爻的爻辞会被截断，AI 无法据此解读。
   const fullSources = new Set(['起卦', '易经', '梅花易数', '小六壬'])
   return results
-    .slice(0, 6)
+    .slice(0, 7)
     .map(r => {
       const limit = fullSources.has(r.source) ? 400 : 120
       return `【${r.source}·${r.chapter}】\n${r.content.slice(0, limit)}`
