@@ -3,6 +3,7 @@ import { searchClassics, formatClassicsContext, saveConversation, getRecentHisto
 import { streamChat } from '@/lib/deepseek'
 import { SCENE_PROMPTS, detectScene } from '@/lib/prompts'
 import { verifyAccessToken } from '@/lib/auth'
+import { createServiceClient } from '@/lib/supabase'
 import type { AnalysisResult, ClassicResult } from '@/lib/rag/retrieval'
 
 export const runtime = 'nodejs'
@@ -13,6 +14,34 @@ const VALID_RESPONSE_MODES = new Set(['brief', 'deep'])
 const QUESTION_MAX_LENGTH = 1200
 const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_MAX_REQUESTS = 6
+// 全局日调用上限（防刷 + 成本兜底）。设为 0 或不设则不限制。
+const DAILY_GENERATION_LIMIT = Number(process.env.DAILY_GENERATION_LIMIT || 0)
+
+// 结构化错误日志，Vercel 日志中可按 [TIANJI_ERROR] 检索
+function logError(stage: string, err: unknown, extra: Record<string, unknown> = {}) {
+  const message = err instanceof Error ? err.message : String(err)
+  console.error('[TIANJI_ERROR]', JSON.stringify({
+    stage, message, ...extra, at: new Date().toISOString(),
+  }))
+}
+
+// 统计最近 24 小时的生成次数（基于 conversations 表，跨实例生效）
+async function isOverDailyCap(): Promise<boolean> {
+  if (!DAILY_GENERATION_LIMIT) return false
+  try {
+    const supabase = createServiceClient()
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count, error } = await supabase
+      .from('conversations')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', since)
+    if (error) { logError('daily-cap-query', error); return false }
+    return (count || 0) >= DAILY_GENERATION_LIMIT
+  } catch (e) {
+    logError('daily-cap', e)
+    return false  // 计数失败时不阻断正常用户
+  }
+}
 const EMPTY_ANALYSIS: AnalysisResult = {
   topic: '',
   domains: [],
@@ -221,6 +250,10 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: '请求过于频繁，请稍后再试' }, { status: 429 })
   }
 
+  if (await isOverDailyCap()) {
+    return Response.json({ error: '今日访问量已达上限，请明日再来' }, { status: 429 })
+  }
+
   let body: Record<string, unknown>
   try {
     body = await req.json()
@@ -377,6 +410,10 @@ export async function POST(req: NextRequest) {
           safetyNotice,
         })
 
+        if (!fullText.trim()) {
+          logError('empty-generation', new Error('模型多次重试仍返回空'), { scene, responseMode })
+        }
+
         // 后台保存对话（不阻塞响应）
         if (sessionId) {
           saveConversation({
@@ -386,11 +423,12 @@ export async function POST(req: NextRequest) {
             analysis,
             answer: parsed ?? { raw: fullText },
             classicsUsed: results.map(r => `${r.source}·${r.chapter}`),
-          }).catch(console.error)
+          }).catch(e => logError('save-conversation', e, { scene }))
         }
 
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : '未知错误'
+        logError('generation', err, { scene, responseMode })
         send('error', { error: msg, message: msg })
       } finally {
         controller.close()
