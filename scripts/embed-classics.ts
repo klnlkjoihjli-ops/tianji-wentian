@@ -53,6 +53,14 @@ const lvsichunqiuJson: Array<{pian:string, text:string, key:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/lvsichunqiu.json'), 'utf8'))
 const yijingMissingJson: Array<{source:string, chapter:string, content:string, keywords:string[]}> =
   JSON.parse(fs.readFileSync(path.join(process.cwd(), 'scripts/data/yijing-missing.json'), 'utf8'))
+type FinalEntry = {source:string, chapter:string, content:string, keywords:string[]}
+const finalFormatExtras: Array<{file:string, scene:string}> = [
+  { file: 'mengzi-extra.json', scene: 'G' },
+  { file: 'liaofan.json', scene: 'F' },
+  { file: 'yinfujing.json', scene: 'F' },
+  { file: 'yanshijiaxun.json', scene: 'G' },
+  { file: 'cantongqi.json', scene: 'F' },
+]
 
 const envPath = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envPath)) {
@@ -602,6 +610,22 @@ yijingMissingJson.forEach((x) => {
     content: x.content,
     scene: 'D',
     keywords: x.keywords || [],
+  })
+})
+
+// 其他最终格式的扩充典籍（孟子补厚、了凡四训、阴符经、颜氏家训、参同契）
+finalFormatExtras.forEach(({ file, scene }) => {
+  const rows: FinalEntry[] = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'scripts/data', file), 'utf8')
+  )
+  rows.forEach((x) => {
+    ALL_CLASSICS.push({
+      source: x.source,
+      chapter: x.chapter,
+      content: x.content,
+      scene,
+      keywords: x.keywords || [],
+    })
   })
 })
 
