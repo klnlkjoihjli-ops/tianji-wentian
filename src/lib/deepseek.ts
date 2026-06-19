@@ -30,7 +30,8 @@ export async function streamChat(
   return deepseek.chat.completions.create({
     model: process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash',
     max_tokens: maxTokens,
-    temperature: 0.88,
+    // 结构化 JSON 需要稳定闭合；过高随机性会增加跑题和重试概率。
+    temperature: 0.68,
     stream: true,
     messages: [
       { role: 'system', content: systemPrompt },

@@ -176,7 +176,7 @@ JSON字段：pian、quote、decode、situation、strategy、warning
 
 // 场景标签
 export const SCENE_LABELS: Record<string, string> = {
-  A: '推背·命理',
+  A: '推背·大势',
   B: '内经·养生',
   C: '时事·天机',
   D: '易经·起卦',

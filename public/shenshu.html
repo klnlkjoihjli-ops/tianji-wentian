@@ -81,14 +81,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;
   position:absolute;left:50%;top:43%;z-index:1;
   color:#cdbb88;font-family:'Ma Shan Zheng',cursive;
   white-space:nowrap;letter-spacing:.08em;pointer-events:auto;cursor:default;
-  will-change:transform,opacity,filter;
-  transition:color .22s,text-shadow .22s,filter .22s;
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+  transition:color .22s,text-shadow .22s;
   user-select:none;
 }
 .wisdom-quote.is-front{color:#f2dfaa;text-shadow:0 0 12px rgba(201,168,76,.48)}
 .wisdom-quote:hover,.wisdom-quote.is-hovered{
   color:#fff0bd!important;text-shadow:0 0 10px #fff4cf,0 0 28px rgba(201,168,76,.8)!important;
-  filter:brightness(1.25)!important;
 }
 .orbit-guide{
   position:absolute;left:50%;top:43%;border:1px solid rgba(201,168,76,.055);
@@ -733,7 +733,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
 
 
 /* ── 首页输入区优化 ── */
-.q-wrap{max-width:680px!important;}
+.q-wrap{max-width:720px!important;}
 .ask-intro{
   margin:0 auto .75rem;text-align:center;color:rgba(245,232,200,.76);
   font-size:.82rem;line-height:1.8;letter-spacing:.08em;text-shadow:0 0 12px rgba(0,0,0,.45);
@@ -753,12 +753,13 @@ body.real-sky .bgla{animation:none;opacity:.55}
 .category-guide{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin:1.05rem .2rem .55rem;color:rgba(255,255,255,.42);font-size:.68rem;letter-spacing:.1em}
 .category-guide span{color:rgba(201,168,76,.72);font-size:.76rem;letter-spacing:.16em}
 .category-guide em{font-style:normal}
-.pills{gap:.55rem!important;margin-top:0!important;}
-.pill{background:rgba(10,7,3,.72)!important;border:1px solid rgba(201,168,76,.24)!important;color:rgba(245,232,200,.78)!important;font-size:.76rem!important;padding:.52rem .82rem!important;border-radius:10px!important;letter-spacing:.04em!important;min-width:112px;text-align:left;}
+.pills{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem!important;margin-top:0!important;}
+.pill{appearance:none;width:100%;background:rgba(10,7,3,.78)!important;border:1px solid rgba(201,168,76,.3)!important;color:rgba(245,232,200,.82)!important;font-size:.76rem!important;padding:.58rem .82rem!important;border-radius:10px!important;letter-spacing:.04em!important;min-width:0;text-align:left;cursor:pointer;font-family:'Noto Serif SC',serif;}
 .pill-title{display:block;color:rgba(245,232,200,.88);font-size:.76rem;line-height:1.25;white-space:nowrap}
 .pill-desc{display:block;margin-top:.18rem;color:rgba(255,255,255,.42);font-size:.58rem;line-height:1.25;letter-spacing:.06em;white-space:nowrap}
 .pill:hover{border-color:rgba(201,168,76,.65)!important;color:#fff!important;background:rgba(201,168,76,.18)!important;transform:translateY(-2px)!important;}
 .pill:hover .pill-desc{color:rgba(255,255,255,.66)}
+.pill:focus-visible{outline:2px solid rgba(244,217,138,.9);outline-offset:2px;box-shadow:0 0 20px rgba(201,168,76,.28)!important;}
 .pill:active{transform:scale(.96)!important;}
 .pill.pill-on{border-color:rgba(201,168,76,.95)!important;background:linear-gradient(135deg,rgba(201,168,76,.32),rgba(201,168,76,.16))!important;box-shadow:0 0 18px rgba(201,168,76,.35)!important;color:#fff!important;}
 .pill.pill-on .pill-title{color:#fff4d8}
@@ -769,8 +770,8 @@ body.real-sky .bgla{animation:none;opacity:.55}
 .step-label em{font-style:normal;color:rgba(255,255,255,.36);font-size:.66rem;letter-spacing:.08em}
 .selected-dir-note{margin:0 .2rem .5rem;font-size:.7rem;letter-spacing:.06em;color:rgba(255,255,255,.55)}
 .selected-dir-note b{color:#f4d98a;font-weight:400}
-.selected-dir-note a{color:rgba(201,168,76,.8);cursor:pointer;text-decoration:underline;text-underline-offset:2px;margin-left:.3rem}
-.selected-dir-note a:hover{color:#fff}
+.selected-dir-clear{appearance:none;border:0;background:transparent;padding:0;margin-left:.35rem;color:rgba(201,168,76,.82);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.selected-dir-clear:hover,.selected-dir-clear:focus-visible{color:#fff}
 
 /* ── 历史记录 ── */
 .hist-wrap{width:100%;max-width:600px;margin-top:.8rem;position:relative;z-index:1;}
@@ -1281,13 +1282,13 @@ body.real-sky .bgla{animation:none;opacity:.55}
   .q-hint span:last-child{display:none}
   .category-guide{display:block;text-align:center;margin:.85rem .2rem .45rem;font-size:.6rem}
   .category-guide span{display:block;margin-bottom:.18rem;font-size:.68rem}
-  .pills{gap:.4rem!important}
+  .pills{grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem!important}
   .pill{font-size:.68rem!important;padding:.42rem .58rem!important;min-width:0;text-align:center}
   .pill-title{font-size:.68rem}
   .pill-desc{display:none}
   .hist-list .hist-item{max-width:44vw}
   #sceneExamples{display:none}
-  #sundial,.bagua-labels{display:none!important}
+  .bagua-labels{display:none!important}
   #rinner{padding:3.4rem .9rem 1.5rem!important}
   .hero-quote{font-size:1rem}
   .hero-conclusion{font-size:.92rem}
@@ -1492,24 +1493,24 @@ body.real-sky .bgla{animation:none;opacity:.55}
   <div id="apiChip" style="display:none"></div>
   <div class="api-wrap" id="apiWrap" style="display:none"><div class="api-row"></div><div id="apiMsg"></div></div>
 
-  <div class="q-wrap fu" style="width:100%;max-width:680px;position:relative;z-index:1;">
+  <div class="q-wrap fu" style="width:100%;max-width:720px;position:relative;z-index:1;">
     <div class="ask-intro">
-      <strong>先選一個方向，再問你的問題</strong>
-      <span>不同方向用不同典籍與方法解讀；不確定就直接在下方描述，系統會自動判斷。</span>
+      <strong>可以先選方向，也可以直接提問</strong>
+      <span>方向只決定優先使用的典籍與方法；不選時，系統會依問題自動判斷。</span>
     </div>
     <div class="step-label"><i>1</i> 選擇方向<em>（可選）</em></div>
     <div class="pills fu">
-      <div class="pill" data-scene="A" onclick="selectDirection('A',this)"><span class="pill-title">推背 · 大勢</span><span class="pill-desc">推背圖看趨勢階段</span></div>
-      <div class="pill" data-scene="C" onclick="selectDirection('C',this)"><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></div>
-      <div class="pill" data-scene="D" onclick="selectDirection('D',this)"><span class="pill-title">易經 · 起卦</span><span class="pill-desc">起卦·變卦·小六壬</span></div>
-      <div class="pill" data-scene="F" onclick="selectDirection('F',this)"><span class="pill-title">道家 · 智慧</span><span class="pill-desc">老莊·清靜·心法</span></div>
-      <div class="pill" data-scene="G" onclick="selectDirection('G',this)"><span class="pill-title">儒家 · 修身</span><span class="pill-desc">論孟荀·做人做事</span></div>
-      <div class="pill" data-scene="H" onclick="selectDirection('H',this)"><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">孫子·競爭談判</span></div>
-      <div class="pill" data-scene="B" onclick="selectDirection('B',this)"><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></div>
-      <div class="pill" data-scene="E" onclick="selectDirection('E',this)"><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></div>
+      <button type="button" class="pill" data-scene="A" aria-pressed="false" onclick="selectDirection('A',this)"><span class="pill-title">推背 · 大勢</span><span class="pill-desc">推背圖看趨勢階段</span></button>
+      <button type="button" class="pill" data-scene="C" aria-pressed="false" onclick="selectDirection('C',this)"><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></button>
+      <button type="button" class="pill" data-scene="D" aria-pressed="false" onclick="selectDirection('D',this)"><span class="pill-title">易經 · 起卦</span><span class="pill-desc">起卦·變卦·小六壬</span></button>
+      <button type="button" class="pill" data-scene="F" aria-pressed="false" onclick="selectDirection('F',this)"><span class="pill-title">道家 · 智慧</span><span class="pill-desc">老莊·清靜·心法</span></button>
+      <button type="button" class="pill" data-scene="G" aria-pressed="false" onclick="selectDirection('G',this)"><span class="pill-title">儒家 · 修身</span><span class="pill-desc">論孟荀·做人做事</span></button>
+      <button type="button" class="pill" data-scene="H" aria-pressed="false" onclick="selectDirection('H',this)"><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">孫子·競爭談判</span></button>
+      <button type="button" class="pill" data-scene="B" aria-pressed="false" onclick="selectDirection('B',this)"><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></button>
+      <button type="button" class="pill" data-scene="E" aria-pressed="false" onclick="selectDirection('E',this)"><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></button>
     </div>
     <div class="step-label step2"><i>2</i> 寫下你的問題</div>
-    <div id="selectedDirNote" class="selected-dir-note" style="display:none"></div>
+    <div id="selectedDirNote" class="selected-dir-note" aria-live="polite" style="display:none"></div>
     <div class="q-box" style="position:relative;backdrop-filter:blur(24px);overflow:hidden;">
       <textarea id="question" placeholder="未選方向也可以——直接描述你的問題，例如：我下半年事業該進還是該守？" rows="3" style="padding:1.2rem 5.5rem 1.2rem 1.5rem;min-height:76px;"></textarea>
       <button id="askBtn" onclick="handleAsk()" style="position:absolute;right:.85rem;bottom:.85rem;cursor:pointer;transition:all .25s;"></button>
@@ -2457,52 +2458,12 @@ function getJieqiData(name) {
   // 放大浑天仪，与八卦同幅
   hunGroup.scale.set(2.15, 2.15, 2.15);
 
-  // ── 日晷 ──
-  (function(){
-    const names=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-    let ticks='';
-    for(let i=0;i<12;i++){
-      const a=(i/12)*Math.PI*2-Math.PI/2;
-      const x1=(65+Math.cos(a)*48).toFixed(1),y1=(65+Math.sin(a)*48).toFixed(1);
-      const x2=(65+Math.cos(a)*56).toFixed(1),y2=(65+Math.sin(a)*56).toFixed(1);
-      const xt=(65+Math.cos(a)*40).toFixed(1),yt=(65+Math.sin(a)*40+4).toFixed(1);
-      ticks+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="rgba(201,168,76,0.5)" stroke-width="1.5"/>';
-      ticks+='<text x="'+xt+'" y="'+yt+'" text-anchor="middle" fill="rgba(201,168,76,0.7)" font-size="9" font-family="serif">'+names[i]+'</text>';
-    }
-    const wrap=document.createElement('div');
-    wrap.id='sundial';
-    wrap.style.cssText='position:fixed;bottom:1.8rem;left:1.8rem;z-index:100;width:120px;height:120px;pointer-events:none;transition:opacity .5s;';
-    wrap.innerHTML='<svg viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">'
-      +'<circle cx="65" cy="65" r="60" fill="rgba(0,0,0,.55)" stroke="rgba(201,168,76,.4)" stroke-width="1.5"/>'
-      +ticks
-      +'<line id="gnomon" x1="65" y1="65" x2="65" y2="18" stroke="#e8cc7a" stroke-width="2" stroke-linecap="round"/>'
-      +'<circle id="shichen-dot" cx="65" cy="20" r="4" fill="#c9a84c" opacity="0.9"/>'
-      +'<circle cx="65" cy="65" r="4" fill="rgba(201,168,76,.8)"/>'
-      +'<text x="65" y="114" text-anchor="middle" fill="rgba(201,168,76,0.45)" font-size="8" font-family="serif" letter-spacing="1">十二時辰儀</text>'
-      +'<text id="shichen-txt" x="65" y="76" text-anchor="middle" fill="rgba(245,239,224,0.85)" font-size="11" font-family="serif"></text>'
-      +'</svg>';
-    document.body.appendChild(wrap);
-    function updateSundial(){
-      const now=new Date(),h24=now.getHours(),min=now.getMinutes();
-      const SC=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-      const curSC=SC[Math.floor(((h24+1)%24)/2)];
-      const angle=((h24*60+min)/720)*Math.PI*2-Math.PI/2;
-      const r=44,gx=(65+Math.cos(angle)*r).toFixed(1),gy=(65+Math.sin(angle)*r).toFixed(1);
-      const g=document.getElementById('gnomon'),dot=document.getElementById('shichen-dot'),txt=document.getElementById('shichen-txt');
-      if(g){g.setAttribute('x2',gx);g.setAttribute('y2',gy);}
-      if(dot){dot.setAttribute('cx',gx);dot.setAttribute('cy',gy);}
-      if(txt){txt.textContent=curSC+'時';}
-    }
-    updateSundial();setInterval(updateSundial,60000);
-  })();
-
   const baguaBaseOpacity = baguaGroup.children.map(c => c.material ? c.material.opacity : null);
   const beidouBaseOpacity = beidouGroup.children.map(c => c.material ? c.material.opacity : null);
   let resultFadeIv = null;
 
   window._setResultMode = function(on){
     inResult=on;
-    var sd=document.getElementById('sundial');if(sd)sd.style.opacity=on?'0':'1';
     const tgt = on ? .7 : 0, step = on ? .018 : -.025;
     if(resultFadeIv) clearInterval(resultFadeIv);
     resultFadeIv = setInterval(() => {
@@ -2783,17 +2744,17 @@ function selectDirection(scene,el){
   const q=document.getElementById('question');
   if(pinnedScene===scene){ clearDirection(); return; } // 再点一次取消
   pinnedScene=scene;
-  document.querySelectorAll('#landing .pill').forEach(p=>p.classList.remove('pill-on'));
-  if(el) el.classList.add('pill-on');
+  document.querySelectorAll('#landing .pill').forEach(p=>{p.classList.remove('pill-on');p.setAttribute('aria-pressed','false');});
+  if(el){el.classList.add('pill-on');el.setAttribute('aria-pressed','true');}
   if(q) q.placeholder=SCENE_PLACEHOLDERS[scene]||DEFAULT_PLACEHOLDER;
   const note=document.getElementById('selectedDirNote');
-  if(note){ note.innerHTML='已選方向：<b>'+(SCENE_LABELS[scene]||scene)+'</b><a onclick="clearDirection()">改為自動判斷</a>'; note.style.display='block'; }
+  if(note){ note.innerHTML='已選方向：<b>'+(SCENE_LABELS[scene]||scene)+'</b><button type="button" class="selected-dir-clear" onclick="clearDirection()">改為自動判斷</button>'; note.style.display='block'; }
   renderSceneExamples(scene);
   if(q) q.focus();
 }
 function clearDirection(){
   pinnedScene='';
-  document.querySelectorAll('#landing .pill').forEach(p=>p.classList.remove('pill-on'));
+  document.querySelectorAll('#landing .pill').forEach(p=>{p.classList.remove('pill-on');p.setAttribute('aria-pressed','false');});
   const q=document.getElementById('question');
   if(q) q.placeholder=DEFAULT_PLACEHOLDER;
   const note=document.getElementById('selectedDirNote');
@@ -2859,9 +2820,9 @@ function showLoader(){
     elapsed++;
     const el=document.getElementById('loader-timer');
     if(!el) return;
-    if(elapsed<15) el.textContent='正在整合典籍，約 '+Math.max(1,15-elapsed)+' 秒';
-    else if(elapsed<35) el.textContent='正在生成完整解讀，請稍候…';
-    else el.textContent='本次問題較深，仍在整理回答…';
+    if(elapsed<10) el.textContent='正在整合典籍 · 已等待 '+elapsed+' 秒';
+    else if(elapsed<30) el.textContent='正在生成完整解讀 · 已等待 '+elapsed+' 秒';
+    else el.textContent='本次問題較深 · 已等待 '+elapsed+' 秒';
   },1000);
 }
 function hideLoader(){
@@ -2948,7 +2909,9 @@ function setAskLoading(on){
   if(!container)return;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const compact=innerWidth<700;
-  const count=compact?10:28;
+  const lowPower=compact||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4);
+  const count=compact?8:(lowPower?16:24);
+  const frameInterval=lowPower?40:32;
   const rings=compact?[
     {rx:.22,ry:.08,speed:.050,tilt:-.08},
     {rx:.30,ry:.13,speed:-.036,tilt:.06},
@@ -2963,6 +2926,7 @@ function setAskLoading(on){
   let externallyPaused=false;
   let hovered=null;
   let phase=0;
+  let needsPaint=true;
 
   rings.forEach(function(ring,ri){
     const guide=document.createElement('div');
@@ -2981,25 +2945,33 @@ function setAskLoading(on){
     el.textContent=QUOTES[(i*7+ringIndex*3)%QUOTES.length];
     el.style.fontSize=(compact?.72:.76+(i%4)*.07)+'rem';
     el.addEventListener('mouseenter',function(){
-      paused=true;hovered=el;el.classList.add('is-hovered');
+      paused=true;hovered=el;needsPaint=true;el.classList.add('is-hovered');
     });
     el.addEventListener('mouseleave',function(){
-      hovered=null;el.classList.remove('is-hovered');paused=reduced||externallyPaused;
+      hovered=null;needsPaint=true;el.classList.remove('is-hovered');paused=reduced||externallyPaused;
     });
     container.appendChild(el);
     items.push({
       el,ring,ringIndex,
       angle:(i/count)*Math.PI*2+(ringIndex*.73),
       offset:(i%5-.2)*.018,
+      front:false,
+      z:-1,
     });
   }
 
   let last=performance.now();
+  let lastPaint=0;
+  let vw=innerWidth,vh=innerHeight;
+  addEventListener('resize',function(){vw=innerWidth;vh=innerHeight;},{passive:true});
   function render(now){
     requestAnimationFrame(render);
+    if(now-lastPaint<frameInterval)return;
+    lastPaint=now;
     const dt=Math.min((now-last)/1000,.05);last=now;
+    if(paused&&!needsPaint)return;
+    needsPaint=false;
     if(!paused)phase+=dt;
-    const vw=innerWidth,vh=innerHeight;
     items.forEach(function(item){
       if(!paused)item.angle+=item.ring.speed*dt;
       const a=item.angle+phase*item.offset;
@@ -3011,17 +2983,18 @@ function setAskLoading(on){
       const focus=Math.pow(Math.max(0,depth),6);
       const scale=item.el===hovered?(compact?1.3:1.75):baseScale+focus*(compact?.28:.42);
       const opacity=.09+front*.48+focus*.35;
-      const blur=(1-front)*1.8;
-      item.el.style.zIndex=String(Math.round(front*100));
+      const z=Math.round(front*100);
+      if(z!==item.z){item.el.style.zIndex=String(z);item.z=z;}
       item.el.style.opacity=String(opacity);
-      item.el.style.filter=`blur(${blur.toFixed(2)}px)`;
       item.el.style.transform=`translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) scale(${scale.toFixed(3)})`;
-      item.el.classList.toggle('is-front',focus>.35);
+      const isFront=focus>.35;
+      if(isFront!==item.front){item.el.classList.toggle('is-front',isFront);item.front=isFront;}
     });
   }
   window._setWisdomPaused=function(on){
     externallyPaused=Boolean(on);
     paused=reduced||externallyPaused||Boolean(hovered);
+    needsPaint=true;
   };
   requestAnimationFrame(render);
 })();
@@ -3269,7 +3242,7 @@ function hexSVG(seed,color='#c9a84c'){
 }
 
 const SCENE_EXAMPLES={
-  A:['今年事業運勢如何','我屬虎，婚姻何時到來','如何化解今年犯太歲'],
+  A:['未來三年行業大勢如何','我目前的事業處於什麼階段','該順勢擴張還是暫時守成'],
   B:['失眠多夢怎麼調理','春季肝火旺該怎麼辦','長期久坐腰酸如何養護'],
   C:['今年全球經濟形勢如何','如何看待當前地緣政治','AI發展對人類意味著什麼'],
   D:['近期創業是否合適','這段感情該繼續嗎','面臨重要決策需要指引'],
@@ -3305,7 +3278,7 @@ function hideExamples(){
   if(el) el.classList.add('hidden');
 }
 
-const SCENE_LABELS={A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·羅盤',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
+const SCENE_LABELS={A:'推背·大勢',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·羅盤',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
 let lastQ=''; let lastScene='A'; let pinnedScene='';
 
 function buildTabs(active){
@@ -3314,7 +3287,7 @@ function buildTabs(active){
     const b=document.createElement('button');b.className='tab'+(k===active?' on':'');b.textContent=v;
     b.onclick=()=>{
       el.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-      showLoader();renderScene(k,lastQ).then(hideLoader).catch(hideLoader);
+      showLoader();renderScene(k,lastQ,true).then(hideLoader).catch(hideLoader);
     };
     el.appendChild(b);
   });
@@ -3349,11 +3322,17 @@ function getHeroQuoteSource(scene, d, sources, matchedSource) {
   // sources[0] 作为次优兜底（相似度最高的检索结果）
   const s0 = Array.isArray(sources) && sources[0];
   const ragSource = ms || (s0 ? '《' + s0.source + '》' + (s0.chapter ? ' · ' + s0.chapter : '') : '');
+  const yiBenGua = scene === 'D' && Array.isArray(sources)
+    ? sources.find(s => s.source === '易经' && /本卦/.test(s.chapter || ''))
+    : null;
+  const yiQuoteSource = yiBenGua
+    ? '《易經》 · ' + String(yiBenGua.chapter).replace(/（本卦）/g,'') + ' · 象傳'
+    : '《易經》 · 象傳';
   const map = {
     A: {quote: d.chen||d.song||'', source: d.xiang ? '推背圖 · '+d.xiang : '推背圖'},
     B: {quote: d.classic||'', source: ragSource || '《黃帝內經》'},
     C: {quote: d.prophecy||d.quote||'', source: ragSource || (d.xiang ? '推背圖 · '+d.xiang : '推背圖')},
-    D: {quote: d.guaName||d.quote||'', source: ragSource || '《易經》'},
+    D: {quote: d.guaName||d.quote||'', source: yiQuoteSource},
     E: {quote: d.classic||d.quote||'', source: ragSource || '《黃帝內經》'},
     F: {quote: d.quote||'', source: ragSource || d.source||'《道德經》'},
     G: {quote: d.quote||'', source: ragSource || d.source||'《論語》'},
@@ -3362,7 +3341,7 @@ function getHeroQuoteSource(scene, d, sources, matchedSource) {
   return map[scene] || {quote:'', source: ragSource};
 }
 
-const SCENE_LABELS_MAP = {A:'推背·命理',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·養生',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
+const SCENE_LABELS_MAP = {A:'推背·大勢',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·養生',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
 
 function renderHeroFrame(box, meta) {
   if (!box || !meta) return;

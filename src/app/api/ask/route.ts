@@ -143,6 +143,39 @@ function text(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function normalizeQuote(value: string): string {
+  return value.replace(/[\s《》〈〉「」『』“”"'，。！？；：、·（）()\-—]/g, '').trim()
+}
+
+function findSourceByQuotedText(
+  scene: string,
+  parsed: Record<string, unknown> | null,
+  results: ClassicResult[]
+): { source: string; chapter: string } | null {
+  if (!parsed || scene === 'D') return null
+  const fieldByScene: Record<string, unknown> = {
+    A: parsed.chen ?? parsed.song,
+    B: parsed.classic,
+    C: parsed.prophecy ?? parsed.quote,
+    E: parsed.classic ?? parsed.quote,
+    F: parsed.quote,
+    G: parsed.quote,
+    H: parsed.quote,
+  }
+  const rawQuote = text(fieldByScene[scene])
+  if (!rawQuote) return null
+
+  const candidates = [rawQuote, rawQuote.split(/[：:]/).at(-1) || '']
+    .map(normalizeQuote)
+    .filter(candidate => candidate.length >= 6)
+
+  for (const candidate of candidates) {
+    const hit = results.find(result => normalizeQuote(result.content).includes(candidate))
+    if (hit) return { source: hit.source, chapter: hit.chapter }
+  }
+  return null
+}
+
 function actions(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.filter(item => typeof item === 'string').map(String).slice(0, 3)
@@ -339,7 +372,7 @@ export async function POST(req: NextRequest) {
 
         const userMsg = `${currentDateContext}\n\n回答模式：${responseMode === 'brief' ? '简要' : '深度'}\n用户问：${question}\n\n请基于以上分析和典籍原文，给出有温度、有具体见解的回答。`
 
-        const maxTokens = responseMode === 'brief' ? 1300 : 2400
+        const maxTokens = responseMode === 'brief' ? 1100 : 2400
         // 一次生成是否“可用”：非空、且长度足以构成完整 JSON（截断/空都判为不可用）
         const isUsable = (t: string) => t.trim().length >= 200 && t.includes('}')
         let fullText = ''
@@ -373,11 +406,11 @@ export async function POST(req: NextRequest) {
         }
 
         // 用 AI 输出的 classicRef 字段匹配检索结果，获取精确来源
-        let matchedSource: { source: string; chapter: string } | null = null
+        let matchedSource: { source: string; chapter: string } | null = findSourceByQuotedText(scene, parsed, results)
         if (parsed && results.length) {
           // 清理书名号、引号等装饰字符，避免解析出 "《论语" / "先进》" 这类残留
           const ref = String(parsed.classicRef || '').replace(/[《》〈〉「」『』“”"\s]/g, '').trim()
-          if (ref.length >= 2) {
+          if (!matchedSource && ref.length >= 2) {
             // classicRef 格式如 "金匮要略·百合狐惑阴阳毒病证治第三"，按·分割
             const dotIdx = ref.indexOf('·')
             const refSource = dotIdx > 0 ? ref.slice(0, dotIdx).trim() : ref
