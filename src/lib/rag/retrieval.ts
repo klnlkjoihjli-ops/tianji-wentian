@@ -61,8 +61,40 @@ const HEXAGRAMS_64 = [
   '巽为风', '兑为泽', '风水涣', '水泽节', '风泽中孚', '雷山小过', '水火既济', '火水未济',
 ]
 
-// 依问题文字 + 当日日期起卦：同一问题当天得同一卦，隔日可变（呼应“时机”）。
-function castHexagram(question: string): string {
+// 八卦二进制（自下而上：[初,中,上]，阳=1 阴=0）与卦名解析，用于推算变卦
+const TRIGRAM_BITS: Record<string, number[]> = {
+  乾: [1, 1, 1], 兑: [1, 1, 0], 离: [1, 0, 1], 震: [1, 0, 0],
+  巽: [0, 1, 1], 坎: [0, 1, 0], 艮: [0, 0, 1], 坤: [0, 0, 0],
+}
+const ELEM_TO_TRIGRAM: Record<string, string> = {
+  天: '乾', 泽: '兑', 火: '离', 雷: '震', 风: '巽', 水: '坎', 山: '艮', 地: '坤',
+}
+const DOUBLE_GUA: Record<string, [string, string]> = {
+  乾为天: ['乾', '乾'], 坤为地: ['坤', '坤'], 坎为水: ['坎', '坎'], 离为火: ['离', '离'],
+  震为雷: ['震', '震'], 艮为山: ['艮', '艮'], 巽为风: ['巽', '巽'], 兑为泽: ['兑', '兑'],
+}
+// 卦名 -> [上卦, 下卦]
+function guaTrigrams(name: string): [string, string] {
+  if (DOUBLE_GUA[name]) return DOUBLE_GUA[name]
+  return [ELEM_TO_TRIGRAM[name[0]], ELEM_TO_TRIGRAM[name[1]]]
+}
+// 卦名 -> 六爻（自下而上，0..5）= 下卦三爻 + 上卦三爻
+function guaLines(name: string): number[] {
+  const [up, lo] = guaTrigrams(name)
+  return [...TRIGRAM_BITS[lo], ...TRIGRAM_BITS[up]]
+}
+// 六爻 -> 卦名
+const LINES_TO_NAME: Record<string, string> = {}
+for (const n of HEXAGRAMS_64) LINES_TO_NAME[guaLines(n).join('')] = n
+// 变卦：翻转第 yao(1..6) 爻后的卦名
+function bianGua(name: string, yao: number): string {
+  const lines = guaLines(name).slice()
+  lines[yao - 1] ^= 1
+  return LINES_TO_NAME[lines.join('')] || name
+}
+
+// 依问题文字 + 当日日期起卦：返回本卦与动爻（1..6）。同一问题当天结果一致，隔日可变。
+function castGua(question: string): { ben: string; yao: number } {
   let h = 2166136261
   for (const ch of question) {
     h ^= ch.charCodeAt(0)
@@ -70,7 +102,10 @@ function castHexagram(question: string): string {
   }
   const day = Math.floor(Date.now() / 86_400_000)
   h = (h ^ day) >>> 0
-  return HEXAGRAMS_64[h % 64]
+  const ben = HEXAGRAMS_64[h % 64]
+  // 动爻用另一段散列，避免与卦号强相关
+  const yao = (Math.imul(h ^ 0x9e3779b9, 2654435761) >>> 0) % 6 + 1
+  return { ben, yao }
 }
 
 export async function searchClassics(
@@ -88,21 +123,43 @@ export async function searchClassics(
     ...(analysis.classics || []),
   ].join(' ')
 
-  // 起卦场景：不做语义检索，直接为问题“起”出一卦，取该卦原文交给 AI 解读。
+  // 起卦场景：不做语义检索，直接为问题“起”出本卦、动爻、变卦，取原文交给 AI 解读。
   // 卦辞古奥，语义检索无法稳定命中真卦；传统起卦本也不靠相似度，而是依问题与时机起卦。
   if (scene === 'D') {
-    const castName = castHexagram(q)
+    const { ben, yao } = castGua(q)
+    const bian = bianGua(ben, yao)
+    const names = ben === bian ? [ben] : [ben, bian]
     const { data, error } = await supabase
       .from('classics')
       .select('id, source, chapter, content, scene, keywords')
       .eq('source', '易经')
-      .eq('chapter', castName)
-      .limit(1)
+      .in('chapter', names)
     if (error) {
       console.error('起卦失败:', error)
       return []
     }
-    return ((data as ClassicResult[]) || []).map(r => ({ ...r, similarity: 1 }))
+    const rows = (data as ClassicResult[]) || []
+    const benRow = rows.find(r => r.chapter === ben)
+    const bianRow = rows.find(r => r.chapter === bian)
+    // 取两条核心梅花断卦心法，引导象数推理
+    const { data: mh } = await supabase
+      .from('classics')
+      .select('id, source, chapter, content, scene, keywords')
+      .eq('source', '梅花易数')
+      .in('chapter', ['体用生克', '动爻为枢'])
+    // 合成“起卦结果”说明，放在最前，告诉 AI 本卦/动爻/变卦的关系
+    const summary: ClassicResult = {
+      id: -1, source: '起卦', scene: 'D', similarity: 1, keywords: [],
+      chapter: '本次起卦结果',
+      content: `本卦：${ben}（看当前情势）。动爻：第${yao}爻（变化的关键，应重点参看本卦此爻的爻辞）。`
+        + (bianRow ? `变卦：${bian}（事态发展的趋向）。` : '本卦六爻无动，以卦辞与象辞为主。')
+        + '解读时：先以本卦定当前格局，再就第' + yao + '爻爻辞看转折关键，最后以变卦看走向；可参以梅花易数体用生克之理。',
+    }
+    const out: ClassicResult[] = [summary]
+    if (benRow) out.push({ ...benRow, chapter: benRow.chapter + '（本卦）', similarity: 1 })
+    if (bianRow) out.push({ ...bianRow, chapter: bianRow.chapter + '（变卦）', similarity: 1 })
+    for (const m of (mh as ClassicResult[]) || []) out.push({ ...m, similarity: 1 })
+    return out
   }
 
   // 生成查询向量
@@ -131,11 +188,16 @@ export function formatClassicsContext(results: ClassicResult[]): string {
   if (!results.length) return '（未检索到相关典籍）'
 
   // 直接按 searchClassics 给定的顺序取前 5 条，不再重排：
-  // 普通场景 results 已按相似度排好；起卦场景已把易经卦辞排在最前，
-  // 这样 AI 上下文才会真正包含卦辞，而不是被高相似度的通俗典籍挤掉。
+  // 普通场景 results 已按相似度排好；起卦场景已把本卦/变卦排在最前。
+  // 起卦相关条目（起卦说明、易经卦辞、梅花心法）需保留较完整内容，
+  // 否则动爻的爻辞会被截断，AI 无法据此解读。
+  const fullSources = new Set(['起卦', '易经', '梅花易数'])
   return results
     .slice(0, 5)
-    .map(r => `【${r.source}·${r.chapter}】\n${r.content.slice(0, 120)}`)
+    .map(r => {
+      const limit = fullSources.has(r.source) ? 400 : 120
+      return `【${r.source}·${r.chapter}】\n${r.content.slice(0, limit)}`
+    })
     .join('\n\n')
 }
 

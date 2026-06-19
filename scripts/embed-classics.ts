@@ -634,6 +634,20 @@ finalFormatExtras.forEach(({ file, scene }) => {
   })
 })
 
+// 用完整六爻爻辞覆盖早期录入不全的易经卦（按 source+chapter 替换内容）
+const yijingFullYaoci: FinalEntry[] = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), 'scripts/data/yijing-yaoci-full.json'), 'utf8')
+)
+yijingFullYaoci.forEach((x) => {
+  const target = ALL_CLASSICS.find(c => c.source === '易经' && c.chapter === x.chapter)
+  if (target) {
+    target.content = x.content
+    target.keywords = x.keywords || target.keywords
+  } else {
+    ALL_CLASSICS.push({ source: '易经', chapter: x.chapter, content: x.content, scene: 'D', keywords: x.keywords || [] })
+  }
+})
+
 // 黄帝内经
 CLASSICS.neijing.forEach((x: any) => {
   ALL_CLASSICS.push({
