@@ -1426,6 +1426,87 @@ body.real-sky .bgla{animation:none;opacity:.55}
   .lg-capability{padding:.65rem .5rem .65rem 2.2rem}
   .lg-promise span{font-size:.57rem}
 }
+
+/* ════════════════════════════════════════════════════════════
+   2026-06 动画/界面升级（主题色不变，仅升级动效与质感）
+   入场编排 + 方向卡交互 + 输入聚焦 + 结果揭示
+   ════════════════════════════════════════════════════════════ */
+@keyframes fuRise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes igniteTitle{
+  0%{opacity:0;transform:scale(.92);filter:blur(8px) brightness(.35)}
+  55%{opacity:1;filter:blur(0) brightness(1.4)}
+  100%{opacity:1;transform:scale(1);filter:blur(0) brightness(1)}
+}
+@keyframes haloIn{from{opacity:0;transform:translate(-50%,-50%) scale(.4)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+/* —— 天机开启：仅在登录后(landing-reveal)首次播放，错落浮现 —— */
+#landing.landing-reveal .logo-zh{animation:igniteTitle 1.5s cubic-bezier(.16,.84,.34,1) both, titleFloat 7s ease 1.5s infinite}
+#landing.landing-reveal .divider{animation:fuRise 1s ease .55s backwards}
+#landing.landing-reveal #ganzhiBar{animation:fuRise 1s ease .75s backwards}
+#landing.landing-reveal .ask-intro{animation:fuRise .9s ease .9s backwards}
+#landing.landing-reveal .step-label{animation:fuRise .9s ease 1.05s backwards}
+#landing.landing-reveal .step-label.step2{animation:fuRise .9s ease 1.8s backwards}
+#landing.landing-reveal .pills .pill{animation:fuRise .7s cubic-bezier(.16,.84,.34,1) backwards}
+#landing.landing-reveal .pills .pill:nth-child(1){animation-delay:1.15s}
+#landing.landing-reveal .pills .pill:nth-child(2){animation-delay:1.24s}
+#landing.landing-reveal .pills .pill:nth-child(3){animation-delay:1.33s}
+#landing.landing-reveal .pills .pill:nth-child(4){animation-delay:1.42s}
+#landing.landing-reveal .pills .pill:nth-child(5){animation-delay:1.51s}
+#landing.landing-reveal .pills .pill:nth-child(6){animation-delay:1.60s}
+#landing.landing-reveal .pills .pill:nth-child(7){animation-delay:1.69s}
+#landing.landing-reveal .pills .pill:nth-child(8){animation-delay:1.78s}
+#landing.landing-reveal .q-box{animation:fuRise 1s cubic-bezier(.16,.84,.34,1) 1.9s backwards}
+#landing.landing-reveal .q-hint{animation:fuRise .9s ease 2.1s backwards}
+
+/* —— 方向卡：金色光带扫过 + 抬升 + 内辉 —— */
+.pills .pill{position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1),border-color .28s,box-shadow .28s,background .28s}
+.pills .pill::after{
+  content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,240,200,.16),transparent);
+  transform:skewX(-18deg);transition:none;pointer-events:none;
+}
+.pills .pill:hover{transform:translateY(-3px)}
+.pills .pill:hover::after{animation:pillSheen .85s ease}
+@keyframes pillSheen{from{left:-120%}to{left:160%}}
+
+/* —— 选中态：动态金边呼吸 + 常驻辉光 —— */
+@keyframes pillSelGlow{0%,100%{box-shadow:0 0 16px rgba(201,168,76,.3),inset 0 0 14px rgba(201,168,76,.12)}50%{box-shadow:0 0 26px rgba(201,168,76,.5),inset 0 0 20px rgba(201,168,76,.2)}}
+.pill.pill-on{animation:pillSelGlow 2.6s ease-in-out infinite!important}
+.pill.pill-on::before{
+  content:'';position:absolute;top:6px;right:8px;width:5px;height:5px;border-radius:50%;
+  background:#ffe9b0;box-shadow:0 0 8px rgba(255,233,176,.9);
+}
+
+/* —— 输入框：聚焦金环绽放 —— */
+.q-box{transition:box-shadow .45s ease,border-color .45s ease!important}
+.q-box:focus-within{
+  border-color:rgba(201,168,76,.85)!important;
+  box-shadow:0 0 0 1px rgba(201,168,76,.35),0 0 34px rgba(201,168,76,.22),0 16px 45px rgba(0,0,0,.4)!important;
+}
+/* 问天按钮：聚焦时轻微脉冲 */
+@keyframes askPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.q-box:focus-within #askBtn{animation:askPulse 2.4s ease-in-out infinite}
+
+/* —— 结果页：卦象/引文/结论/行动 逐层揭示 —— */
+@keyframes revealUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+#resultPage.show .hero-frame{animation:revealUp .7s cubic-bezier(.16,.84,.34,1) both}
+#resultPage.show .hero-scene-tag{animation:revealUp .6s ease .08s backwards}
+#resultPage.show .hero-quote{animation:revealUp .7s ease .18s backwards}
+#resultPage.show .hero-source{animation:revealUp .7s ease .28s backwards}
+#resultPage.show .hero-confidence{animation:revealUp .7s ease .34s backwards}
+#resultPage.show .hero-conclusion{animation:revealUp .7s ease .42s backwards}
+#resultPage.show .hero-actions{animation:revealUp .7s ease .54s backwards}
+#resultPage.show .hero-bottom-bar{animation:revealUp .7s ease .64s backwards}
+/* 展开后内部字段同样逐条揭示 */
+.hero-expand-section .hero-field{animation:revealUp .5s ease backwards}
+.hero-expand-section .hero-field:nth-child(2){animation-delay:.06s}
+.hero-expand-section .hero-field:nth-child(3){animation-delay:.12s}
+.hero-expand-section .hero-field:nth-child(4){animation-delay:.18s}
+.hero-expand-section .hero-field:nth-child(5){animation-delay:.24s}
+
+@media(prefers-reduced-motion:reduce){
+  #landing.landing-reveal *,#resultPage.show *{animation-duration:.01ms!important;animation-delay:0s!important}
+}
 </style>
 </head>
 <body>
@@ -2728,6 +2809,12 @@ function sq(q){
   handleAsk();
 }
 
+// 登录后触发首页"天机开启"入场编排（只播放一次）
+function revealLanding(){
+  const l=document.getElementById('landing');
+  if(l && !l.classList.contains('landing-reveal')) l.classList.add('landing-reveal');
+}
+
 const DEFAULT_PLACEHOLDER='未選方向也可以——直接描述你的問題，例如：我下半年事業該進還是該守？';
 const SCENE_PLACEHOLDERS={
   A:'寫下你想看的運勢或時勢，例如：今年事業走向如何？',
@@ -3705,6 +3792,7 @@ async function sceneF(q,box){
   if(storedToken && storedExpiry>Date.now()){
     gate.style.display='none';
     setAppInert(false);
+    revealLanding();
     return;
   }
   setAppInert(true);
@@ -3731,6 +3819,7 @@ async function sceneF(q,box){
         sessionStorage.setItem('tianji_auth_exp', String(data.expiresAt));
         gate.classList.add('hide');
         setAppInert(false);
+        revealLanding();
         setTimeout(()=>{ gate.style.display='none'; }, 500);
       } else {
         err.textContent = data.error || '密碼不正確';
