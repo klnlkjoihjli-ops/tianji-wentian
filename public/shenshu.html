@@ -1483,9 +1483,9 @@ body.real-sky .bgla{animation:none;opacity:.55}
   border-color:rgba(201,168,76,.85)!important;
   box-shadow:0 0 0 1px rgba(201,168,76,.35),0 0 34px rgba(201,168,76,.22),0 16px 45px rgba(0,0,0,.4)!important;
 }
-/* 问天按钮：聚焦时轻微脉冲 */
-@keyframes askPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-.q-box:focus-within #askBtn{animation:askPulse 2.4s ease-in-out infinite}
+/* 问天按钮：只脉冲亮度，不改变点击目标尺寸。 */
+@keyframes askPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.16)}}
+.q-box:focus-within #askBtn{animation:goldShimmer 3s ease infinite,askPulse 2.4s ease-in-out infinite}
 
 /* —— 结果页：卦象/引文/结论/行动 逐层揭示 —— */
 @keyframes revealUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -1634,6 +1634,155 @@ body.real-sky .bgla{animation:none;opacity:.55}
   .cosmos-nebula,.cosmos-rays,.cosmos-dust span,#landing .logo-zh::before{animation:none!important}
 }
 @media(max-width:700px){.cosmos-grain{background:radial-gradient(135% 110% at 50% 40%,transparent 56%,rgba(0,0,0,.45) 100%)}}
+
+/* ════ 视觉升级 III：八门方向卡（场景色 + 卦象 + 专属辉光） ════ */
+.pills .pill{--c:201,168,76}
+.pills .pill[data-scene="A"]{--c:213,182,109}
+.pills .pill[data-scene="B"]{--c:103,217,155}
+.pills .pill[data-scene="C"]{--c:134,184,225}
+.pills .pill[data-scene="D"]{--c:185,176,255}
+.pills .pill[data-scene="E"]{--c:120,216,170}
+.pills .pill[data-scene="F"]{--c:224,185,87}
+.pills .pill[data-scene="G"]{--c:213,182,109}
+.pills .pill[data-scene="H"]{--c:214,77,69}
+.pills .pill{
+  border-color:rgba(var(--c),.26)!important;
+  background:
+    linear-gradient(120deg,rgba(var(--c),.06),transparent 52%),
+    rgba(10,7,3,.72)!important;
+  padding-right:2.2rem!important;
+}
+.pills .pill .pill-glyph{
+  position:absolute;right:.5rem;bottom:.18rem;z-index:0;
+  font-size:2.05rem;line-height:1;color:rgba(var(--c),.16);
+  transition:color .3s,transform .3s,text-shadow .3s;pointer-events:none;
+}
+.pills .pill .pill-title,.pills .pill .pill-desc{position:relative;z-index:1}
+.pills .pill:hover{border-color:rgba(var(--c),.7)!important;box-shadow:0 6px 22px rgba(0,0,0,.4),0 0 18px rgba(var(--c),.22)!important;transform:translateY(-3px)}
+.pills .pill:hover .pill-glyph{color:rgba(var(--c),.55);transform:scale(1.12) rotate(-4deg);text-shadow:0 0 14px rgba(var(--c),.5)}
+.pills .pill:hover .pill-title{color:#fff}
+/* 选中态用场景色；卡片阴影保持静态，避免持续重绘。 */
+@keyframes pillGlyphBreathe{0%,100%{opacity:.72;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+#landing .pills .pill.pill-on{
+  border-color:rgba(var(--c),.92)!important;
+  background:linear-gradient(125deg,rgba(var(--c),.32),rgba(var(--c),.13) 60%,rgba(10,7,3,.72))!important;
+  box-shadow:0 0 22px rgba(var(--c),.42),inset 0 0 18px rgba(var(--c),.16)!important;
+  animation:none!important;
+}
+#landing .pills .pill.pill-on .pill-glyph{
+  color:rgba(var(--c),.78)!important;text-shadow:0 0 16px rgba(var(--c),.6);
+  animation:pillGlyphBreathe 2.8s ease-in-out infinite;
+}
+#landing .pills .pill.pill-on::before{background:rgb(var(--c))!important;box-shadow:0 0 9px rgba(var(--c),.95)!important}
+#landing .pills .pill.pill-on .pill-title{color:#fff!important}
+@media(max-width:640px){
+  .pills{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .pills .pill{min-height:40px;padding:.48rem 1.9rem .48rem .72rem!important;text-align:left}
+  .pills .pill .pill-glyph{right:.45rem;bottom:.2rem;font-size:1.45rem;color:rgba(var(--c),.22)}
+  #landing .pills .pill.pill-on .pill-glyph{text-shadow:0 0 9px rgba(var(--c),.55)}
+}
+
+/* ════ 视觉升级 IV：结果页编辑式字体层级 ════ */
+.hero-quote{
+  max-width:82%;font-size:1.08rem!important;line-height:1.78!important;
+  color:rgba(244,230,197,.9)!important;margin-bottom:.28rem!important;
+}
+.hero-source,.hero-confidence{
+  font-family:system-ui,-apple-system,'PingFang SC',sans-serif;
+  color:rgba(255,255,255,.34)!important;letter-spacing:.1em;
+}
+.hero-source{font-size:.62rem!important;margin-bottom:.3rem!important}
+.hero-confidence{font-size:.59rem!important;margin-bottom:1.15rem!important}
+.hero-conclusion{
+  position:relative;margin:0 0 1.15rem!important;padding:.95rem 0 .15rem!important;
+  font-size:clamp(1.18rem,1.8vw,1.46rem)!important;line-height:1.68!important;
+  font-weight:500;letter-spacing:.045em;color:#fff8e8!important;
+  text-shadow:0 0 22px rgba(var(--hero-rgb),.18);
+}
+.hero-conclusion::before{
+  content:'一句結論';display:block;margin-bottom:.48rem;
+  font-family:system-ui,-apple-system,'PingFang SC',sans-serif;
+  font-size:.58rem;line-height:1;letter-spacing:.24em;font-weight:500;
+  color:rgba(var(--hero-rgb),.72);text-shadow:none;
+}
+.hero-conclusion::after{
+  content:'';position:absolute;left:0;top:0;width:34px;height:1px;
+  background:var(--hero-accent);box-shadow:0 0 12px rgba(var(--hero-rgb),.5);
+}
+.hero-actions{
+  position:relative;gap:.5rem!important;margin-bottom:1.1rem!important;padding-top:1.6rem;
+}
+.hero-actions::before{
+  content:'今日行動';position:absolute;top:0;left:0;
+  font-family:system-ui,-apple-system,'PingFang SC',sans-serif;
+  font-size:.58rem;letter-spacing:.24em;color:rgba(var(--hero-rgb),.72);
+}
+.hero-action{
+  display:grid;grid-template-columns:2.2rem minmax(0,1fr);align-items:start;gap:.35rem;
+  padding:.68rem .9rem!important;border-left:1px solid rgba(var(--hero-rgb),.45)!important;
+  background:linear-gradient(90deg,rgba(var(--hero-rgb),.07),rgba(255,255,255,.012) 72%,transparent)!important;
+}
+.hero-action-index{
+  font-family:Georgia,'Times New Roman',serif;font-size:1.08rem;line-height:1.45;
+  font-variant-numeric:tabular-nums;color:rgba(var(--hero-rgb),.78);
+}
+.hero-action-text{
+  font-size:.86rem;line-height:1.76;color:rgba(255,255,255,.8);
+}
+.hero-bottom-bar{padding-top:.15rem;border-top:1px solid rgba(255,255,255,.045)}
+.source-chip{
+  font-family:system-ui,-apple-system,'PingFang SC',sans-serif;
+  font-size:.62rem!important;color:rgba(255,242,205,.48)!important;
+  background:rgba(201,168,76,.045)!important;border-color:rgba(201,168,76,.1)!important;
+}
+@media(max-width:640px){
+  .hero-quote{max-width:100%;font-size:.96rem!important}
+  .hero-conclusion{font-size:1.08rem!important;line-height:1.7!important;padding-top:.85rem!important}
+  .hero-actions{padding-top:1.5rem}
+  .hero-action{grid-template-columns:1.75rem minmax(0,1fr);padding:.62rem .68rem!important}
+  .hero-action-index{font-size:.96rem}
+  .hero-action-text{font-size:.82rem;line-height:1.72}
+}
+
+/* ════ 视觉升级 V：首页编辑式非对称构图 ════ */
+.landing-title-cluster{
+  width:100%;display:flex;flex-direction:column;align-items:center;position:relative;z-index:3;
+}
+.editorial-axis{display:none}
+@media(min-width:901px){
+  .landing-title-cluster{
+    position:absolute;top:clamp(2.8rem,7.5vh,4.8rem);
+    left:max(7rem,calc(50% - 500px));width:430px;align-items:flex-start;
+  }
+  .landing-title-cluster .logo-zh{align-self:flex-start;margin-left:.35rem}
+  .landing-title-cluster .divider{width:410px;max-width:100%;margin-bottom:.65rem}
+  .landing-title-cluster #ganzhiBar{text-align:left!important;margin-left:.45rem;margin-bottom:0!important}
+  #landing .q-wrap{left:clamp(3.5rem,6vw,5rem);margin-top:5rem}
+  #landing .hist-wrap{left:clamp(3.5rem,6vw,5rem)}
+  .editorial-axis{
+    position:absolute;z-index:3;left:max(3.5rem,calc(50% - 570px));top:9vh;bottom:15vh;
+    display:flex;flex-direction:column;align-items:center;gap:.7rem;
+    color:rgba(201,168,76,.42);pointer-events:none;
+  }
+  .editorial-axis-index{
+    font-family:Georgia,'Times New Roman',serif;font-size:.58rem;letter-spacing:.18em;
+    color:rgba(201,168,76,.55);writing-mode:vertical-rl;
+  }
+  .editorial-axis-line{
+    width:1px;flex:1;min-height:90px;
+    background:linear-gradient(180deg,transparent,rgba(201,168,76,.42) 18%,rgba(201,168,76,.14) 82%,transparent);
+  }
+  .editorial-axis-copy{
+    writing-mode:vertical-rl;font-size:.58rem;line-height:1.45;letter-spacing:.28em;
+    color:rgba(245,226,176,.4);
+  }
+  .editorial-axis-seal{
+    width:30px;height:38px;display:flex;align-items:center;justify-content:center;
+    writing-mode:vertical-rl;font-family:'Ma Shan Zheng',cursive;font-size:.78rem;letter-spacing:.08em;
+    color:rgba(205,78,67,.78);border:1px solid rgba(205,78,67,.5);
+    background:rgba(80,12,8,.13);box-shadow:0 0 16px rgba(160,35,28,.12);
+  }
+}
 </style>
 </head>
 <body>
@@ -1701,10 +1850,17 @@ body.real-sky .bgla{animation:none;opacity:.55}
   </div>
   <div class="god-eye"></div>
   <div class="bagua-labels" id="baguaLabels"></div>
-
-  <span class="logo-zh fu">天機</span>
-  <div class="divider fu"><span>叩問蒼天 · 典籍應答</span></div>
-  <div id="ganzhiBar" class="fu" style="font-size:.6rem;letter-spacing:.28em;color:rgba(201,168,76,.45);margin-bottom:1rem;text-align:center;"></div>
+  <div class="editorial-axis" aria-hidden="true">
+    <span class="editorial-axis-index">卷一</span>
+    <span class="editorial-axis-line"></span>
+    <span class="editorial-axis-copy">東方典籍 · 問天</span>
+    <span class="editorial-axis-seal">天機</span>
+  </div>
+  <div class="landing-title-cluster">
+    <span class="logo-zh fu">天機</span>
+    <div class="divider fu"><span>叩問蒼天 · 典籍應答</span></div>
+    <div id="ganzhiBar" class="fu" style="font-size:.6rem;letter-spacing:.28em;color:rgba(201,168,76,.45);margin-bottom:1rem;text-align:center;"></div>
+  </div>
 
   <div id="apiChip" style="display:none"></div>
   <div class="api-wrap" id="apiWrap" style="display:none"><div class="api-row"></div><div id="apiMsg"></div></div>
@@ -1716,14 +1872,14 @@ body.real-sky .bgla{animation:none;opacity:.55}
     </div>
     <div class="step-label"><i>1</i> 選擇方向<em>（可選）</em></div>
     <div class="pills fu">
-      <button type="button" class="pill" data-scene="A" aria-pressed="false" onclick="selectDirection('A',this)"><span class="pill-title">推背 · 大勢</span><span class="pill-desc">推背圖看趨勢階段</span></button>
-      <button type="button" class="pill" data-scene="C" aria-pressed="false" onclick="selectDirection('C',this)"><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></button>
-      <button type="button" class="pill" data-scene="D" aria-pressed="false" onclick="selectDirection('D',this)"><span class="pill-title">易經 · 起卦</span><span class="pill-desc">起卦·變卦·小六壬</span></button>
-      <button type="button" class="pill" data-scene="F" aria-pressed="false" onclick="selectDirection('F',this)"><span class="pill-title">道家 · 智慧</span><span class="pill-desc">老莊·清靜·心法</span></button>
-      <button type="button" class="pill" data-scene="G" aria-pressed="false" onclick="selectDirection('G',this)"><span class="pill-title">儒家 · 修身</span><span class="pill-desc">論孟荀·做人做事</span></button>
-      <button type="button" class="pill" data-scene="H" aria-pressed="false" onclick="selectDirection('H',this)"><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">孫子·競爭談判</span></button>
-      <button type="button" class="pill" data-scene="B" aria-pressed="false" onclick="selectDirection('B',this)"><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></button>
-      <button type="button" class="pill" data-scene="E" aria-pressed="false" onclick="selectDirection('E',this)"><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></button>
+      <button type="button" class="pill" data-scene="A" aria-pressed="false" onclick="selectDirection('A',this)"><span class="pill-glyph" aria-hidden="true">☰</span><span class="pill-title">推背 · 大勢</span><span class="pill-desc">推背圖看趨勢階段</span></button>
+      <button type="button" class="pill" data-scene="C" aria-pressed="false" onclick="selectDirection('C',this)"><span class="pill-glyph" aria-hidden="true">☲</span><span class="pill-title">時事 · 天機</span><span class="pill-desc">現實局勢研判</span></button>
+      <button type="button" class="pill" data-scene="D" aria-pressed="false" onclick="selectDirection('D',this)"><span class="pill-glyph" aria-hidden="true">☯</span><span class="pill-title">易經 · 起卦</span><span class="pill-desc">起卦·變卦·小六壬</span></button>
+      <button type="button" class="pill" data-scene="F" aria-pressed="false" onclick="selectDirection('F',this)"><span class="pill-glyph" aria-hidden="true">☴</span><span class="pill-title">道家 · 智慧</span><span class="pill-desc">老莊·清靜·心法</span></button>
+      <button type="button" class="pill" data-scene="G" aria-pressed="false" onclick="selectDirection('G',this)"><span class="pill-glyph" aria-hidden="true">☶</span><span class="pill-title">儒家 · 修身</span><span class="pill-desc">論孟荀·做人做事</span></button>
+      <button type="button" class="pill" data-scene="H" aria-pressed="false" onclick="selectDirection('H',this)"><span class="pill-glyph" aria-hidden="true">☳</span><span class="pill-title">謀略 · 兵法</span><span class="pill-desc">孫子·競爭談判</span></button>
+      <button type="button" class="pill" data-scene="B" aria-pressed="false" onclick="selectDirection('B',this)"><span class="pill-glyph" aria-hidden="true">☵</span><span class="pill-title">內經 · 調養</span><span class="pill-desc">睡眠體質作息</span></button>
+      <button type="button" class="pill" data-scene="E" aria-pressed="false" onclick="selectDirection('E',this)"><span class="pill-glyph" aria-hidden="true">☷</span><span class="pill-title">節氣 · 養生</span><span class="pill-desc">今日天時建議</span></button>
     </div>
     <div class="step-label step2"><i>2</i> 寫下你的問題</div>
     <div id="selectedDirNote" class="selected-dir-note" aria-live="polite" style="display:none"></div>
@@ -3665,7 +3821,14 @@ function renderHeroFrame(box, meta) {
     actions.forEach(function(item, i) {
       const a = document.createElement('div');
       a.className = 'hero-action';
-      a.textContent = (i+1) + '. ' + item;
+      const index = document.createElement('span');
+      index.className = 'hero-action-index';
+      index.textContent = String(i + 1).padStart(2, '0');
+      const actionText = document.createElement('span');
+      actionText.className = 'hero-action-text';
+      actionText.textContent = item;
+      a.appendChild(index);
+      a.appendChild(actionText);
       al.appendChild(a);
     });
     frame.appendChild(al);
