@@ -1783,6 +1783,25 @@ body.real-sky .bgla{animation:none;opacity:.55}
     background:rgba(80,12,8,.13);box-shadow:0 0 16px rgba(160,35,28,.12);
   }
 }
+
+/* —— 六爻卦象图 —— */
+.hexviz{display:flex;align-items:center;justify-content:center;gap:1.7rem;margin:.35rem 0 1.15rem;padding:.6rem .9rem}
+.hexgua{display:flex;flex-direction:column;align-items:center;gap:.55rem}
+.hexgua-label{font-size:.58rem;letter-spacing:.24em;color:rgba(255,255,255,.42)}
+.hexgua-name{font-size:.72rem;letter-spacing:.1em;color:rgba(201,168,76,.82);font-family:'Noto Serif SC',serif}
+.hexlines{display:flex;flex-direction:column-reverse;gap:6px}
+.hexline{display:flex;align-items:center;justify-content:center;gap:8px;height:9px;width:70px;opacity:0;animation:hexLineIn .5s cubic-bezier(.16,.84,.34,1) forwards}
+@keyframes hexLineIn{from{opacity:0;transform:translateY(6px) scaleX(.6)}to{opacity:1;transform:none}}
+.hexline .hexseg{height:100%;border-radius:2px;background:linear-gradient(90deg,rgba(201,168,76,.5),rgba(201,168,76,.85));box-shadow:0 0 6px rgba(201,168,76,.22)}
+.hexline.yang .hexseg{width:70px}
+.hexline.yin .hexseg{width:30px}
+.hexline.moving .hexseg{background:linear-gradient(90deg,#ffe9b0,#fff3d4);box-shadow:0 0 14px rgba(255,233,176,.9);animation:hexMoving 1.9s ease-in-out infinite}
+@keyframes hexMoving{50%{box-shadow:0 0 20px rgba(255,233,176,1);filter:brightness(1.25)}}
+.hexline.moving{position:relative}
+.hexline.moving::after{content:'';position:absolute;right:-14px;width:5px;height:5px;border-radius:50%;border:1px solid rgba(255,233,176,.9);box-shadow:0 0 8px rgba(255,233,176,.7)}
+.hexviz-arrow{font-size:.92rem;color:rgba(201,168,76,.6);font-family:'Noto Serif SC',serif;letter-spacing:.1em;align-self:center;margin-top:.3rem}
+@media(prefers-reduced-motion:reduce){.hexline{animation:none;opacity:1}.hexline.moving .hexseg{animation:none}}
+@media(max-width:700px){.hexviz{gap:1.1rem}.hexline{width:58px}.hexline.yang .hexseg{width:58px}.hexline.yin .hexseg{width:24px}}
 </style>
 </head>
 <body>
@@ -3749,6 +3768,49 @@ function getHeroQuoteSource(scene, d, sources, matchedSource) {
 
 const SCENE_LABELS_MAP = {A:'推背·大勢',B:'內經·養生',C:'時事·天機',D:'易經·起卦',E:'節氣·養生',F:'道家·智慧',G:'儒家·修身',H:'謀略·兵法'};
 
+// —— 六爻卦象图：按卦名拆爻，画本卦→变卦，动爻金色高亮 ——
+const HX_TRI={乾:[1,1,1],兑:[1,1,0],离:[1,0,1],震:[1,0,0],巽:[0,1,1],坎:[0,1,0],艮:[0,0,1],坤:[0,0,0]};
+const HX_ELEM={天:'乾',澤:'兑',泽:'兑',火:'离',雷:'震',風:'巽',风:'巽',水:'坎',山:'艮',地:'坤'};
+const HX_DBL={'乾为天':['乾','乾'],'乾為天':['乾','乾'],'坤为地':['坤','坤'],'坤為地':['坤','坤'],'坎为水':['坎','坎'],'坎為水':['坎','坎'],'离为火':['离','离'],'離為火':['离','离'],'震为雷':['震','震'],'震為雷':['震','震'],'艮为山':['艮','艮'],'艮為山':['艮','艮'],'巽为风':['巽','巽'],'巽為風':['巽','巽'],'兑为泽':['兑','兑'],'兌為澤':['兑','兑']};
+function hxLines(name){
+  name=(name||'').trim();
+  let up,lo;
+  if(HX_DBL[name]){up=HX_DBL[name][0];lo=HX_DBL[name][1];}
+  else{up=HX_ELEM[name[0]];lo=HX_ELEM[name[1]];}
+  if(!HX_TRI[up]||!HX_TRI[lo])return null;
+  return [...HX_TRI[lo],...HX_TRI[up]]; // 自下而上 初→上
+}
+function hxColumn(label,name,yao){
+  const lines=hxLines(name);if(!lines)return '';
+  let rows='';
+  for(let i=0;i<6;i++){
+    const yang=lines[i]===1;
+    const moving=(i+1)===yao;
+    rows+=`<div class="hexline ${yang?'yang':'yin'}${moving?' moving':''}" style="animation-delay:${i*0.09}s">`
+      +(yang?'<span class="hexseg"></span>':'<span class="hexseg"></span><span class="hexseg"></span>')+'</div>';
+  }
+  return `<div class="hexgua"><div class="hexgua-label">${label}</div><div class="hexlines">${rows}</div><div class="hexgua-name">${name}</div></div>`;
+}
+function buildHexViz(meta){
+  const srcs=(meta&&meta.sources)||[];
+  const sum=srcs.find(s=>s.source==='起卦');
+  const text=sum?(sum.excerpt||''):'';
+  let ben='',bian='',yao=0;
+  let m=text.match(/本卦[：:]\s*([^（(。]+)/);if(m)ben=m[1].trim();
+  m=text.match(/动爻[：:]第\s*(\d+)\s*爻/)||text.match(/動爻[：:]第\s*(\d+)\s*爻/);if(m)yao=+m[1];
+  m=text.match(/变卦[：:]\s*([^（(。]+)/)||text.match(/變卦[：:]\s*([^（(。]+)/);if(m)bian=m[1].trim();
+  // 兜底：从来源章节名取本卦/变卦
+  if(!ben){const b=srcs.find(s=>/（本卦）|\(本卦\)/.test(s.chapter||''));if(b)ben=(b.chapter||'').replace(/（本卦）|\(本卦\)/,'').trim();}
+  if(!bian){const v=srcs.find(s=>/（变卦）|（變卦）/.test(s.chapter||''));if(v)bian=(v.chapter||'').replace(/（变卦）|（變卦）/,'').trim();}
+  if(!ben||!hxLines(ben))return null;
+  const wrap=document.createElement('div');
+  wrap.className='hexviz';
+  const benCol=hxColumn('本卦',ben,yao);
+  const bianCol=(bian&&bian!==ben&&hxLines(bian))?hxColumn('變卦',bian,yao):'';
+  wrap.innerHTML=benCol+(bianCol?'<div class="hexviz-arrow">之</div>'+bianCol:'');
+  return wrap;
+}
+
 function renderHeroFrame(box, meta) {
   if (!box || !meta) return;
   const advisor = meta.advisor || {};
@@ -3798,6 +3860,12 @@ function renderHeroFrame(box, meta) {
       (confDot[level]||'#777') + ';margin-right:.4em;vertical-align:middle"></span>' +
       (confMap[level] || level);
     frame.appendChild(confEl);
+  }
+
+  // 六爻卦象图（仅起卦场景）
+  if (meta.scene === 'D') {
+    const viz = buildHexViz(meta);
+    if (viz) frame.appendChild(viz);
   }
 
   // 一句结论
