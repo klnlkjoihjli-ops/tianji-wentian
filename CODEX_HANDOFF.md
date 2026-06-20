@@ -291,3 +291,40 @@
 - 已删除左下角动态创建的 `#sundial`“十二时辰仪”及其每分钟更新逻辑；节气场景内部的节气罗盘没有删除。
 - 浏览器验证：1280×720 为 24 条名言，390×844 为 8 条；两种视口均无横向溢出，`#sundial` 不存在，轨道位置会持续更新，控制台无错误或警告。
 - `npm run lint`、`npm run build`、`git diff --check` 均通过。
+
+### 2026-06-20 首页交互改版 + 全站动效升级（Claude Code，用 frontend-design 技能）
+
+本轮主题色与黑金天象视觉**完全不变**，只升级交互结构与动效质感。所有改动集中在 `public/shenshu.html`，未触碰 Three.js 星图、`baguaGroup` 缩放、`_setResultMode`、`searchClassics` 起卦逻辑或检索内核。
+
+#### 首页：改为「选优先 + 兜底」两步式，方向卡收敛为 8 个
+
+- 首页结构改为两步：① 选择方向（可选），② 写下你的问题。
+- 之前「更多典籍方向」里有冗余按钮（起卦类 4 个、道家/儒家各 2 个都 funnel 到同一场景），已**收敛为 8 张方向卡 = 8 个真实场景（A–H）**，全部平铺、不再折叠；副说明体现各方向典籍范围（如起卦→「起卦·變卦·小六壬」、道家→「老莊·清靜·心法」）。
+- 新增 `selectDirection(scene,el)` / `clearDirection()`：点方向＝钉住 `pinnedScene` + 高亮卡片 + 切换该方向输入提示语（`SCENE_PLACEHOLDERS`）+ 出示例，**不自动提交**；未选方向则走服务端 `detectScene` 兜底；选后显示「已选方向 · 改为自动判断」可一键回退。
+- `goBack()` 末尾调用 `clearDirection()` 复位选择。
+
+#### 全站动效升级（纯 CSS + 极少 JS）
+
+关键约束（改视觉时请保留）：
+
+- 入场动画统一用 `@keyframes fuRise` + `animation-fill-mode: backwards`，**不要用 forwards/both**，否则动画结束后会锁死 transform、破坏卡片 hover 抬升。
+- 选中态辉光 `.pill.pill-on{animation:pillSelGlow ... !important}` 必须保留 `!important`，否则会被更高优先级的入场 `nth-child` 规则（`#landing.landing-reveal .pills .pill`）盖掉。
+- 入场只在登录后首屏播放一次：登录成功（两条认证路径）调用 `revealLanding()` 给 `#landing` 加 `landing-reveal` 类，动效全部 scope 在 `#landing.landing-reveal` 下；不要改成页面 load 时无条件播放，否则会被登录门挡住看不到。
+- 所有动效在 `@media(prefers-reduced-motion:reduce)` 下降级为静态。
+
+各环节动效：
+
+- **登录页**：`#loginGate` 标题点燃（`igniteTitle`）+ 介绍栏/四能力卡/密码卡错落浮现；`#loginGate.hide` 时禁用入场动画避免与淡出冲突。
+- **首页**：天機标题点燃 → 副标题/步骤标签/8 卡（nth-child 错落）/输入框依次浮现；方向卡悬停金色光带扫过（`pillSheen`）+ 抬升，选中态金边呼吸辉光（`pillSelGlow`）+ 右上角金点；输入框 `:focus-within` 金环绽放、问天按钮轻脉冲。
+- **等待层 loader**：打开时分层绽放；核心星球叠加缓转金色经线弧光（`.loader-core::after` conic + mask）；四象「觀象→索典→明理→成言」依次点亮（`oracleGlow` staggered）；进度条流动金光（`barSheen`）+ 激活步骤发光。未改 `setProgress` 逻辑。
+- **结果页**：`#resultPage.show` 下 `.hero-frame` → `.hero-quote` → `.hero-source` → `.hero-confidence` → `.hero-conclusion` → `.hero-actions` 逐层揭示（`revealUp`），展开区 `.hero-field` 同样错落。
+
+#### 验证
+
+- 本地预览（1280×800 / 375×812）：登录页、首页入场、方向卡 hover/选中、输入聚焦、loader 四象轮亮、起卦端到端（水山蹇本卦+变卦+小六壬+象传来源）全部正常，无控制台报错（除测试时用假 token 触发的 401，与本轮无关）。
+- 移动端无横向溢出；`npm run build` 通过；已部署生产。
+
+#### 后续可做（未做）
+
+- `frontend-design`、`theme-factory` 等设计技能已安装；如需更大幅度视觉重做，可在新会话中调用。
+- 起卦结果页可考虑为「摇卦→本卦/变卦逐爻画线」做一段专属揭示动画（目前是统一 `revealUp`）。
