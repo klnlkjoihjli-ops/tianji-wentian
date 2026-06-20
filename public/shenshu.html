@@ -1543,6 +1543,23 @@ body.real-sky .bgla{animation:none;opacity:.55}
 @media(prefers-reduced-motion:reduce){
   #loader.on *{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+
+/* —— 登录引导页入场编排 —— */
+#loginGate .lg-kicker{animation:fuRise .9s ease .25s backwards}
+#loginGate .lg-title{animation:igniteTitle 1.5s cubic-bezier(.16,.84,.34,1) .1s both}
+#loginGate .lg-sub{animation:fuRise .9s ease .55s backwards}
+#loginGate .lg-lead{animation:fuRise .9s ease .7s backwards}
+#loginGate .lg-capabilities .lg-capability{animation:fuRise .8s cubic-bezier(.16,.84,.34,1) backwards}
+#loginGate .lg-capabilities .lg-capability:nth-child(1){animation-delay:.85s}
+#loginGate .lg-capabilities .lg-capability:nth-child(2){animation-delay:.95s}
+#loginGate .lg-capabilities .lg-capability:nth-child(3){animation-delay:1.05s}
+#loginGate .lg-capabilities .lg-capability:nth-child(4){animation-delay:1.15s}
+#loginGate .lg-promise{animation:fuRise .9s ease 1.25s backwards}
+#loginGate .lg-entry{animation:fuRise 1s cubic-bezier(.16,.84,.34,1) .9s backwards}
+#loginGate.hide .lg-kicker,#loginGate.hide .lg-title,#loginGate.hide .lg-sub,#loginGate.hide .lg-lead,#loginGate.hide .lg-capability,#loginGate.hide .lg-promise,#loginGate.hide .lg-entry{animation:none}
+@media(prefers-reduced-motion:reduce){
+  #loginGate *{animation-duration:.01ms!important;animation-delay:0s!important}
+}
 </style>
 </head>
 <body>
