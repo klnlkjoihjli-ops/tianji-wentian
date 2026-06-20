@@ -1507,6 +1507,42 @@ body.real-sky .bgla{animation:none;opacity:.55}
 @media(prefers-reduced-motion:reduce){
   #landing.landing-reveal *,#resultPage.show *{animation-duration:.01ms!important;animation-delay:0s!important}
 }
+
+/* —— 问天等待层(loader)升级 —— */
+@keyframes loaderBloom{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+#loader.on .divination-anim{animation:loaderBloom .85s cubic-bezier(.16,.84,.34,1) both}
+#loader.on #ldtxt{animation:fade 2s ease infinite,fuRise .8s ease .3s backwards}
+#loader.on #loader-progress,#loader.on #loader-steps,#loader.on #loader-timer,#loader.on #cancelAskBtn{animation:fuRise .8s ease .4s backwards}
+/* 核心：金色经线缓转 */
+.loader-core::after{
+  content:'';position:absolute;inset:-1px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 76%,rgba(255,236,184,.55) 87%,transparent 100%);
+  -webkit-mask:radial-gradient(circle,transparent 58%,#000 60%);mask:radial-gradient(circle,transparent 58%,#000 60%);
+  animation:ringRotate 4.5s linear infinite;
+}
+/* 四象：觀象→索典→明理→成言 依次点亮 */
+.loader-oracle span{animation:oracleGlow 4.8s ease-in-out infinite}
+.loader-oracle span:nth-child(2){animation-delay:1.2s}
+.loader-oracle span:nth-child(3){animation-delay:2.4s}
+.loader-oracle span:nth-child(4){animation-delay:3.6s}
+@keyframes oracleGlow{
+  0%,100%{color:rgba(224,204,150,.4);text-shadow:none}
+  16%{color:#fff3d4;text-shadow:0 0 14px rgba(255,233,176,.85)}
+  38%{color:rgba(224,204,150,.46);text-shadow:none}
+}
+/* 进度条：流动金光 */
+#loader-progress{box-shadow:0 0 8px rgba(201,168,76,.18)}
+#loader-progress-bar{position:relative;overflow:hidden}
+#loader-progress-bar::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,245,220,.85),transparent);
+  transform:translateX(-100%);animation:barSheen 1.9s ease-in-out infinite;
+}
+@keyframes barSheen{0%{transform:translateX(-100%)}60%,100%{transform:translateX(240px)}}
+.lstep.active{text-shadow:0 0 10px rgba(201,168,76,.55)}
+@media(prefers-reduced-motion:reduce){
+  #loader.on *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
 </style>
 </head>
 <body>
