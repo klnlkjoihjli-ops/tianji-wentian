@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>天機 · 問天</title>
-<meta name="description" content="叩問蒼天，典籍應答。以推背圖·黃帝內經·易經·道德經·莊子·孫子兵法為依據，AI 陪你把問題看得更深。">
-<meta property="og:title" content="天機 · 問天">
-<meta property="og:description" content="叩問蒼天，典籍應答。東方典籍 AI 顧問——看清局勢、安頓內心、調養身心、輔助決策。">
+<title>問道 · 叩問古今</title>
+<meta name="description" content="叩問古今，典籍應答。以推背圖·黃帝內經·易經·道德經·莊子·孫子兵法為依據，AI 陪你把問題看得更深。">
+<meta property="og:title" content="問道 · 叩問古今">
+<meta property="og:description" content="叩問古今，典籍應答。東方典籍 AI 顧問——看清局勢、安頓內心、調養身心、輔助決策。">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:image" content="https://tianji.zhangkengkeng.cn/opengraph-image">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="天機 · 問天">
+<meta name="twitter:title" content="問道 · 叩問古今">
 <meta name="twitter:description" content="以推背圖·黃帝內經·易經·道德經等典籍為依據的 AI 顧問，陪你把問題看得更深。">
 <meta name="twitter:image" content="https://tianji.zhangkengkeng.cn/opengraph-image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1836,7 +1836,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
   <div class="lg-shell">
     <section class="lg-intro" aria-labelledby="lgTitle">
       <div class="lg-kicker">東方典籍 AI 顧問</div>
-      <div class="lg-title" id="lgTitle">天機</div>
+      <div class="lg-title" id="lgTitle">問道</div>
       <div class="lg-sub">不是替你預言，而是陪你把問題看得更深。</div>
       <p class="lg-lead">以《易經》《道德經》《論語》《黃帝內經》《孫子兵法》等典籍為線索，把古人的洞見轉成今天能理解、能採取的建議。</p>
       <div class="lg-capabilities" aria-label="網站能力">
@@ -1898,12 +1898,12 @@ body.real-sky .bgla{animation:none;opacity:.55}
   <div class="editorial-axis" aria-hidden="true">
     <span class="editorial-axis-index">卷一</span>
     <span class="editorial-axis-line"></span>
-    <span class="editorial-axis-copy">東方典籍 · 問天</span>
-    <span class="editorial-axis-seal">天機</span>
+    <span class="editorial-axis-copy">東方典籍 · 問道</span>
+    <span class="editorial-axis-seal">問道</span>
   </div>
   <div class="landing-title-cluster">
-    <span class="logo-zh fu">天機</span>
-    <div class="divider fu"><span>叩問蒼天 · 典籍應答</span></div>
+    <span class="logo-zh fu">問道</span>
+    <div class="divider fu"><span>叩問古今 · 典籍應答</span></div>
     <div id="ganzhiBar" class="fu" style="font-size:.6rem;letter-spacing:.28em;color:rgba(201,168,76,.45);margin-bottom:1rem;text-align:center;"></div>
   </div>
 
@@ -1966,7 +1966,7 @@ body.real-sky .bgla{animation:none;opacity:.55}
   <div class="topbar">
     <div class="tabs" id="tabs"></div>
     <button class="back-btn" onclick="goBack()">
-      <span>☯</span><span>重新問天</span>
+      <span>☯</span><span>重新問道</span>
     </button>
   </div>
   <div id="rinner"></div>
@@ -3233,7 +3233,7 @@ window.addEventListener('load',()=>{
   setInterval(updateTimeDisplay,60000);
   syncModeControls();
   renderHist();
-  document.getElementById('askBtn').textContent='問天';
+  document.getElementById('askBtn').textContent='問道';
   document.getElementById('question').addEventListener('input', function(){
     if(this.value.trim()) hideExamples();
   });
@@ -3328,7 +3328,7 @@ async function handleAsk(){
 function setAskLoading(on){
   const btn=document.getElementById('askBtn');
   btn.disabled=on;
-  btn.textContent=on?'…':'問天';
+  btn.textContent=on?'…':'問道';
   btn.style.opacity=on?'.5':'1';
   btn.style.cursor=on?'not-allowed':'pointer';
 }
@@ -3567,7 +3567,7 @@ function showErrorState(question, onRetry, err){
   const rinner = document.getElementById('rinner');
   if(!rinner) return;
 
-  if(err) console.error('[天機錯誤]', err);
+  if(err) console.error('[問道錯誤]', err);
 
   resultPage.classList.add('error-mode');
   rinner.innerHTML = '';
@@ -3577,7 +3577,7 @@ function showErrorState(question, onRetry, err){
   el.className = 'error-state';
   el.innerHTML =
     '<div class="error-icon">☯</div>'
-   +'<div class="error-title">天機推演未能完成</div>'
+   +'<div class="error-title">問道推演未能完成</div>'
    +'<div class="error-desc">'+escapeHTML(errMsg || '本次解讀生成異常，典籍浩瀚，偶有推演未竟之時')+'</div>'
    +(question ? '<div class="error-question">「'+escapeHTML(question)+'」</div>' : '')
    +'<button class="error-retry-btn" id="retryBtn">重新推演</button>'
@@ -3904,7 +3904,7 @@ function renderHeroFrame(box, meta) {
   } else if (!hasSummary) {
     const c = document.createElement('div');
     c.className = 'hero-conclusion';
-    c.textContent = '已找到相关典籍，但本次解读未完整生成。你可以重新问天获取完整回答。';
+    c.textContent = '已找到相关典籍，但本次解读未完整生成。你可以重新问道获取完整回答。';
     frame.appendChild(c);
   }
 

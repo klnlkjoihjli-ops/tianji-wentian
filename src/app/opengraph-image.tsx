@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = '天機 · 問天 — 東方典籍 AI 顧問'
+export const alt = '問道 · 叩問古今 — 東方典籍 AI 顧問'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -27,8 +27,8 @@ async function loadFont(family: string, text: string): Promise<ArrayBuffer | nul
 }
 
 export default async function Image() {
-  const title = '天機'
-  const tagline = '叩問蒼天 · 典籍應答'
+  const title = '問道'
+  const tagline = '叩問古今 · 典籍應答'
   const kicker = '東方典籍 AI 顧問'
   const allText = title + tagline + kicker
   const [brush, serif] = await Promise.all([

@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <iframe
       src="/shenshu.html"
-      title="天機 · 問天"
+      title="問道 · 叩問古今"
       style={{
         position: 'fixed',
         inset: 0,
