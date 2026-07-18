@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>問道 · 暫離星圖</title>
+<meta name="theme-color" content="#0b0a08">
+<style>
+  *{box-sizing:border-box}
+  html,body{min-height:100%;margin:0;background:#030405;color:#f5e6bd;font-family:serif}
+  body{display:grid;place-items:center;padding:24px;background:
+    radial-gradient(circle at 50% 20%,rgba(202,166,74,.24),transparent 24%),
+    radial-gradient(circle at 18% 82%,rgba(92,75,145,.18),transparent 28%),
+    #030405}
+  main{width:min(560px,100%);padding:34px 28px;border:1px solid rgba(214,183,105,.32);border-radius:28px;background:rgba(5,6,8,.72);box-shadow:0 24px 80px rgba(0,0,0,.45);text-align:center}
+  .seal{width:76px;height:76px;margin:0 auto 18px;border:1px solid rgba(214,183,105,.55);border-radius:24px;display:grid;place-items:center;color:#d8b76a;font-size:32px;letter-spacing:.08em;box-shadow:0 0 36px rgba(214,183,105,.24)}
+  h1{margin:0 0 10px;font-size:28px;font-weight:600;letter-spacing:.18em}
+  p{margin:0 auto 22px;max-width:28em;color:rgba(245,230,189,.78);line-height:1.8}
+  button{border:1px solid rgba(214,183,105,.46);border-radius:999px;padding:12px 22px;background:rgba(214,183,105,.1);color:#f7e7bd;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <div class="seal">問</div>
+  <h1>暫離星圖</h1>
+  <p>目前似乎沒有網絡。問道需要連接典籍檢索與 AI 服務才能生成回答；恢復網絡後再試一次即可。</p>
+  <button onclick="location.reload()">重新連接</button>
+</main>
+</body>
+</html>

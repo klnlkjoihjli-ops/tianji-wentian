@@ -384,3 +384,48 @@
 - 390×844：`2×4` 八门卡、居中标题和输入框均在首屏，无溢出。
 - 真实起卦结果页桌面与 390px 字体层级正常。
 - `prefers-reduced-motion` 继续覆盖新增动画。
+
+## 2026-07-18 PWA 应用化改造（Codex）
+
+本轮把线上“問道 / 天机”补成轻量 PWA，目标是让网站可以被手机和桌面浏览器安装为独立应用，同时避免再次出现严重缓存困扰。
+
+### 新增文件
+
+- `public/manifest.webmanifest`：PWA 应用清单，包含应用名称、短名称、启动路径、黑金主题色、图标、分类和截图信息。
+- `public/sw.js`：原生 service worker，不引入 `next-pwa` 等新依赖。
+- `public/offline.html`：离线提示页。AI 问答仍需要联网，只在断网时给用户一个明确提示。
+- `public/icons/icon.svg`：矢量图标，黑金星轨 + “問道”文字。
+- `public/icons/icon-192.png`、`public/icons/icon-512.png`、`public/icons/icon-maskable-512.png`：浏览器安装和移动端主屏使用的 PNG 图标。
+
+### 修改文件
+
+- `public/shenshu.html`
+  - `<head>` 增加 `manifest`、`theme-color`、iOS 添加到主屏相关 meta、SVG favicon 和 Apple touch icon。
+  - 页面底部增加 service worker 注册脚本。
+  - 注册失败只 `console.warn`，不影响登录、问答或结果页渲染。
+- `next.config.js`
+  - `/sw.js` 使用 `no-cache, no-store, must-revalidate`，并设置 `Service-Worker-Allowed: /`，确保 service worker 能快速更新且作用域覆盖根路径。
+  - `/manifest.webmanifest` 设置 manifest content type 和短缓存。
+  - `/icons/:path*` 设置长期 immutable 缓存，因为图标文件名稳定且内容很少变。
+
+### 缓存策略说明
+
+- `/api/auth`、`/api/ask` 和所有 `/api/*` 请求不进入 service worker 缓存，避免登录 token、问答结果和限流状态被缓存污染。
+- `/` 和 `/shenshu.html` 采用 network-first。优先取线上最新 HTML；断网时才尝试缓存或回退到 `offline.html`。
+- 字体和 Three.js CDN 资源采用 cache-first，减少再次打开应用时的加载压力。
+- 不要把 `shenshu.html` 改成长期强缓存。用户之前多次遇到“看不到最新版本”，这里必须保持 HTML 易更新。
+
+### 已验证
+
+- `node --check public/sw.js` 通过。
+- `public/manifest.webmanifest` 可被 `JSON.parse` 正常解析。
+- PNG 图标尺寸确认：192x192、512x512、512x512 maskable。
+- `public/shenshu.html` 已确认包含 `manifest.webmanifest`、`theme-color`、Apple PWA meta 和 `serviceWorker.register('/sw.js')`。
+- `npm run lint` 通过，仅剩既有 `src/app/opengraph-image.tsx` 的 `allText` 未使用 warning。
+- `npm run build` 通过。
+
+### 后续验收建议
+
+- 部署到 Vercel 后，用 Chrome DevTools 的 Application 面板检查 Manifest、Service Workers 和 Installability。
+- 手机上访问生产域名后测试“添加到主屏幕”；iOS 需要 Safari 的分享菜单添加。
+- 推新版本后若发现浏览器仍旧，先在 DevTools Application 里点 `Update on reload` 或注销旧 service worker，再刷新验证。

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="問道">
+  <defs>
+    <radialGradient id="bg" cx="36%" cy="26%" r="72%">
+      <stop offset="0" stop-color="#2d2414"/>
+      <stop offset="0.5" stop-color="#090b0d"/>
+      <stop offset="1" stop-color="#020304"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="90" y1="60" x2="424" y2="452">
+      <stop offset="0" stop-color="#fff1b8"/>
+      <stop offset="0.42" stop-color="#c9a84c"/>
+      <stop offset="1" stop-color="#765b24"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="174" fill="none" stroke="#c9a84c" stroke-opacity=".34" stroke-width="2"/>
+  <circle cx="256" cy="256" r="126" fill="none" stroke="#c9a84c" stroke-opacity=".18" stroke-width="1.5"/>
+  <path d="M82 259c70-50 130-72 183-69 54 3 109 31 165 84" fill="none" stroke="#c9a84c" stroke-opacity=".28" stroke-width="2"/>
+  <path d="M117 356c62-28 116-40 164-36 45 4 83 21 114 50" fill="none" stroke="#c9a84c" stroke-opacity=".16" stroke-width="2"/>
+  <g fill="url(#gold)" filter="url(#glow)" font-family="'Songti SC','Noto Serif CJK SC',serif" text-anchor="middle">
+    <text x="256" y="238" font-size="118" font-weight="700" letter-spacing="8">問</text>
+    <text x="256" y="346" font-size="90" font-weight="700" letter-spacing="10">道</text>
+  </g>
+  <g fill="#f4dc95" opacity=".72">
+    <circle cx="142" cy="142" r="4"/>
+    <circle cx="383" cy="122" r="3"/>
+    <circle cx="399" cy="319" r="3.4"/>
+    <circle cx="116" cy="330" r="2.8"/>
+    <circle cx="304" cy="86" r="2.4"/>
+  </g>
+</svg>

@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>問道 · 叩問古今</title>
 <meta name="description" content="叩問古今，典籍應答。以推背圖·黃帝內經·易經·道德經·莊子·孫子兵法為依據，AI 陪你把問題看得更深。">
+<meta name="theme-color" content="#0b0a08">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="問道">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <meta property="og:title" content="問道 · 叩問古今">
 <meta property="og:description" content="叩問古今，典籍應答。東方典籍 AI 顧問——看清局勢、安頓內心、調養身心、輔助決策。">
 <meta property="og:type" content="website">
@@ -4251,6 +4259,17 @@ async function sceneF(q,box){
       btn.disabled=false; btn.textContent='入 門';
     }
   };
+})();
+</script>
+<script>
+// ══ PWA 安装支持 ══
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function(err){
+      console.warn('Service worker registration failed:', err);
+    });
+  });
 })();
 </script>
 </body>
