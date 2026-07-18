@@ -429,3 +429,38 @@
 - 部署到 Vercel 后，用 Chrome DevTools 的 Application 面板检查 Manifest、Service Workers 和 Installability。
 - 手机上访问生产域名后测试“添加到主屏幕”；iOS 需要 Safari 的分享菜单添加。
 - 推新版本后若发现浏览器仍旧，先在 DevTools Application 里点 `Update on reload` 或注销旧 service worker，再刷新验证。
+
+## 2026-07-18 手机端背景闪烁修复（Codex）
+
+用户反馈手机版有背景时会闪烁。本轮只做移动端性能降级，不改变桌面视觉和问答逻辑。
+
+### 原因判断
+
+- 手机端 `.wisdom-planet` 原为 `105vw`，且使用 `filter:brightness()` 呼吸动画，属于大面积固定背景滤镜重绘，iOS Safari/移动 Chrome 容易闪烁。
+- 背景同时叠加 Three.js 星空、CSS 星球、名言轨道、宇宙光线、漂浮尘粒和噪声混合层，移动端 GPU 合成压力偏高。
+
+### 已调整
+
+- `@media(max-width:700px)` 下：
+  - `.wisdom-planet` 从 `105vw` 收到 `min(96vw,460px)`。
+  - 禁用星球 `planetBreathe` 和纹理旋转动画，移除移动端 `filter` 呼吸。
+  - 隐藏轨道 guide，降低星球 opacity 和 box-shadow。
+  - 禁用移动端 `.cosmos-nebula`、`.cosmos-rays`、标题背后光晕的动画与 filter。
+  - 隐藏 `.cosmos-dust span`，降低颗粒层 opacity，并取消 `mix-blend-mode: overlay`。
+- Three.js 移动端：
+  - 新增 `compactSky = innerWidth < 700`。
+  - 背景星点从低功耗 2200 降到 900，近景星从 80 降到 36，星尘从 900 降到 260。
+  - 移动端关闭 WebGL antialias，像素比固定为 1。
+  - 移动端最小帧间隔从约 33ms 调整为 50ms，目标约 20fps。
+
+### 保留效果
+
+- 手机端仍保留黑金星球、星图、名言轨道和暗角氛围。
+- 桌面端不受本轮降级影响。
+
+### 已验证
+
+- 内联脚本语法检查通过。
+- `npm run lint` 通过，仅剩既有 `src/app/opengraph-image.tsx` 的 `allText` 未使用 warning。
+- `npm run build` 通过。
+- `git diff --check` 通过。
