@@ -464,3 +464,48 @@
 - `npm run lint` 通过，仅剩既有 `src/app/opengraph-image.tsx` 的 `allText` 未使用 warning。
 - `npm run build` 通过。
 - `git diff --check` 通过。
+
+## 2026-09-07 典籍检索空结果修复（Codex）
+
+用户反馈“每次都是检索不到原文”。本轮定位到主因不是前端展示，而是服务端 RAG 数据源不可达。
+
+### 根因
+
+- 当前 `.env.local` 中 Supabase URL 指向 `https://lhwytfroudawndeeyipw.supabase.co`。
+- 本地 `dig` / `nslookup` 该域名返回 `NXDOMAIN`，`curl` 与 Node `fetch` 均报 `Could not resolve host` / `getaddrinfo ENOTFOUND`。
+- `src/lib/rag/retrieval.ts` 普通场景原逻辑是：先生成 embedding，再调用 Supabase RPC `search_classics`。Supabase 不可达时会返回空数组，前端因此显示“本次未檢索到可核驗原文”。
+- 起卦场景 D 也依赖 Supabase 查询本卦、变卦、小六壬；Supabase 不可达时同样会丢失原文。
+
+### 已修复
+
+- 新增 `src/lib/rag/local-classics.ts`：
+  - 静态导入 `scripts/data/*.json` 中的典籍数据，避免 Vercel serverless 运行时通过 `fs` 动态读文件导致输出追踪漏文件。
+  - 由于仓库暂时没有独立 `scripts/data/tuibei.json`，服务端内置了少量推背图兜底象辞，保证 A/C 场景在 Supabase 不可达时仍有推背图原文依据。
+  - 提供 `searchLocalClassics(q, scene, count)`，用关键词、篇章、书名和中文 2-4gram 做本地兜底检索。
+  - 提供 `findLocalClassicsBySourceChapters(source, chapters)`，给起卦场景按本卦/变卦/小六壬精确取原文。
+  - 对本地检索结果按 `source + chapter` 去重，避免来源 chips 被同篇章刷屏。
+- 修改 `src/lib/rag/retrieval.ts`：
+  - 普通场景：Supabase RPC 报错、域名不可达或返回空结果时，自动回退到 `searchLocalClassics()`。
+  - 起卦场景：本卦/变卦/彖传、小六壬、梅花体用均增加本地兜底。
+  - 数据库成功时仍优先使用 Supabase 向量检索。
+- 修正 `scripts/schema.sql` 与 `scripts/fix-schema.sql`：
+  - `embedding vector(2048)` 改为 `embedding vector(512)`。
+  - `search_classics(query_embedding vector(2048))` 改为 `vector(512)`。
+  - 原因：当前 `src/lib/deepseek.ts` 与 `scripts/embed-classics.ts` 都使用智谱 `embedding-3` 且显式 `dimensions: 512`。保留 2048 会导致未来重建数据库后维度再次不匹配。
+
+### 已验证
+
+- 在 Supabase 域名解析失败的状态下，直接调用 `searchClassics()`：
+  - B 内经问题返回 `黄帝内经·灵枢·大惑论`、`黄帝内经·素问·逆调论` 等真实原文。
+  - H 兵法问题返回 `孙子兵法·作战篇`、`孙子兵法·谋攻篇` 等真实原文。
+  - F 道家问题返回 `列子·黄帝篇`、`庄子·齐物论` 等真实原文。
+  - D 起卦问题返回 `起卦·本次起卦结果`、`易经·泽风大过（本卦）`、`易经·泽风大过·彖传`、`易经·雷风恒（变卦）`。
+  - A/C 大势问题返回推背图象辞，不再混入菜根谭等非推背来源。
+- `npm run lint` 通过，仅剩既有 `src/app/opengraph-image.tsx` 的 `allText` 未使用 warning。
+- `npm run build` 通过。
+
+### 后续必须检查
+
+- 登录 Supabase Dashboard，确认项目 `lhwytfroudawndeeyipw` 是否被删除、暂停或 URL 复制错误。
+- Vercel 环境变量中的 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 也要核对；如果还是这个不可解析的项目 ref，生产环境会继续走本地兜底。
+- 若重建 Supabase，必须执行已修正为 512 维的 `scripts/schema.sql`，然后重新运行 `npm run embed` 入库。

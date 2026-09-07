@@ -8,7 +8,7 @@ create table classics (
   content     text not null,
   scene       text not null,
   keywords    text[] default '{}',
-  embedding   vector(2048),
+  embedding   vector(512),
   created_at  timestamptz default now()
 );
 
@@ -17,7 +17,7 @@ create index classics_embedding_idx
   with (m = 16, ef_construction = 64);
 
 create or replace function search_classics(
-  query_embedding vector(2048),
+  query_embedding vector(512),
   scene_filter    text default 'ALL',
   match_count     int  default 8,
   match_threshold float default 0.5

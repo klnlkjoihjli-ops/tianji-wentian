@@ -15,7 +15,7 @@ create table if not exists classics (
   content     text not null,        -- 原文内容
   scene       text not null,        -- 适用场景：A/B/C/D/E/F/ALL
   keywords    text[] default '{}',  -- 关键词数组（用于辅助检索）
-  embedding   vector(2048),         -- 智谱 embedding-3 默认维度
+  embedding   vector(512),          -- 智谱 embedding-3 使用 dimensions:512
   created_at  timestamptz default now()
 );
 
@@ -47,7 +47,7 @@ create index if not exists conv_created_idx on conversations(created_at desc);
 --  输出：最相关的典籍段落
 -- ══════════════════════════════════════════════
 create or replace function search_classics(
-  query_embedding vector(2048),
+  query_embedding vector(512),
   scene_filter    text default 'ALL',
   match_count     int  default 8,
   match_threshold float default 0.5

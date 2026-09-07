@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase'
 import { embed, chat } from '@/lib/deepseek'
+import { findLocalClassicsBySourceChapters, searchLocalClassics } from './local-classics'
 
 export interface ClassicResult {
   id: number
@@ -147,16 +148,19 @@ export async function searchClassics(
     const bian = bianGua(ben, yao)
     // 取本卦、变卦的卦爻辞，以及本卦的彖传（判词，深化义理）
     const names = Array.from(new Set([ben, bian, ben + '·彖传']))
-    const { data, error } = await supabase
-      .from('classics')
-      .select('id, source, chapter, content, scene, keywords')
-      .eq('source', '易经')
-      .in('chapter', names)
-    if (error) {
-      console.error('起卦失败:', error)
-      return []
+    let rows: ClassicResult[] = []
+    try {
+      const { data, error } = await supabase
+        .from('classics')
+        .select('id, source, chapter, content, scene, keywords')
+        .eq('source', '易经')
+        .in('chapter', names)
+      if (error) throw error
+      rows = (data as ClassicResult[]) || []
+    } catch (error) {
+      console.error('起卦数据库检索失败，使用本地典籍兜底:', error)
+      rows = findLocalClassicsBySourceChapters('易经', names)
     }
-    const rows = (data as ClassicResult[]) || []
     const benRow = rows.find(r => r.chapter === ben)
     const bianRow = rows.find(r => r.chapter === bian)
     const tuanRow = rows.find(r => r.chapter === ben + '·彖传')
@@ -174,24 +178,40 @@ export async function searchClassics(
         r.source === '六爻' || r.source === '梅花易数'
         || (r.source === '易经' && /系辞|说卦|序卦|杂卦|文言/.test(r.chapter))
       interp = ((hits as ClassicResult[]) || []).filter(isInterp).slice(0, 2)
-    } catch { /* 检索失败不影响起卦主体 */ }
+    } catch {
+      interp = searchLocalClassics(queryText, 'D', 8)
+        .filter((r) =>
+          r.source === '六爻' || r.source === '梅花易数'
+          || (r.source === '易经' && /系辞|说卦|序卦|杂卦|文言/.test(r.chapter))
+        )
+        .slice(0, 2)
+    }
     // 兜底：若没捞到义理，则给一条核心梅花心法
     if (!interp.length) {
-      const { data: mh } = await supabase
-        .from('classics')
-        .select('id, source, chapter, content, scene, keywords')
-        .eq('source', '梅花易数').eq('chapter', '体用生克').limit(1)
-      interp = (mh as ClassicResult[]) || []
+      try {
+        const { data: mh } = await supabase
+          .from('classics')
+          .select('id, source, chapter, content, scene, keywords')
+          .eq('source', '梅花易数').eq('chapter', '体用生克').limit(1)
+        interp = (mh as ClassicResult[]) || []
+      } catch {
+        interp = findLocalClassicsBySourceChapters('梅花易数', ['体用生克'])
+      }
     }
     // 同时起一课小六壬，作为快速印证
     const lr = castXiaoLiuren(q)
-    const { data: lrData } = await supabase
-      .from('classics')
-      .select('id, source, chapter, content, scene, keywords')
-      .eq('source', '小六壬')
-      .eq('chapter', lr.palace)
-      .limit(1)
-    const lrRow = ((lrData as ClassicResult[]) || [])[0]
+    let lrRow: ClassicResult | undefined
+    try {
+      const { data: lrData } = await supabase
+        .from('classics')
+        .select('id, source, chapter, content, scene, keywords')
+        .eq('source', '小六壬')
+        .eq('chapter', lr.palace)
+        .limit(1)
+      lrRow = ((lrData as ClassicResult[]) || [])[0]
+    } catch {
+      lrRow = findLocalClassicsBySourceChapters('小六壬', [lr.palace])[0]
+    }
     // 合成“起卦结果”说明，放在最前，告诉 AI 本卦/动爻/变卦 与 小六壬课
     const summary: ClassicResult = {
       id: -1, source: '起卦', scene: 'D', similarity: 1, keywords: [],
@@ -210,23 +230,28 @@ export async function searchClassics(
     return out
   }
 
-  // 生成查询向量
-  const queryEmbedding = await embed(queryText)
+  try {
+    // 生成查询向量
+    const queryEmbedding = await embed(queryText)
 
-  // 向量检索
-  const { data, error } = await supabase.rpc('search_classics', {
-    query_embedding: queryEmbedding,
-    scene_filter: scene === 'ALL' ? 'ALL' : scene,
-    match_count: count,
-    match_threshold: 0.45,
-  })
+    // 向量检索
+    const { data, error } = await supabase.rpc('search_classics', {
+      query_embedding: queryEmbedding,
+      scene_filter: scene === 'ALL' ? 'ALL' : scene,
+      match_count: count,
+      match_threshold: 0.45,
+    })
 
-  if (error) {
-    console.error('向量检索失败:', error)
-    return []
+    if (error) throw error
+
+    const rows = ((data as ClassicResult[]) || []).slice(0, count)
+    if (rows.length) return rows
+    console.error('向量检索结果为空，使用本地典籍兜底:', { scene, query: q.slice(0, 80) })
+  } catch (error) {
+    console.error('向量检索失败，使用本地典籍兜底:', error)
   }
 
-  return ((data as ClassicResult[]) || []).slice(0, count)
+  return searchLocalClassics(queryText, scene, count)
 }
 
 // ══════════════════════════════════════════════
